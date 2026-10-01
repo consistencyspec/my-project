@@ -1,0 +1,10 @@
+# 秘密情報(絶対にコミットしない)
+.env
+
+# 自動生成される下書き(個人の作業ファイル)
+output/*
+!output/.gitkeep
+
+# Python の一時ファイル
+__pycache__/
+*.pyc

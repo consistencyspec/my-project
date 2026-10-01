@@ -1,0 +1,15 @@
+{
+  "_comment": "動作確認用のダミー商品です(実在しません)。--demo オプションのときだけ使われます。",
+  "Items": [
+    {"itemCode": "demo-shop:0001", "itemName": "【DEMO】軽量モバイルバッテリー 20000mAh 急速充電対応", "itemPrice": 4280, "itemUrl": "https://example.com/demo/0001", "affiliateUrl": "https://example.com/demo/aff/0001", "shopName": "デモ電器", "reviewAverage": 4.6, "reviewCount": 1280},
+    {"itemCode": "demo-shop:0002", "itemName": "【DEMO】ワイヤレスイヤホン ノイズキャンセリング搭載 Bluetooth5.3", "itemPrice": 8980, "itemUrl": "https://example.com/demo/0002", "affiliateUrl": "https://example.com/demo/aff/0002", "shopName": "デモオーディオ", "reviewAverage": 4.4, "reviewCount": 860},
+    {"itemCode": "demo-shop:0003", "itemName": "【DEMO】USB-C ハブ 6in1 HDMI 4K対応", "itemPrice": 3980, "itemUrl": "https://example.com/demo/0003", "affiliateUrl": "https://example.com/demo/aff/0003", "shopName": "デモPCストア", "reviewAverage": 4.5, "reviewCount": 410},
+    {"itemCode": "demo-shop:0004", "itemName": "【DEMO】洗える電気毛布 シングル 敷き掛け兼用", "itemPrice": 5480, "itemUrl": "https://example.com/demo/0004", "affiliateUrl": "https://example.com/demo/aff/0004", "shopName": "デモ寝具", "reviewAverage": 4.3, "reviewCount": 2210},
+    {"itemCode": "demo-shop:0005", "itemName": "【DEMO】温度調節できる電気ケトル 1.0L ステンレス", "itemPrice": 5980, "itemUrl": "https://example.com/demo/0005", "affiliateUrl": "https://example.com/demo/aff/0005", "shopName": "デモキッチン", "reviewAverage": 4.7, "reviewCount": 530},
+    {"itemCode": "demo-shop:0006", "itemName": "【DEMO】卓上加湿器 超音波式 静音 USB給電", "itemPrice": 2980, "itemUrl": "https://example.com/demo/0006", "affiliateUrl": "https://example.com/demo/aff/0006", "shopName": "デモ生活館", "reviewAverage": 4.2, "reviewCount": 340},
+    {"itemCode": "demo-shop:0007", "itemName": "【DEMO】ロボット掃除機 水拭き対応 自動充電", "itemPrice": 29800, "itemUrl": "https://example.com/demo/0007", "affiliateUrl": "https://example.com/demo/aff/0007", "shopName": "デモ家電館", "reviewAverage": 4.5, "reviewCount": 990},
+    {"itemCode": "demo-shop:0008", "itemName": "【DEMO】デスク用モニターライト 目に優しい 調光調色", "itemPrice": 6480, "itemUrl": "https://example.com/demo/0008", "affiliateUrl": "https://example.com/demo/aff/0008", "shopName": "デモ照明", "reviewAverage": 4.6, "reviewCount": 270},
+    {"itemCode": "demo-shop:0009", "itemName": "【DEMO】速乾ドライヤー 大風量 マイナスイオン", "itemPrice": 7980, "itemUrl": "https://example.com/demo/0009", "affiliateUrl": "https://example.com/demo/aff/0009", "shopName": "デモビューティ", "reviewAverage": 4.5, "reviewCount": 1500},
+    {"itemCode": "demo-shop:0010", "itemName": "【DEMO】コンパクト空気清浄機 花粉・PM2.5対応", "itemPrice": 12800, "itemUrl": "https://example.com/demo/0010", "affiliateUrl": "https://example.com/demo/aff/0010", "shopName": "デモ空調", "reviewAverage": 4.4, "reviewCount": 620}
+  ]
+}
