@@ -72,6 +72,30 @@ class ClientTests(unittest.TestCase):
             self.assertNotRegex(text, r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
 
+class KpiTests(unittest.TestCase):
+    def test_followers_and_impressions_against_milestones(self):
+        import summarize as sm
+        cfg = {"kpi_milestones": {"2026-11": {"followers": 400, "avg_impressions": 800}}}
+        followers = [{"date": "2026-10-31", "followers": "180"}, {"date": "2026-11-07", "followers": "200"},
+                     {"date": "2026-11-21", "followers": "999"}]  # 基準日より後の記録は使わない
+        posts = [{"status": "posted", "ad": "1", "posted_date": "2026-11-02", "impressions": "600"},
+                 {"status": "posted", "ad": "1", "posted_date": "2026-11-04", "impressions": "1,000"},
+                 {"status": "posted", "ad": "0", "posted_date": "2026-11-05", "impressions": "5000"},  # 広告なしは除外
+                 {"status": "posted", "ad": "1", "posted_date": "2026-11-06", "impressions": ""}]  # 未記入は除外
+        text = "\n".join(sm.kpi_section(posts, followers, cfg, date(2026, 11, 14)))
+        self.assertIn("**200人**", text)
+        self.assertIn("50%", text)
+        self.assertIn("+20人", text)
+        self.assertIn("**800回**", text)
+        self.assertIn("100%", text)
+
+    def test_missing_kpi_data_is_explained(self):
+        import summarize as sm
+        text = "\n".join(sm.kpi_section([], [], {}, date(2026, 11, 14)))
+        self.assertIn("followers.csv", text)
+        self.assertIn("impressions", text)
+
+
 class PipelineTests(unittest.TestCase):
     def run_py(self, *args, env=None):
         e = {**os.environ, "RAKUTEN_APPLICATION_ID": "", "RAKUTEN_ACCESS_KEY": "", "RAKUTEN_AFFILIATE_ID": ""}

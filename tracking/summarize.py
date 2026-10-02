@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""週次・月次の成果をまとめ、100万円までの進み具合を表示します。
+"""週次・月次の成果をまとめ、最終目標(12月の売上金額)までの進み具合を表示します。
 
 使い方:
   python3 tracking/summarize.py                  # 今日を基準にしたレポート
@@ -81,7 +81,39 @@ def type_table(posts):
     return lines
 
 
-def build_report(posts, sales, cfg, today):
+def kpi_section(posts, followers, cfg, today):
+    """フォロワー数と、1投稿あたりの表示回数(売上の元になる数字)を、今月の目安と比べる。"""
+    goal = cfg.get("kpi_milestones", {}).get(month_key(today), {})
+    out = ["", "## フォロワーと表示回数(売上の元になる数字)"]
+    dated = sorted((d, r) for r in followers if (d := tl.parse_date(r.get("date"))) and d <= today)
+    if dated:
+        d, r = dated[-1]
+        n = tl.to_int(r.get("followers"))
+        line = f"- フォロワー数: **{n:,}人**({d.month}/{d.day} 時点)"
+        if goal.get("followers"):
+            line += f" / 今月の目安 {goal['followers']:,}人 {bar(n / goal['followers'], 10)} {n / goal['followers']:.0%}"
+        out.append(line)
+        if len(dated) >= 2:
+            pd_, pr = dated[-2]
+            out.append(f"- 前回({pd_.month}/{pd_.day})から {n - tl.to_int(pr.get('followers')):+,}人")
+    else:
+        out.append("- フォロワー数の記録がありません。`tracking/followers.csv` に土曜ごとに1行追加してください。")
+    start = today - timedelta(days=28)
+    imps = [tl.to_int(p.get("impressions")) for p in posts
+            if p.get("status") == "posted" and p.get("ad") == "1" and str(p.get("impressions", "")).strip()
+            and (d := tl.post_effective_date(p)) and start <= d < today]
+    if imps:
+        avg = sum(imps) / len(imps)
+        line = f"- 広告投稿1本あたりの表示回数(直近4週・{len(imps)}本の平均): **{avg:,.0f}回**"
+        if goal.get("avg_impressions"):
+            line += f" / 今月の目安 {goal['avg_impressions']:,}回 {bar(avg / goal['avg_impressions'], 10)} {avg / goal['avg_impressions']:.0%}"
+        out.append(line)
+    else:
+        out.append("- 表示回数の記録がありません。Threadsのインサイトで見て、posts.csv の impressions に入れてください。")
+    return out
+
+
+def build_report(posts, sales, cfg, today, followers=()):
     target = cfg["target_yen"]
     target_month = cfg["target_month"]
     ms = cfg.get("milestones", {})
@@ -124,6 +156,7 @@ def build_report(posts, sales, cfg, today):
                    f"{'(現実的には非常に厳しい水準です)' if need > 1.0 else ''}")
     elif run_month == 0:
         out.append("- まだ売上データがありません(CSVの取り込みが未実施か、売上がゼロ)")
+    out += kpi_section(posts, followers, cfg, today)
     out += ["", "## 型ごとの成績(投稿済みのもの)"]
     table = type_table(posts)
     if not table:
@@ -162,6 +195,7 @@ def main():
     ap.add_argument("--posts", default=str(tl.POSTS_CSV))
     ap.add_argument("--sales", default=str(tl.SALES_CSV))
     ap.add_argument("--config", default=str(tl.CONFIG_JSON))
+    ap.add_argument("--followers", default=str(tl.FOLLOWERS_CSV))
     ap.add_argument("--no-save", action="store_true")
     args = ap.parse_args()
 
@@ -169,7 +203,8 @@ def main():
     posts = tl.read_csv(args.posts)
     sales = tl.read_csv(args.sales)
     posts, _ = tl.attribute(posts, sales)
-    report = build_report(posts, sales, tl.load_config(args.config), today)
+    followers = tl.read_csv(args.followers)
+    report = build_report(posts, sales, tl.load_config(args.config), today, followers)
     print(report)
     if not args.no_save:
         out = Path(args.posts).resolve().parent / "reports"

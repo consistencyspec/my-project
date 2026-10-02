@@ -3,6 +3,7 @@
 posts.csv  : 投稿1件=1行の記録表(スプレッドシートで開けます)
 sales_daily.csv : 楽天アフィリエイト管理画面のCSVから取り込んだ日別の成果
 config.json: 目標金額などの設定
+followers.csv : フォロワー数の記録(毎週土曜に1行追加)
 """
 import csv
 import json
@@ -14,6 +15,7 @@ TRACKING_DIR = Path(__file__).resolve().parent
 POSTS_CSV = TRACKING_DIR / "posts.csv"
 SALES_CSV = TRACKING_DIR / "sales_daily.csv"
 CONFIG_JSON = TRACKING_DIR / "config.json"
+FOLLOWERS_CSV = TRACKING_DIR / "followers.csv"
 
 POST_COLUMNS = [
     "post_id", "planned_date", "posted_date", "status", "type_id", "type_name",
