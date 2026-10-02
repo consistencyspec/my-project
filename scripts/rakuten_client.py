@@ -13,8 +13,8 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-# 2026年2月以降の新API。仕様が変わったら .env の RAKUTEN_API_ENDPOINT で上書きできます。
-DEFAULT_ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20220601"
+# 2026年7月版の新API(20220601版は2026年8月に廃止)。仕様が変わったら .env の RAKUTEN_API_ENDPOINT で上書きできます。
+DEFAULT_ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
 REQUEST_INTERVAL_SEC = 1.1  # 楽天のアクセス制限(1秒1回程度)を守るための待ち時間
 _last_request_at = 0.0
 

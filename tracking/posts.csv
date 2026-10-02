@@ -1,1 +1,5 @@
 ﻿post_id,planned_date,posted_date,status,type_id,type_name,ad,item_code,item_name,price,impressions,likes,replies,clicks,orders,sales_yen,notes
+P20261004,2026-10-04,,draft,10,質問・アンケート型,0,,,,,,,,,,
+P20261005,2026-10-05,,draft,1,悩み解決型,1,mimipet:10000065,モバイルバッテリー 大容量 20000mAh 軽量 ワイヤレス充電 magsa…,3180,,,,,,,
+P20261007,2026-10-07,,draft,2,比較型,1,anker:10001894|huawei-official:10000284|sonic-store:10000193,Anker Soundcore P40i (Bluetooth 5.3) | ワイヤレスイヤホン HUAWEI FreeBuds SE 4 ANC 最大50… | 「VGP2024金賞、コスパ大賞」ワイヤレスイヤホン Bluetooth 5.…,7990|5980|8480,,,,,,,自動選定から手動で差し替え(ANC搭載品のみ)
+P20261009,2026-10-09,,draft,3,レビュー型,1,ugreen-gear:10000939,UGREEN Revodok USB-C ハブ 6 in 1 10Gbps U…,2999,,,,,,,
