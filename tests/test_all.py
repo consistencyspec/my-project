@@ -116,7 +116,7 @@ class PipelineTests(unittest.TestCase):
                                                  "--out-dir", str(tmp)]):
                 gd.main()
             rows = tl.read_csv(posts)
-            self.assertEqual([r["planned_date"] for r in rows], ["2026-10-05", "2026-10-07", "2026-10-09", "2026-10-11"])
+            self.assertEqual([r["planned_date"] for r in rows], [f"2026-10-{d:02d}" for d in range(5, 12)])  # 毎日投稿
             self.assertEqual(len({r["item_code"] for r in rows if r["item_code"]}), 3)  # 重複商品なし
             self.assertTrue((tmp / "drafts_2026-10-05.md").exists())
             # 再実行しても二重登録されない
@@ -125,7 +125,7 @@ class PipelineTests(unittest.TestCase):
                  mock.patch.object(sys, "argv", ["x", "--start", "2026-10-05", "--days", "7", "--posts", str(posts),
                                                  "--out-dir", str(tmp)]):
                 gd.main()
-            self.assertEqual(len(tl.read_csv(posts)), 4)
+            self.assertEqual(len(tl.read_csv(posts)), 7)
             # 投稿済みにして楽天CSVを取り込む
             rows = tl.read_csv(posts)
             for r in rows:
