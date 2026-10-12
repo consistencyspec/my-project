@@ -50,13 +50,16 @@ def months_between(d, target_month):
 
 def type_table(posts):
     """型ごとの成績と、増やす/継続/やめる の判定。"""
-    stats = defaultdict(lambda: {"posts": 0, "clicks": 0, "orders": 0, "sales": 0, "ad": 0})
+    stats = defaultdict(lambda: {"posts": 0, "clicks": 0, "orders": 0, "sales": 0, "ad": 0, "impr": 0, "impr_n": 0})
     for p in posts:
         if p.get("status") != "posted":
             continue
         s = stats[p["type_name"]]
         s["posts"] += 1
         s["ad"] = p.get("ad") == "1"
+        if str(p.get("impressions", "")).strip():
+            s["impr"] += tl.to_int(p.get("impressions"))
+            s["impr_n"] += 1
         s["clicks"] += tl.to_int(p.get("clicks"))
         s["orders"] += tl.to_int(p.get("orders"))
         s["sales"] += tl.to_int(p.get("sales_yen"))
@@ -162,9 +165,10 @@ def build_report(posts, sales, cfg, today, followers=()):
     if not table:
         out.append("- まだ投稿済みの記録がありません。投稿したら posts.csv の status を posted に。")
     else:
-        out += ["| 型 | 投稿数 | クリック | 注文 | 売上金額 | 判定 |", "|---|---:|---:|---:|---:|---|"]
+        out += ["| 型 | 投稿数 | 平均表示回数 | クリック | 注文 | 売上金額 | 判定 |", "|---|---:|---:|---:|---:|---:|---|"]
         for n, s, v in table:
-            out.append(f"| {n} | {s['posts']} | {s['clicks']} | {s['orders']} | {yen(s['sales'])} | {v} |")
+            avg = f"{s['impr'] // s['impr_n']:,}" if s["impr_n"] else "—"
+            out.append(f"| {n} | {s['posts']} | {avg} | {s['clicks']} | {s['orders']} | {yen(s['sales'])} | {v} |")
     out += ["", "## 来週のやること(自動提案)"]
     out += suggestions(table, posts, sales, today, wk_start, wk_end)
     return "\n".join(out) + "\n"
