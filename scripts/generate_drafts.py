@@ -48,19 +48,19 @@ def pick_items(row, settings, demo, used_codes, demo_items):
     return rc.select_items(items, count, exclude_codes=used_codes)
 
 
-def make_draft(row, day, items, link_in_main=True):
+def make_draft(row, day, items, link_in_main=True, pr_style="inline"):
     type_id = int(row["type_id"])
     warnings = []
     needed = pt.ITEM_COUNT[type_id]
     if len(items) < needed:
         warnings.append(f"条件に合う商品が足りません({len(items)}/{needed}件)。calendar.csv のキーワードや価格帯を見直してください。この日の下書きは作っていません")
         return {"main": "(商品が見つからなかったため下書きなし)", "reply": "", "warnings": warnings}
-    main, reply = pt.build(type_id, items, day, row["keyword"], link_in_main)
+    main, reply = pt.build(type_id, items, day, row["keyword"], link_in_main, pr_style)
     if link_in_main and items and max(len(i.affiliate_url or i.url) for i in items[:1]) > 200:
         warnings.append("リンク(URL)が長く、本文の文字数を圧迫します。Threadsの文字数カウンターで500文字以内か確認してください。"
                         "収まらない場合は、《 》の書き換えを短くするか、楽天アフィリエイトの短縮URLを使うか、--link-in-reply でリンクをリプライに置いてください")
-    if row["ad"] == "1" and not main.startswith("【PR】"):
-        warnings.append("広告投稿なのに先頭に【PR】がありません")
+    if row["ad"] == "1" and not pt.has_pr_mark(main):
+        warnings.append("広告投稿なのに、1行目に広告の表示(【PR】または(PR))がありません")
     for label, text in (("本文", main), ("リプライ", reply)):
         if pt.estimated_length(text) > pt.LIMIT:
             warnings.append(f"{label}が500文字を超える見込みです({pt.estimated_length(text)}文字)。短くしてください")
@@ -75,11 +75,11 @@ def render(drafts, start, demo):
         out += ["> ⚠️ **デモモードです。商品とリンクはダミーです。このまま投稿しないでください。**", ""]
     out += ["> 確認してから、**自分の手で** Threads に投稿してください(自動投稿はしません)。",
             "> 《 》の部分は必ず自分の言葉に書き換えてください。", "",
-            "全体のチェック: [ ] 広告投稿の先頭に【PR】がある  [ ] 《 》が残っていない  "
+            "全体のチェック: [ ] 広告投稿の1行目に(PR)または【PR】がある  [ ] 《 》が残っていない  "
             "[ ] 価格・在庫を商品ページで確認した  [ ] 使っていない物を「使った」と書いていない", ""]
     for d in drafts:
         row, day = d["row"], d["day"]
-        ad = "広告あり(【PR】必須)" if row["ad"] == "1" else "広告なし"
+        ad = "広告あり(1行目に(PR)または【PR】が必須)" if row["ad"] == "1" else "広告なし"
         out += ["---", "", f"## {day.isoformat()}({WEEKDAY[day.weekday()]}) {row['type_name']} / {ad}",
                 f"- 投稿ID: `{d['post_id']}`"]
         if row["keyword"]:
@@ -106,6 +106,8 @@ def main():
     ap.add_argument("--posts", default=str(tl.POSTS_CSV), help="投稿記録CSV")
     ap.add_argument("--out-dir", default=str(ROOT / "output"))
     ap.add_argument("--link-in-reply", action="store_true", help="リンクを本文ではなくリプライに置く形にする(比較テスト用)")
+    ap.add_argument("--pr-style", choices=["inline", "head"], default="inline",
+                    help="広告表示の位置。inline=1行目の終わりに(PR)(初期設定)/ head=先頭に【PR】")
     ap.add_argument("--no-track", action="store_true", help="posts.csv に記録しない")
     args = ap.parse_args()
 
@@ -138,7 +140,7 @@ def main():
         except rc.RakutenError as e:
             sys.exit(str(e))
         used.update(i.item_code for i in items)  # 同じ商品を重複して投稿しない
-        d = make_draft(row, day, items, not args.link_in_reply)
+        d = make_draft(row, day, items, not args.link_in_reply, args.pr_style)
         d.update(row=row, day=day, items=items, post_id=f"P{day:%Y%m%d}")
         drafts.append(d)
         for w in d["warnings"]:

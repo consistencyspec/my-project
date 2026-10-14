@@ -32,7 +32,7 @@ class TemplateTests(unittest.TestCase):
             self.assertLessEqual(pt.estimated_length(main), 500, type_id)
             self.assertLessEqual(pt.estimated_length(reply), 500, type_id)
             if type_id not in (10, 11, 12, 15):
-                self.assertTrue(main.startswith("【PR】"), type_id)
+                self.assertTrue(pt.has_pr_mark(main), type_id)
                 if reply:  # リプライがある場合は、リプライにも【PR】
                     self.assertIn("【PR】", reply.split("\n")[0])
 
@@ -42,7 +42,7 @@ class TemplateTests(unittest.TestCase):
         for type_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 14):
             n = pt.ITEM_COUNT[type_id]
             main, reply = pt.build(type_id, items[:n], date(2026, 10, 5), "テスト")
-            self.assertTrue(main.startswith("【PR】"), type_id)
+            self.assertTrue(pt.has_pr_mark(main), type_id)
             self.assertIn(long_url, main, type_id)  # リンクが本文にある
             self.assertLessEqual(pt.estimated_length(main), 500, type_id)
             self.assertLessEqual(pt.estimated_length(reply), 500, type_id)
@@ -61,6 +61,15 @@ class TemplateTests(unittest.TestCase):
         self.assertIn(very_long, d["main"])
         self.assertTrue(any("500文字" in w for w in d["warnings"]))
 
+    def test_pr_style(self):
+        items = rc.parse_items(DEMO)[:1]
+        inline, _ = pt.build(1, items, date(2026, 10, 5), "x")  # 初期設定
+        self.assertFalse(inline.startswith("【PR】"))
+        self.assertTrue(inline.split("\n")[0].endswith("(PR)"))
+        self.assertIn("▼リンク(広告)", inline)
+        head, _ = pt.build(1, items, date(2026, 10, 5), "x", pr_style="head")
+        self.assertTrue(head.startswith("【PR】"))
+
     def test_link_in_reply_option(self):
         items = rc.parse_items(DEMO)[:1]
         main, reply = pt.build(1, items, date(2026, 10, 5), "x", link_in_main=False)
@@ -71,7 +80,7 @@ class TemplateTests(unittest.TestCase):
         for type_id in (10, 11, 12, 15):
             main, reply = pt.build(type_id, [], date(2026, 10, 5))
             self.assertEqual(reply, "")
-            self.assertFalse(main.startswith("【PR】"))
+            self.assertFalse(pt.has_pr_mark(main))
 
     def test_sales_words_removed_from_name(self):
         name = "ランキング1位【最安値挑戦】デスクライト LED T型 クランプ式 (10/14-10/20 P5倍)"

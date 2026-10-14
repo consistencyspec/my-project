@@ -180,7 +180,25 @@ def _to_link_in_main(type_id, items, d, main, reply):
     return main, (_reply(items[1:], d, start=2) if len(items) > 1 else "")
 
 
-def build(type_id, items, d, keyword="", link_in_main=True):
+PR_MARK = "【PR】"
+
+
+def has_pr_mark(main):
+    """広告であることが1行目で分かるか(先頭の【PR】、または1行目の終わりの(PR))。"""
+    first = main.split("\n")[0].rstrip()
+    return first.startswith(PR_MARK) or first.endswith("(PR)")
+
+
+def apply_pr_style(main, pr_style):
+    """pr_style='head': 先頭に【PR】(従来)/ 'inline': 1行目の終わりに(PR)(初期設定)。"""
+    if pr_style != "inline" or not main.startswith(PR_MARK):
+        return main
+    rest = main[len(PR_MARK):]
+    first, sep, tail = rest.partition("\n")
+    return first.rstrip() + "(PR)" + sep + tail
+
+
+def build(type_id, items, d, keyword="", link_in_main=True, pr_style="inline"):
     """(本文, リプライ) を返す。
 
     link_in_main=True(初期値): アフィリエイトリンクを本文に入れる。1商品の型はリプライ不要。
@@ -196,6 +214,7 @@ def build(type_id, items, d, keyword="", link_in_main=True):
             main, reply = _build_reply_mode(type_id, items, d, keyword)
             if link_in_main:
                 main, reply = _to_link_in_main(type_id, items, d, main, reply)
+            main = apply_pr_style(main, pr_style)
             if estimated_length(main) <= LIMIT and estimated_length(reply) <= LIMIT:
                 return main, reply
         return main, reply  # 収まらなくても、いちばん短い形を返す(make_draft が文字数の警告を出す)
