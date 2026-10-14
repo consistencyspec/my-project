@@ -148,7 +148,7 @@ def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sor
 
 
 def select_items(items, count, min_review_count=5, min_review_average=4.0,
-                 ng_words=("中古", "訳あり", "福袋", "ジャンク", "レンタル", "アウトレット"),
+                 ng_words=("中古", "訳あり", "福袋", "ジャンク", "レンタル", "アウトレット", "小学生", "幼児", "キッズ", "ベビー"),
                  exclude_codes=()):
     """条件に合う商品を count 件選ぶ(レビューが少ない・NGワード入り・使用済みの商品は除外)。"""
     chosen = []

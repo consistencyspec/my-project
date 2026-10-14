@@ -73,6 +73,13 @@ class TemplateTests(unittest.TestCase):
             self.assertEqual(reply, "")
             self.assertFalse(main.startswith("【PR】"))
 
+    def test_sales_words_removed_from_name(self):
+        name = "ランキング1位【最安値挑戦】デスクライト LED T型 クランプ式 (10/14-10/20 P5倍)"
+        out = pt.shorten(name, 40)
+        self.assertNotIn("ランキング", out)
+        self.assertNotIn("P5倍", out)
+        self.assertIn("デスクライト", out)
+
     def test_long_item_name_is_shortened(self):
         long_item = rc.Item("c", "あ" * 200, 1000, "u", "a", "s", 4.5, 10)
         main, _ = pt.build(2, [long_item] * 3, date(2026, 10, 7))

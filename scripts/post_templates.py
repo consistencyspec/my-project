@@ -30,7 +30,8 @@ _NAME_LEN = 26  # 商品名の最大文字数(本文が500文字に収まらな�
 def shorten(name, n=None):
     n = n or _NAME_LEN
     """商品名の【】や記号を取り除いて短くする。"""
-    name = re.sub(r"【[^】]*】|\[[^\]]*\]|※[^ 　]*", "", name)
+    name = re.sub(r"【[^】]*】|\[[^\]]*\]|※[^ 　]*|[((][^))]*(P\d+倍|ポイント|OFF|オフ|クーポン|送料無料|セール)[^))]*[))]", "", name)
+    name = re.sub(r"(ランキング|楽天|週間|月間|デイリー)\d*位(入賞|獲得)?|送料無料|ポイント\d+倍|最安値挑戦|激安", "", name)
     name = re.sub(r"[\s　]+", " ", name).strip()
     return name if len(name) <= n else name[: n - 1] + "…"
 
