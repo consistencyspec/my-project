@@ -48,14 +48,17 @@ def pick_items(row, settings, demo, used_codes, demo_items):
     return rc.select_items(items, count, exclude_codes=used_codes)
 
 
-def make_draft(row, day, items):
+def make_draft(row, day, items, link_in_main=True):
     type_id = int(row["type_id"])
     warnings = []
     needed = pt.ITEM_COUNT[type_id]
     if len(items) < needed:
         warnings.append(f"条件に合う商品が足りません({len(items)}/{needed}件)。calendar.csv のキーワードや価格帯を見直してください。この日の下書きは作っていません")
         return {"main": "(商品が見つからなかったため下書きなし)", "reply": "", "warnings": warnings}
-    main, reply = pt.build(type_id, items, day, row["keyword"])
+    main, reply = pt.build(type_id, items, day, row["keyword"], link_in_main)
+    if link_in_main and items and max(len(i.affiliate_url or i.url) for i in items[:1]) > 200:
+        warnings.append("リンク(URL)が長く、本文の文字数を圧迫します。Threadsの文字数カウンターで500文字以内か確認してください。"
+                        "収まらない場合は、《 》の書き換えを短くするか、楽天アフィリエイトの短縮URLを使うか、--link-in-reply でリンクをリプライに置いてください")
     if row["ad"] == "1" and not main.startswith("【PR】"):
         warnings.append("広告投稿なのに先頭に【PR】がありません")
     for label, text in (("本文", main), ("リプライ", reply)):
@@ -85,10 +88,10 @@ def render(drafts, start, demo):
             out.append(f"- 商品: {it.name}({it.shop}) {it.price:,}円 ★{it.review_average:.1f}({it.review_count}件)")
         for w in d["warnings"]:
             out.append(f"- ⚠️ {w}")
-        out += ["", "### 本文(コピーして貼る)", "```text", d["main"], "```",
+        out += ["", "### 本文(コピーして貼る。広告投稿はリンクを含みます)", "```text", d["main"], "```",
                 f"文字数の見込み: {pt.estimated_length(d['main'])}/500", ""]
         if d["reply"]:
-            out += ["### リプライ(リンク用。本文に返信する形で投稿)", "```text", d["reply"], "```",
+            out += ["### リプライ(本文に返信する形で投稿)", "```text", d["reply"], "```",
                     f"文字数の見込み: {pt.estimated_length(d['reply'])}/500", ""]
         out += ["投稿したら: `tracking/posts.csv` の該当行を `status=posted`、`posted_date` に投稿日を入れる", ""]
     return "\n".join(out)
@@ -102,6 +105,7 @@ def main():
     ap.add_argument("--calendar", default=str(ROOT / "scripts" / "calendar.csv"))
     ap.add_argument("--posts", default=str(tl.POSTS_CSV), help="投稿記録CSV")
     ap.add_argument("--out-dir", default=str(ROOT / "output"))
+    ap.add_argument("--link-in-reply", action="store_true", help="リンクを本文ではなくリプライに置く形にする(比較テスト用)")
     ap.add_argument("--no-track", action="store_true", help="posts.csv に記録しない")
     args = ap.parse_args()
 
@@ -134,7 +138,7 @@ def main():
         except rc.RakutenError as e:
             sys.exit(str(e))
         used.update(i.item_code for i in items)  # 同じ商品を重複して投稿しない
-        d = make_draft(row, day, items)
+        d = make_draft(row, day, items, not args.link_in_reply)
         d.update(row=row, day=day, items=items, post_id=f"P{day:%Y%m%d}")
         drafts.append(d)
         for w in d["warnings"]:

@@ -31,9 +31,47 @@ class TemplateTests(unittest.TestCase):
             main, reply = pt.build(type_id, self.items[:n], date(2026, 10, 5), "テスト")
             self.assertLessEqual(pt.estimated_length(main), 500, type_id)
             self.assertLessEqual(pt.estimated_length(reply), 500, type_id)
-            if type_id not in (10, 11, 12):
+            if type_id not in (10, 11, 12, 15):
                 self.assertTrue(main.startswith("【PR】"), type_id)
-                self.assertIn("【PR】", reply.split("\n")[0])
+                if reply:  # リプライがある場合は、リプライにも【PR】
+                    self.assertIn("【PR】", reply.split("\n")[0])
+
+    def test_link_in_main_by_default(self):
+        long_url = "https://hb.afl.rakuten.co.jp/ichiba/" + "x" * 140  # 実際のアフィリエイトURLに近い長さ
+        items = [rc.Item(f"c{i}", "あ" * 60, 5000, "u", long_url, "s", 4.5, 100) for i in range(3)]
+        for type_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 14):
+            n = pt.ITEM_COUNT[type_id]
+            main, reply = pt.build(type_id, items[:n], date(2026, 10, 5), "テスト")
+            self.assertTrue(main.startswith("【PR】"), type_id)
+            self.assertIn(long_url, main, type_id)  # リンクが本文にある
+            self.assertLessEqual(pt.estimated_length(main), 500, type_id)
+            self.assertLessEqual(pt.estimated_length(reply), 500, type_id)
+            self.assertNotIn("リンクはリプ欄です。", main)
+            if n == 1:
+                self.assertEqual(reply, "", type_id)  # 1商品の型はリプライ不要
+            else:
+                self.assertIn(long_url, reply, type_id)  # 複数商品の型は、2つ目以降のリンクをリプライに
+                self.assertEqual(reply.count(long_url), n - 1, type_id)
+
+    def test_very_long_url_keeps_link_in_main_and_warns(self):
+        very_long = "https://hb.afl.rakuten.co.jp/ichiba/" + "x" * 400
+        item = rc.Item("c", "あ" * 60, 5000, "u", very_long, "s", 4.5, 100)
+        row = {"type_id": "1", "ad": "1", "keyword": "k", "type_name": "悩み解決型"}
+        d = gd.make_draft(row, date(2026, 10, 5), [item])
+        self.assertIn(very_long, d["main"])
+        self.assertTrue(any("500文字" in w for w in d["warnings"]))
+
+    def test_link_in_reply_option(self):
+        items = rc.parse_items(DEMO)[:1]
+        main, reply = pt.build(1, items, date(2026, 10, 5), "x", link_in_main=False)
+        self.assertNotIn("https://", main)
+        self.assertIn("https://", reply)
+
+    def test_non_ad_types_unchanged(self):
+        for type_id in (10, 11, 12, 15):
+            main, reply = pt.build(type_id, [], date(2026, 10, 5))
+            self.assertEqual(reply, "")
+            self.assertFalse(main.startswith("【PR】"))
 
     def test_long_item_name_is_shortened(self):
         long_item = rc.Item("c", "あ" * 200, 1000, "u", "a", "s", 4.5, 10)
