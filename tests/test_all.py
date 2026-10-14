@@ -31,7 +31,7 @@ class TemplateTests(unittest.TestCase):
             main, reply = pt.build(type_id, self.items[:n], date(2026, 10, 5), "テスト")
             self.assertLessEqual(pt.estimated_length(main), 500, type_id)
             self.assertLessEqual(pt.estimated_length(reply), 500, type_id)
-            if type_id not in (10, 11, 12, 15):
+            if type_id not in (10, 11, 12, 15, 16):
                 self.assertTrue(pt.has_pr_mark(main), type_id)
                 if reply:  # リプライがある場合は、リプライにも【PR】
                     self.assertIn("【PR】", reply.split("\n")[0])
@@ -77,7 +77,7 @@ class TemplateTests(unittest.TestCase):
         self.assertIn("https://", reply)
 
     def test_non_ad_types_unchanged(self):
-        for type_id in (10, 11, 12, 15):
+        for type_id in (10, 11, 12, 15, 16):
             main, reply = pt.build(type_id, [], date(2026, 10, 5))
             self.assertEqual(reply, "")
             self.assertFalse(pt.has_pr_mark(main))
