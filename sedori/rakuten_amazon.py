@@ -540,11 +540,15 @@ def main():
     load_env(HERE / "env.txt")  # Macで隠しファイルを作りにくいので、見えるファイル名でもOK
     items = fetch_rakuten()
     print(f"\n楽天から {len(items)} 件取得")
-    targets = []
+    best = {}
     for it in items:
         it.skip_reason = screen(it)
-        if not it.skip_reason:
-            targets.append(it)
+        if not it.skip_reason and (it.jan not in best or it.cost < best[it.jan].cost):
+            best[it.jan] = it
+    for it in items:  # 同じJANは、いちばん安く買えるものだけを調べる
+        if not it.skip_reason and best[it.jan] is not it:
+            it.skip_reason = "同じJANでより安い楽天商品あり"
+    targets = list(best.values())
     print(f"JANがあり、除外条件に当たらない商品: {len(targets)} 件")
 
     auto = SPAPI.available()
