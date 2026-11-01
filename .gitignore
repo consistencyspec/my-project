@@ -8,3 +8,8 @@ output/*
 # Python の一時ファイル
 __pycache__/
 *.pyc
+
+# せどりツール
+sedori/env.txt
+sedori/output/*
+!sedori/output/.gitkeep
