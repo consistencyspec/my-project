@@ -13,3 +13,8 @@ __pycache__/
 sedori/env.txt
 sedori/output/*
 !sedori/output/.gitkeep
+
+# eBay輸出ツール
+ebay_export/env.txt
+ebay_export/output/*
+!ebay_export/output/.gitkeep

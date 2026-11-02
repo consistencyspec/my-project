@@ -1,0 +1,12 @@
+# 1行に1つ。「eBayで検索する英語 | メルカリで探す日本語」の形で書きます(| から後ろは省略可)。
+# 「#」から後ろはメモとして無視されます。下は例なので、得意な作品に書き換えてください。
+Ichiban Kuji Last One Prize | 一番くじ ラストワン賞
+Ichiban Kuji A Prize figure | 一番くじ A賞 フィギュア
+Banpresto prize figure Japan | バンプレスト フィギュア プライズ
+SEGA prize figure Japan | セガ プライズ フィギュア
+Taito prize figure Japan | タイトー プライズ フィギュア
+FuRyu Noodle Stopper figure | フリュー ぬーどるストッパー
+gashapon complete set Japan | ガチャ コンプリート セット
+Chiikawa gashapon | ちいかわ ガチャ
+Sanrio crane game prize Japan | サンリオ プライズ 非売品
+Pokemon Center Japan exclusive plush | ポケモンセンター 限定 ぬいぐるみ
