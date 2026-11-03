@@ -87,6 +87,21 @@ class RankTests(unittest.TestCase):
         self.assertEqual(short_name("【ふるさと納税】＼新米／ 米 5kg [テスト町]"), "新米 米 5kg")
 
 
+class PlanTests(unittest.TestCase):
+    def test_plan_fills_budget(self):
+        from plans import make_plan
+        rice, _ = rank_category([raw("r1", "【ふるさと納税】米 10kg", 14000), raw("r2", "【ふるさと納税】米 5kg", 9000)],
+                                CATS["rice"])
+        pork, _ = rank_category([raw("p1", "【ふるさと納税】豚肉 4kg", 16000), raw("p2", "【ふるさと納税】豚肉 2kg", 13000)],
+                                CATS["pork"])
+        picks, total = make_plan({"rice": rice, "pork": pork}, ["rice", "pork"], 30000)
+        self.assertEqual([g.code for _, g in picks], ["r1", "p1"])
+        self.assertEqual(total, 30000)
+        self.assertLessEqual(total, 30000)
+        picks, total = make_plan({"rice": rice, "pork": pork}, ["rice", "pork"], 10000)
+        self.assertEqual(picks, [])  # 1品しか選べない予算では組み合わせを作らない
+
+
 class BuildTests(unittest.TestCase):
     def test_demo_build(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -95,13 +110,17 @@ class BuildTests(unittest.TestCase):
                                 "--today", "2026-11-03"], capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
             index = (out / "index.html").read_text(encoding="utf-8")
-            self.assertIn("楽天アフィリエイト(広告)", index)      # 広告の表示
-            self.assertIn("あと58日", index)                      # 締め切りまでの日数
-            self.assertIn('name="robots" content="noindex"', index)  # デモは検索に載せない
+            self.assertIn("PR ｜ このサイトは楽天アフィリエイトの広告リンクを使っています", index)  # 広告の表示
+            self.assertIn("あと<span>58</span>日", index)                # 締め切りまでの日数
+            self.assertIn('name="robots" content="noindex"', index)      # デモは検索に載せない
+            for slug in ("1man", "2man", "3man", "5man", "10man", "meyasu", "about", "privacy"):
+                self.assertTrue((out / slug / "index.html").exists(), slug)
             rice = (out / "rice" / "index.html").read_text(encoding="utf-8")
             self.assertIn('rel="nofollow sponsored noopener"', rice)
-            self.assertIn("楽天で見る(PR)", rice)
-            self.assertLess(rice.index("計10kg"), rice.index("サンプル米 5kg"))  # 7.1kg/万円 が 5.6kg/万円 より上
+            ranking = rice[rice.index("data-list"):]
+            self.assertLess(ranking.index("計10kg"), ranking.index("サンプル米 5kg"))  # 7.1kg/万円 が 5.6kg/万円 より上
+            three = (out / "3man" / "index.html").read_text(encoding="utf-8")
+            self.assertIn("3万円を使い切る組み合わせ", three)
             self.assertTrue((out / "sitemap.xml").exists())
             self.assertIn("Disallow: /", (out / "robots.txt").read_text(encoding="utf-8"))
 
