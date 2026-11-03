@@ -2,7 +2,7 @@
   "site_name": "ふるさと納税コスパ比較",
   "tagline": "寄付額1万円あたり、どれだけ届く？を毎日自動で計算",
   "base_url_env": "FURUSATO_BASE_URL",
-  "base_url_default": "https://example.pages.dev",
+  "base_url_default": "https://furusato-hikaku.pages.dev",
   "deadline_month_day": "12-31",
   "pages_per_keyword": 2,
   "min_review_count": 10,

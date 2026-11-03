@@ -51,14 +51,14 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create ${{ vars.CF_PAGES_PROJECT }} --production-branch=main
+          command: pages project create ${{ vars.CF_PAGES_PROJECT || 'furusato-hikaku' }} --production-branch=main
 
       - name: Cloudflare Pages に公開
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/furusato --project-name=${{ vars.CF_PAGES_PROJECT }} --branch=main
+          command: pages deploy dist/furusato --project-name=${{ vars.CF_PAGES_PROJECT || 'furusato-hikaku' }} --branch=main
 
       - name: 価格の記録を保存
         run: |
