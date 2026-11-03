@@ -8,6 +8,7 @@
 公開先のURLは環境変数 FURUSATO_BASE_URL(例: https://furusato-yosan.com)で指定します。
 """
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -25,6 +26,8 @@ from rank import rank_category  # noqa: E402
 
 FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
+# style.css の中身が変わると値が変わり、ブラウザが古い見た目を使い続けるのを防ぐ
+CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
 FONTS = ("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900"
          "&family=Roboto+Condensed:wght@700;800&display=swap")
 
@@ -134,7 +137,7 @@ class Site:
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/style.css?v={CSS_VERSION}">
 </head>
 <body>
 {demo}
