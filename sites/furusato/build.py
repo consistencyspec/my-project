@@ -93,6 +93,7 @@ class Site:
         self.demo = demo
         fetched = snapshot.get("fetched_at", "")
         self.updated = datetime.fromisoformat(fetched).strftime("%-m月%-d日 %H:%M") if fetched else ""
+        self.updated_day = datetime.fromisoformat(fetched).strftime("%-m月%-d日") if fetched else "今日"
         self.year = today.year
         m, d = (int(x) for x in config["deadline_month_day"].split("-"))
         self.days_left = (date(today.year, m, d) - today).days
@@ -142,19 +143,20 @@ class Site:
 <body>
 {demo}
 <header class="masthead"><div class="wrap">
-<a class="logo" href="/"><span class="logo-s">ふるさと納税</span><span class="logo-l">予算で<b>えらぶ</b></span></a>
+<a class="logo" href="/"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#e2382b"/><circle cx="24" cy="24" r="18.5" fill="none" stroke="#fff" stroke-width="1.5"/><text x="24" y="31.5" text-anchor="middle" font-size="22" font-weight="900" fill="#fff" font-family="Zen Maru Gothic, sans-serif">予</text></svg><span class="logo-t"><span class="logo-s">ふるさと納税</span><span class="logo-l">予算で<b>えらぶ</b></span></span></a>
+<span class="pr-tag">PR<small>広告を含みます</small></span>
 <span class="stamp">毎朝更新<br><b>{e(self.updated)}</b></span>
 </div></header>
 <nav class="rail"><div class="wrap">
 <div class="rail-row"><span class="rail-k">予算</span>{budgets}</div>
 <div class="rail-row"><span class="rail-k">品目</span>{genres}</div>
 </div></nav>
-<p class="pr"><span class="wrap">PR ｜ このサイトは楽天アフィリエイトの広告リンクを使っています</span></p>
 <main class="wrap">
 {body}
 </main>
 <footer class="foot"><div class="wrap">
 <p class="foot-logo">予算で<b>えらぶ</b> ふるさと納税</p>
+<p class="foot-pr">PR ｜ このサイトは楽天アフィリエイトの広告リンクを使っています。リンク先で寄付すると、運営者に紹介料が入ります。</p>
 <p><a href="/meyasu/">予算の決め方</a> ／ <a href="/about/">運営者・計算方法</a> ／ <a href="/privacy/">プライバシーポリシー</a></p>
 <p>寄付額・在庫・内容は毎日変わります。申し込む前に、楽天ふるさと納税の返礼品ページで最新の内容を確かめてください。</p>
 <p>© {self.year} {e(self.c['operator_name'])}</p>
@@ -167,7 +169,16 @@ class Site:
     def deadline(self):
         if self.days_left < 0:
             return ""
-        return f'<p class="deadline">{self.year}年分は12月31日まで。<b>あと<span>{self.days_left}</span>日</b></p>'
+        start = date(self.year, 1, 1)
+        passed = (self.today - start).days / ((date(self.year, 12, 31) - start).days + 1)
+        urgent = " urgent" if self.days_left <= 14 else ""
+        return f"""<section class="dl{urgent}">
+<p class="dl-head">{self.year}年分の締め切りまで</p>
+<p class="dl-num"><span>あと</span><b>{self.days_left}</b><span>日</span></p>
+<p class="dl-sub"><b>12月31日</b>までの寄付が、{self.year}年分になります。年末は人気の返礼品が品切れになることもあります。</p>
+<div class="dl-bar" role="img" aria-label="{self.year}年の残り{100 - round(passed * 100)}%"><i style="width:{passed * 100:.0f}%"></i></div>
+<p class="dl-bar-l"><span>1月</span><span>{self.year}年の残り {100 - round(passed * 100)}%</span><span>12月31日</span></p>
+</section>"""
 
     def item(self, g, family, rank=None, typical=None, compact=False):
         unit = FAMILY_UNIT[family]
@@ -182,7 +193,10 @@ class Site:
 <div class="tx"><p class="town">{e(g.shop)}</p><p class="nm"><a {link}>{e(g.short_name)}</a></p>
 <p class="meta">{rev}</p><p class="meta">寄付額 <b>{price}</b>(量によって変わります)</p></div>
 </li>"""
-        badge = f'<span class="no{" top" if rank <= 3 else ""}">{rank}</span>' if rank else ""
+        if rank and rank <= 3:
+            badge = f'<span class="rec r{rank}"><small>おすすめ</small>{rank}<small>位</small></span>'
+        else:
+            badge = f'<span class="no">{rank}</span>' if rank else ""
         hot = f'<span class="hot">ふつうの{g.per10k / typical:.1f}倍</span>' if typical and g.per10k >= typical * 1.2 else ""
         per_unit = round(g.price_min / (g.amount / UNIT_DIV[family]))
         note = f'<p class="meta">{e(g.note)}</p>' if g.note else ""
@@ -249,7 +263,7 @@ class Site:
 </section>
 {self.deadline()}
 {teaser}
-<h2 class="hd"><span>今朝の1位</span><small>1万円あたりに届く量</small></h2>
+<h2 class="hd"><span>{e(self.updated_day)}の1位</span><small>1万円あたりに届く量</small></h2>
 <ul class="board">{''.join(rows)}</ul>
 <section class="memo">
 <h2 class="hd"><span>このサイトのこと</span></h2>

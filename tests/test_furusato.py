@@ -111,7 +111,8 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stderr)
             index = (out / "index.html").read_text(encoding="utf-8")
             self.assertIn("PR ｜ このサイトは楽天アフィリエイトの広告リンクを使っています", index)  # 広告の表示
-            self.assertIn("あと<span>58</span>日", index)                # 締め切りまでの日数
+            self.assertIn("<span>あと</span><b>58</b><span>日</span>", index)  # 締め切りまでの日数
+            self.assertIn('class="pr-tag">PR', index)                    # ヘッダーの広告表示
             self.assertIn('name="robots" content="noindex"', index)      # デモは検索に載せない
             for slug in ("1man", "2man", "3man", "5man", "10man", "meyasu", "about", "privacy"):
                 self.assertTrue((out / slug / "index.html").exists(), slug)
@@ -121,6 +122,7 @@ class BuildTests(unittest.TestCase):
             self.assertLess(ranking.index("計10kg"), ranking.index("サンプル米 5kg"))  # 7.1kg/万円 が 5.6kg/万円 より上
             three = (out / "3man" / "index.html").read_text(encoding="utf-8")
             self.assertIn("3万円を使い切る組み合わせ", three)
+            self.assertIn('class="rec r1"><small>おすすめ</small>1<small>位</small>', three)
             self.assertTrue((out / "sitemap.xml").exists())
             self.assertIn("Disallow: /", (out / "robots.txt").read_text(encoding="utf-8"))
 
