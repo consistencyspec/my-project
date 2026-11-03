@@ -1,7 +1,10 @@
 """取得した返礼品を、カテゴリごとに「1万円あたりの量」で並べる部品(APIには接続しません)。"""
 import re
+import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "common"))
 from quantity import normalize, parse_quantity, to_display
 
 FURUSATO_SHOP = re.compile(r"^f\d{6}")  # 楽天ふるさと納税の自治体ショップは「f+自治体コード」で始まる

@@ -1,0 +1,74 @@
+# 日用品の単価比較サイト「単価でえらぶ」を、毎日自動で更新して Cloudflare Pages に公開します。
+# 楽天のIDは TANKA_ で始まる Secrets があればそれを、なければふるさと納税サイトと同じものを使います。
+# くわしくは sites/README.md を読んでください。
+name: tanka-site
+
+on:
+  schedule:
+    - cron: "43 20 * * *"   # 毎日 5:43(日本時間)
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "sites/tanka/**"
+      - "!sites/tanka/data/**"
+      - "sites/common/**"
+      - ".github/workflows/tanka-site.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tanka-site
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: テスト
+        run: python -m unittest discover -s tests
+
+      - name: 楽天APIから取得
+        env:
+          RAKUTEN_APPLICATION_ID: ${{ secrets.TANKA_RAKUTEN_APPLICATION_ID || secrets.RAKUTEN_APPLICATION_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.TANKA_RAKUTEN_ACCESS_KEY || secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_REFERER: ${{ secrets.TANKA_RAKUTEN_REFERER || secrets.RAKUTEN_REFERER }}
+        run: python sites/tanka/fetch.py
+
+      - name: サイトを作る
+        env:
+          TANKA_BASE_URL: ${{ vars.TANKA_BASE_URL }}
+        run: python sites/tanka/build.py
+
+      - name: Cloudflare Pages のプロジェクトを用意(初回だけ作成)
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create ${{ vars.TANKA_PAGES_PROJECT || 'tanka-erabu' }} --production-branch=main
+
+      - name: Cloudflare Pages に公開
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/tanka --project-name=${{ vars.TANKA_PAGES_PROJECT || 'tanka-erabu' }} --branch=main
+
+      - name: 価格の記録を保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sites/tanka/data/history.csv
+          git diff --cached --quiet || git commit -m "日用品: 価格の記録を更新 ($(date +%F))"
+          git pull --rebase origin main
+          git push
