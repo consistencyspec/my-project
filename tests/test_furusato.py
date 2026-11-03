@@ -124,6 +124,9 @@ class BuildTests(unittest.TestCase):
             self.assertIn("3万円を使い切る組み合わせ", three)
             self.assertIn('class="rec r1"><small>おすすめ</small>1<small>位</small>', three)
             self.assertTrue((out / "sitemap.xml").exists())
+            for f in ("favicon.ico", "favicon-32.png", "apple-touch-icon.png", "site.webmanifest"):
+                self.assertTrue((out / f).exists(), f)
+            self.assertIn('rel="icon" href="/favicon.ico"', index)
             self.assertIn("Disallow: /", (out / "robots.txt").read_text(encoding="utf-8"))
 
 
