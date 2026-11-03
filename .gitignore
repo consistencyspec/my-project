@@ -1,0 +1,28 @@
+# 秘密情報(絶対にコミットしない)
+.env
+
+# 自動生成される下書き(個人の作業ファイル)
+output/*
+!output/.gitkeep
+
+# Python の一時ファイル
+__pycache__/
+*.pyc
+
+# せどりツール
+sedori/env.txt
+sedori/output/*
+!sedori/output/.gitkeep
+
+# eBay輸出ツール
+ebay_export/env.txt
+ebay_export/output/*
+!ebay_export/output/.gitkeep
+ebay_export/token.txt
+ebay_export/costs.csv
+ebay_export/costs_demo.csv
+
+# 自動生成サイト(公開時に毎回作り直す)
+dist/
+# アフィリエイトリンクを含む取得データ(GitHubには上げない)
+sites/*/data/snapshot.json
