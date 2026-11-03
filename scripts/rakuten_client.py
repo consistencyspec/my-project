@@ -96,8 +96,9 @@ def parse_items(data):
     return items
 
 
-def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sort="standard"):
-    """キーワードで商品を検索して Item のリストを返す。"""
+def search_raw(settings, keyword, page=1, hits=30, sort="standard", min_price=None, max_price=None,
+               user_agent="threads-affiliate-drafts/1.0"):
+    """キーワードで検索し、APIの返事の商品(辞書)をそのまま返す。価格の幅や画像URLが必要なときに使う。"""
     global _last_request_at
     if settings["missing"]:
         raise RakutenError("環境変数が未設定です: " + ", ".join(settings["missing"]))
@@ -107,6 +108,7 @@ def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sor
         "affiliateId": settings["affiliate_id"],
         "keyword": keyword,
         "hits": hits,
+        "page": page,
         "sort": sort,
         "availability": 1,
         "format": "json",
@@ -117,7 +119,7 @@ def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sor
     if max_price:
         params["maxPrice"] = int(max_price)
     url = settings["endpoint"] + "?" + urllib.parse.urlencode(params)
-    headers = {"Authorization": "Bearer " + settings["access_key"], "User-Agent": "threads-affiliate-drafts/1.0"}
+    headers = {"Authorization": "Bearer " + settings["access_key"], "User-Agent": user_agent}
     if settings["referer"]:
         headers["Referer"] = settings["referer"]
         headers["Origin"] = settings["referer"].rstrip("/")
@@ -131,7 +133,8 @@ def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sor
         try:
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=20) as res:
-                return parse_items(json.loads(res.read().decode("utf-8")))
+                data = json.loads(res.read().decode("utf-8"))
+            return [e.get("Item", e) for e in (data.get("Items") or data.get("items") or []) if isinstance(e, dict)]
         except urllib.error.HTTPError as e:
             body = _redact(e.read().decode("utf-8", errors="replace")[:300], settings)
             last_error = f"HTTP {e.code}: {body}"
@@ -145,6 +148,12 @@ def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sor
             last_error = _redact(str(e), settings)
             time.sleep(2 * (attempt + 1))
     raise RakutenError(f"楽天APIの呼び出しに失敗しました: {last_error}")
+
+
+def search_items(settings, keyword, min_price=None, max_price=None, hits=30, sort="standard"):
+    """キーワードで商品を検索して Item のリストを返す。"""
+    raw = search_raw(settings, keyword, hits=hits, sort=sort, min_price=min_price, max_price=max_price)
+    return parse_items({"Items": raw})
 
 
 def select_items(items, count, min_review_count=5, min_review_average=4.0,

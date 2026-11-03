@@ -21,3 +21,8 @@ ebay_export/output/*
 ebay_export/token.txt
 ebay_export/costs.csv
 ebay_export/costs_demo.csv
+
+# 自動生成サイト(公開時に毎回作り直す)
+dist/
+# アフィリエイトリンクを含む取得データ(GitHubには上げない)
+sites/*/data/snapshot.json

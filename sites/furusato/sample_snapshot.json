@@ -1,0 +1,151 @@
+{
+ "fetched_at": "2026-11-03T05:00+09:00",
+ "categories": {
+  "rice": [
+   {
+    "itemCode": "f000000-sample:1",
+    "itemName": "【ふるさと納税】(ダミー)サンプル米 計10kg 5kg×2袋",
+    "itemPrice": 14000,
+    "itemPriceMin3": 14000,
+    "itemPriceMax3": 14000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県A町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 210,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:2",
+    "itemName": "【ふるさと納税】(ダミー)サンプル米 5kg",
+    "itemPrice": 9000,
+    "itemPriceMin3": 9000,
+    "itemPriceMax3": 9000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県B村",
+    "shopCode": "f000000-sample",
+    "reviewCount": 101,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:3",
+    "itemName": "【ふるさと納税】(ダミー)サンプル無洗米 3kg",
+    "itemPrice": 8000,
+    "itemPriceMin3": 8000,
+    "itemPriceMax3": 8000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県C市",
+    "shopCode": "f000000-sample",
+    "reviewCount": 93,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:4",
+    "itemName": "【ふるさと納税】(ダミー)選べる容量 サンプル米 5kg 10kg 20kg",
+    "itemPrice": 6000,
+    "itemPriceMin3": 6000,
+    "itemPriceMax3": 60000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県D町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 5000,
+    "reviewAverage": 4.5
+   }
+  ],
+  "pork": [
+   {
+    "itemCode": "f000000-sample:5",
+    "itemName": "【ふるさと納税】(ダミー)豚肉切り落とし 合計4.2kg(420g×10)",
+    "itemPrice": 16000,
+    "itemPriceMin3": 16000,
+    "itemPriceMax3": 16000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県サンプル町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 153,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:6",
+    "itemName": "【ふるさと納税】(ダミー)豚バラ 2kg",
+    "itemPrice": 13000,
+    "itemPriceMin3": 13000,
+    "itemPriceMax3": 13000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県サンプル町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 80,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:7",
+    "itemName": "【ふるさと納税】(ダミー)豚肉 4種 セット (合計800g)",
+    "itemPrice": 6000,
+    "itemPriceMin3": 6000,
+    "itemPriceMax3": 6000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県サンプル町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 40,
+    "reviewAverage": 4.5
+   }
+  ],
+  "toilet-paper": [
+   {
+    "itemCode": "f000000-sample:8",
+    "itemName": "【ふるさと納税】(ダミー)トイレットペーパー 12ロール×8パック ダブル",
+    "itemPrice": 15000,
+    "itemPriceMin3": 15000,
+    "itemPriceMax3": 15000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県サンプル町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 120,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:9",
+    "itemName": "【ふるさと納税】(ダミー)トイレットペーパー 60ロール 2倍巻き",
+    "itemPrice": 15000,
+    "itemPriceMin3": 15000,
+    "itemPriceMax3": 15000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県サンプル町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 161,
+    "reviewAverage": 4.5
+   },
+   {
+    "itemCode": "f000000-sample:10",
+    "itemName": "【ふるさと納税】(ダミー)トイレットペーパー 108ロール シングル",
+    "itemPrice": 10000,
+    "itemPriceMin3": 10000,
+    "itemPriceMax3": 10000,
+    "affiliateUrl": "https://example.com/dummy",
+    "itemUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル県サンプル町",
+    "shopCode": "f000000-sample",
+    "reviewCount": 35,
+    "reviewAverage": 4.5
+   }
+  ]
+ }
+}
