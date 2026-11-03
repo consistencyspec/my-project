@@ -95,12 +95,12 @@ class BuildTests(unittest.TestCase):
                                 "--today", "2026-11-03"], capture_output=True, text=True)
             self.assertEqual(r.returncode, 0, r.stderr)
             index = (out / "index.html").read_text(encoding="utf-8")
-            self.assertIn("楽天アフィリエイト(広告)", index)      # 広告の表示
-            self.assertIn("あと58日", index)                      # 締め切りまでの日数
+            self.assertIn("プロモーション(広告)", index)     # 広告の表示
+            self.assertIn("あと<strong>58</strong>日", index)                     # 締め切りまでの日数
             self.assertIn('name="robots" content="noindex"', index)  # デモは検索に載せない
             rice = (out / "rice" / "index.html").read_text(encoding="utf-8")
             self.assertIn('rel="nofollow sponsored noopener"', rice)
-            self.assertIn("楽天で見る(PR)", rice)
+            self.assertIn("楽天で寄付する(PR)", rice)
             self.assertLess(rice.index("計10kg"), rice.index("サンプル米 5kg"))  # 7.1kg/万円 が 5.6kg/万円 より上
             self.assertTrue((out / "sitemap.xml").exists())
             self.assertIn("Disallow: /", (out / "robots.txt").read_text(encoding="utf-8"))
