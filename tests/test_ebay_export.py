@@ -152,3 +152,47 @@ class SalesReportTests(unittest.TestCase):
         self.assertEqual(sr.to_jpy({"value": "1000", "currency": "JPY"}), 1000)
         self.assertEqual(sr.to_jpy({"value": "2", "currency": "USD"}), 2 * sr.config.USD_JPY)
         self.assertEqual(sr.to_jpy(None), 0)
+
+
+def load_trends():
+    sys.path.insert(0, D)
+    for m in ("config", "profit", "ebay_research", "japan_trends"):
+        sys.modules.pop(m, None)
+    jt = importlib.import_module("japan_trends")
+    sys.path.remove(D)
+    for m in ("config", "profit", "ebay_research", "japan_trends"):
+        sys.modules.pop(m, None)
+    return jt
+
+
+jt = load_trends()
+
+
+class JapanTrendsTests(unittest.TestCase):
+    def test_scan_and_report(self):
+        from unittest import mock
+
+        def fake_call(token, path, params=None):
+            if path == "/item_summary/search" and params.get("fieldgroups"):
+                return {"total": 500, "refinement": {"categoryDistributions": [
+                    {"categoryId": "10", "categoryName": "Sub A", "matchCount": 300},
+                    {"categoryId": "11", "categoryName": "Sub B", "matchCount": 100}]}}
+            if path == "/item_summary/search" and "itemLocationCountry" not in params.get("filter", ""):
+                return {"total": 1000}
+            if path == "/item_summary/search":
+                return {"itemSummaries": [{"itemId": "v1|1|0"}, {"itemId": "v1|2|0"}]}
+            return {"title": "Japan item " + path, "price": {"value": "30.00"},
+                    "estimatedAvailabilities": [{"estimatedSoldQuantity": 12}],
+                    "itemCreationDate": "2026-05-01T00:00:00.000Z", "itemWebUrl": "https://e/x"}
+
+        with mock.patch.object(jt, "call", fake_call), mock.patch.object(jt.er, "get_token", lambda: "t"), \
+                mock.patch.object(jt.config, "TREND_CATEGORIES", {"1": "Collectibles"}, create=True):
+            rows, items = jt.scan()
+        self.assertEqual([r["subcategory"] for r in rows], ["Sub A", "Sub B"])
+        self.assertEqual(rows[0]["sold"], 24)
+        self.assertEqual(rows[0]["jp_share"], 0.3)
+        self.assertGreater(rows[0]["per_month"], 0)
+        with tempfile.TemporaryDirectory() as d:
+            paths = jt.write_report(rows, items, Path(d))
+            self.assertTrue(all(p.exists() for p in paths))
+            self.assertIn("Sub A", paths[2].read_text(encoding="utf-8"))
