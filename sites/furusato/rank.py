@@ -28,7 +28,7 @@ class Gift:
 
 def short_name(name, limit=48):
     """商品名から【ふるさと納税】や記号の飾りを取り、読みやすい長さにする。"""
-    text = re.sub(r"【[^】]*】|［[^］]*］|\[[^\]]*\]|＼|／|★[\d.]+|◎|♪", " ", name)
+    text = re.sub(r"【[^】]*】|［[^］]*］|\[[^\]]*\]|＜[^＞]*＞|<[^>]*>|《[^》]*》|＼|／|★[\d.]+|◎|♪", " ", name)
     text = re.sub(r"\s+", " ", text).strip(" 　|｜/")
     return text if len(text) <= limit else text[:limit].rstrip() + "…"
 
