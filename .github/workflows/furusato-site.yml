@@ -45,6 +45,14 @@ jobs:
           FURUSATO_BASE_URL: ${{ vars.FURUSATO_BASE_URL }}
         run: python sites/furusato/build.py
 
+      - name: Cloudflare Pages のプロジェクトを用意(初回だけ作成、2回目以降は何もしない)
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create ${{ vars.CF_PAGES_PROJECT }} --production-branch=main
+
       - name: Cloudflare Pages に公開
         uses: cloudflare/wrangler-action@v3
         with:

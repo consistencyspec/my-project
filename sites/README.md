@@ -57,12 +57,13 @@ cd dist/furusato && python3 -m http.server 8000
 ### 1. 運営者情報を書く
 `sites/furusato/config.json` の `operator_name`(ニックネーム可)と `contact`(メールアドレスか、お問い合わせフォームのURL)を書き換えます。アフィリエイトサイトでは、運営者と連絡先の表示が必要です。
 
-### 2. Cloudflare に登録して、Pages のプロジェクトを作る(無料)
-1. https://dash.cloudflare.com/ でアカウントを作る
-2. 「Workers & Pages」→「作成」→「Pages」→「アセットをアップロード」で、プロジェクト名(例: `furusato-cospa`)を決めて作る(中身は空のままで大丈夫です)
-3. 公開URLは `https://プロジェクト名.pages.dev` になります
-4. 「マイプロフィール」→「APIトークン」→「トークンを作成」→「Cloudflare Pages の編集」のテンプレートでトークンを作り、控えておく
-5. アカウントID(ダッシュボードの右側か、URLに出ている英数字)を控えておく
+### 2. Cloudflare に登録して、APIトークンを作る(無料)
+1. https://dash.cloudflare.com/sign-up でアカウントを作る
+2. 右上の人のアイコン →「プロフィール」→「APIトークン」→「トークンを作成」→「カスタムトークンを作成」
+3. 権限を「アカウント / Cloudflare Pages / 編集」にしてトークンを作り、表示された文字列を控える(**1回しか表示されません**)
+4. アカウントID(32文字の英数字。ダッシュボードのURL `dash.cloudflare.com/〜/` の〜の部分)を控える
+
+Pages のプロジェクトは、初回の自動実行で作られます(画面で作る必要はありません)。公開URLは `https://プロジェクト名.pages.dev` です。
 
 > 独自ドメイン(例: `furusato-cospa.com`、年1,500円ほど)は、Cloudflare で買うのがいちばん簡単です。Pages の「カスタムドメイン」で設定します。**検索の評価はドメインにつくので、早めに決めるのがおすすめです。**
 
