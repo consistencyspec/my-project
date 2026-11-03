@@ -1,0 +1,20 @@
+{
+  "name": "予算でえらぶ ふるさと納税",
+  "short_name": "予算でえらぶ",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fffaf0",
+  "theme_color": "#ffd23f",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

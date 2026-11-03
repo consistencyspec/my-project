@@ -139,6 +139,10 @@ class Site:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
 <link rel="stylesheet" href="/style.css?v={CSS_VERSION}">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 </head>
 <body>
 {demo}
@@ -423,6 +427,8 @@ class Site:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(html, encoding="utf-8")
         shutil.copy(HERE / "style.css", out / "style.css")
+        for f in (HERE / "static").iterdir():  # ファビコンなど
+            shutil.copy(f, out / f.name)
         urls = (["/"] + [f"/{b['slug']}/" for b in self.budgets] + [f"/{s}/" for s in self.results]
                 + ["/meyasu/", "/about/"])
         sitemap = "".join(f"<url><loc>{e(self.base + u)}</loc><lastmod>{self.today.isoformat()}</lastmod></url>"
