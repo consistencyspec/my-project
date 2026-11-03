@@ -80,3 +80,75 @@ class ResearchTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def load_sales():
+    sys.path.insert(0, D)
+    for m in ("config", "sales_report"):
+        sys.modules.pop(m, None)
+    sr = importlib.import_module("sales_report")
+    sys.path.remove(D)
+    for m in ("config", "sales_report"):
+        sys.modules.pop(m, None)
+    return sr
+
+
+sr = load_sales()
+
+
+class SalesReportTests(unittest.TestCase):
+    def setUp(self):
+        self.orders, self.tx = sr.demo_data()
+        self.tmp = tempfile.TemporaryDirectory()
+        sr.COSTS_FILE = Path(self.tmp.name) / "costs.csv"
+        self.saved_here, sr.HERE = sr.HERE, Path(self.tmp.name)
+
+    def tearDown(self):
+        sr.HERE = self.saved_here
+        self.tmp.cleanup()
+
+    def test_money_by_order(self):
+        by, over = sr.money_by_order(self.tx)
+        rate = sr.config.USD_JPY
+        self.assertAlmostEqual(by["01-0001"]["gross"], 159.99 * rate, places=2)
+        self.assertAlmostEqual(by["01-0001"]["net"], (159.99 - 23.5) * rate, places=2)
+        self.assertAlmostEqual(by["01-0004"]["refund"], -10 * rate, places=2)
+        self.assertAlmostEqual(by["01-0005"]["label"], -21.5 * rate, places=2)
+        self.assertNotIn("PAYOUT", over)  # 振込は費用に入れない
+        self.assertAlmostEqual(sum(over.values()), -12.3 * rate, places=2)
+
+    def test_costs_preserved_and_profit(self):
+        rows = sr.order_rows(self.orders)
+        costs, added = sr.update_costs(rows)
+        self.assertEqual(added, 6)
+        costs[("01-0001", "01-0001-L0")]["buy_jpy"] = "10000"
+        with sr.COSTS_FILE.open("w", newline="", encoding="utf-8-sig") as f:
+            import csv
+            w = csv.DictWriter(f, fieldnames=sr.COST_COLUMNS)
+            w.writeheader()
+            w.writerows(costs.values())
+        costs, added = sr.update_costs(rows)
+        self.assertEqual(added, 0)
+        self.assertEqual(costs[("01-0001", "01-0001-L0")]["buy_jpy"], "10000")  # 入力が消えない
+        by, _ = sr.money_by_order(self.tx)
+        lines = {l["line_item_id"]: l for l in sr.build_report(rows, by, costs)}
+        l = lines["01-0001-L0"]
+        self.assertEqual(l["profit"], round(by["01-0001"]["net"] - 10000 - sr.config.PACKING_COST_JPY))
+        self.assertIsNone(lines["01-0002-L0"]["profit"])  # 未入力
+        self.assertEqual(lines["01-0005-L0"]["net"], round(by["01-0005"]["net"] / 2))  # 2商品で按分
+
+    def test_groups_and_report(self):
+        self.assertEqual(sr.guess_group("Chiikawa Gashapon set"), "ガチャ")
+        self.assertEqual(sr.guess_group("random item"), "その他")
+        rows = sr.order_rows(self.orders)
+        costs, _ = sr.update_costs(rows)
+        by, over = sr.money_by_order(self.tx)
+        from datetime import datetime
+        c, h, missing = sr.write_report(sr.build_report(rows, by, costs), over, datetime(2026, 9, 1), datetime(2026, 10, 31))
+        self.assertEqual(missing, 6)
+        self.assertIn("グループ別", h.read_text(encoding="utf-8"))
+
+    def test_to_jpy(self):
+        self.assertEqual(sr.to_jpy({"value": "1000", "currency": "JPY"}), 1000)
+        self.assertEqual(sr.to_jpy({"value": "2", "currency": "USD"}), 2 * sr.config.USD_JPY)
+        self.assertEqual(sr.to_jpy(None), 0)

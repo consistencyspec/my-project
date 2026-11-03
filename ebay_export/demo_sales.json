@@ -1,0 +1,257 @@
+{
+ "orders": [
+  {
+   "orderId": "01-0001",
+   "creationDate": "2026-09-05T10:00:00.000Z",
+   "fulfillmentStartInstructions": [
+    {
+     "shippingStep": {
+      "shipTo": {
+       "contactAddress": {
+        "countryCode": "US"
+       }
+      }
+     }
+    }
+   ],
+   "lineItems": [
+    {
+     "lineItemId": "01-0001-L0",
+     "title": "Ichiban Kuji One Piece Last One Prize Figure Japan",
+     "sku": "A001",
+     "legacyItemId": "1001"
+    }
+   ]
+  },
+  {
+   "orderId": "01-0002",
+   "creationDate": "2026-09-12T10:00:00.000Z",
+   "fulfillmentStartInstructions": [
+    {
+     "shippingStep": {
+      "shipTo": {
+       "contactAddress": {
+        "countryCode": "US"
+       }
+      }
+     }
+    }
+   ],
+   "lineItems": [
+    {
+     "lineItemId": "01-0002-L0",
+     "title": "Chiikawa Gashapon Complete Set 5 types Japan",
+     "sku": "A002",
+     "legacyItemId": "1002"
+    }
+   ]
+  },
+  {
+   "orderId": "01-0003",
+   "creationDate": "2026-10-02T10:00:00.000Z",
+   "fulfillmentStartInstructions": [
+    {
+     "shippingStep": {
+      "shipTo": {
+       "contactAddress": {
+        "countryCode": "GB"
+       }
+      }
+     }
+    }
+   ],
+   "lineItems": [
+    {
+     "lineItemId": "01-0003-L0",
+     "title": "Banpresto Demon Slayer Prize Figure Japan",
+     "sku": "A003",
+     "legacyItemId": "1003"
+    }
+   ]
+  },
+  {
+   "orderId": "01-0004",
+   "creationDate": "2026-10-15T10:00:00.000Z",
+   "fulfillmentStartInstructions": [
+    {
+     "shippingStep": {
+      "shipTo": {
+       "contactAddress": {
+        "countryCode": "AU"
+       }
+      }
+     }
+    }
+   ],
+   "lineItems": [
+    {
+     "lineItemId": "01-0004-L0",
+     "title": "Sanrio Crane Game Prize Plush Kuromi Japan",
+     "sku": "A004",
+     "legacyItemId": "1004"
+    }
+   ]
+  },
+  {
+   "orderId": "01-0005",
+   "creationDate": "2026-10-20T10:00:00.000Z",
+   "fulfillmentStartInstructions": [
+    {
+     "shippingStep": {
+      "shipTo": {
+       "contactAddress": {
+        "countryCode": "US"
+       }
+      }
+     }
+    }
+   ],
+   "lineItems": [
+    {
+     "lineItemId": "01-0005-L0",
+     "title": "Pokemon Center Japan Exclusive Plush Set",
+     "sku": "A005",
+     "legacyItemId": "1005"
+    },
+    {
+     "lineItemId": "01-0005-L1",
+     "title": "Pokemon Center Japan Exclusive Plush Set (2)",
+     "sku": "A005",
+     "legacyItemId": "1005"
+    }
+   ]
+  }
+ ],
+ "transactions": [
+  {
+   "transactionId": "T01-0001",
+   "orderId": "01-0001",
+   "transactionType": "SALE",
+   "bookingEntry": "CREDIT",
+   "transactionDate": "2026-09-06T12:00:00.000Z",
+   "amount": {
+    "value": "136.49",
+    "currency": "USD"
+   },
+   "totalFeeBasisAmount": {
+    "value": "159.99",
+    "currency": "USD"
+   },
+   "totalFeeAmount": {
+    "value": "23.50",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionId": "T01-0002",
+   "orderId": "01-0002",
+   "transactionType": "SALE",
+   "bookingEntry": "CREDIT",
+   "transactionDate": "2026-09-13T12:00:00.000Z",
+   "amount": {
+    "value": "33.59",
+    "currency": "USD"
+   },
+   "totalFeeBasisAmount": {
+    "value": "39.99",
+    "currency": "USD"
+   },
+   "totalFeeAmount": {
+    "value": "6.40",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionId": "T01-0003",
+   "orderId": "01-0003",
+   "transactionType": "SALE",
+   "bookingEntry": "CREDIT",
+   "transactionDate": "2026-10-03T12:00:00.000Z",
+   "amount": {
+    "value": "54.89",
+    "currency": "USD"
+   },
+   "totalFeeBasisAmount": {
+    "value": "64.99",
+    "currency": "USD"
+   },
+   "totalFeeAmount": {
+    "value": "10.10",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionId": "T01-0004",
+   "orderId": "01-0004",
+   "transactionType": "SALE",
+   "bookingEntry": "CREDIT",
+   "transactionDate": "2026-10-16T12:00:00.000Z",
+   "amount": {
+    "value": "37.70",
+    "currency": "USD"
+   },
+   "totalFeeBasisAmount": {
+    "value": "45.00",
+    "currency": "USD"
+   },
+   "totalFeeAmount": {
+    "value": "7.30",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionId": "T01-0005",
+   "orderId": "01-0005",
+   "transactionType": "SALE",
+   "bookingEntry": "CREDIT",
+   "transactionDate": "2026-10-21T12:00:00.000Z",
+   "amount": {
+    "value": "101.10",
+    "currency": "USD"
+   },
+   "totalFeeBasisAmount": {
+    "value": "120.00",
+    "currency": "USD"
+   },
+   "totalFeeAmount": {
+    "value": "18.90",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionType": "SHIPPING_LABEL",
+   "orderId": "01-0005",
+   "bookingEntry": "DEBIT",
+   "amount": {
+    "value": "21.50",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionType": "REFUND",
+   "orderId": "01-0004",
+   "bookingEntry": "DEBIT",
+   "amount": {
+    "value": "10.00",
+    "currency": "USD"
+   }
+  },
+  {
+   "transactionType": "NON_SALE_CHARGE",
+   "bookingEntry": "DEBIT",
+   "amount": {
+    "value": "12.30",
+    "currency": "USD"
+   },
+   "feeType": "AD_FEE"
+  },
+  {
+   "transactionType": "PAYOUT",
+   "bookingEntry": "DEBIT",
+   "amount": {
+    "value": "300",
+    "currency": "USD"
+   }
+  }
+ ]
+}
