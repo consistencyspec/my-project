@@ -198,9 +198,14 @@ def fetch_orders(token, start, end):
 # 集計
 # ---------------------------------------------------------------------
 
+DEFAULT_GROUPS = [("Ichiban Kuji", "一番くじ"), ("Gashapon", "ガチャ"), ("Gachapon", "ガチャ"),
+                  ("Chiikawa", "ちいかわ"), ("Pokemon", "ポケモン"), ("Sanrio", "サンリオ"),
+                  ("Banpresto", "プライズ(バンプレスト)"), ("SEGA", "プライズ(セガ)"), ("Taito", "プライズ(タイトー)")]
+
+
 def guess_group(title):
     t = (title or "").lower()
-    for word, name in config.GROUPS:
+    for word, name in getattr(config, "GROUPS", DEFAULT_GROUPS):
         if word.lower() in t:
             return name
     return "その他"
@@ -431,7 +436,7 @@ def main():
 
     now = datetime.now(timezone.utc)
     start = datetime.strptime(args.start, "%Y-%m-%d").replace(tzinfo=timezone.utc) if args.start \
-        else now - timedelta(days=config.REPORT_DAYS)
+        else now - timedelta(days=getattr(config, "REPORT_DAYS", 90))
     end = (datetime.strptime(args.end, "%Y-%m-%d").replace(tzinfo=timezone.utc) + timedelta(days=1)) if args.end else now
 
     global COSTS_FILE
