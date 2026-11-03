@@ -401,7 +401,7 @@ class Site:
 <h2 class="hd"><span>アフィリエイトについて</span></h2>
 <p>このサイトは楽天アフィリエイトを使っています。リンクをクリックすると、楽天グループ株式会社がCookieなどで紹介の成果を記録することがあります。くわしくは楽天グループ株式会社のプライバシーポリシーをご覧ください。</p>
 <h2 class="hd"><span>アクセス解析について</span></h2>
-<p>現在、アクセス解析ツールは使っていません。使い始めるときは、このページでお知らせします。</p>
+<p>このサイトでは、閲覧数などを知るために、Cloudflare, Inc.の「Cloudflare Web Analytics」を使っています。Cookieは使わず、閲覧者を特定できる情報も集めていません。集めるのは、見られたページ、参照元、ブラウザや端末の種類、おおまかな国・地域などの統計情報です。くわしくは<a href="https://www.cloudflare.com/ja-jp/privacypolicy/" rel="noopener" target="_blank">Cloudflareのプライバシーポリシー</a>をご覧ください。</p>
 <h2 class="hd"><span>個人情報について</span></h2>
 <p>お問い合わせでいただいた個人情報は、お返事のためだけに使い、法令にもとづく場合を除いて第三者に渡しません。</p>
 <p>制定日：{self.today.isoformat()}</p>
