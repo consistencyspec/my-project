@@ -23,6 +23,9 @@ sys.path.insert(0, str(HERE))
 
 from unitprice import rank_category, yen_unit  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "sites" / "common"))
+from reviews import review_html  # noqa: E402
+
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
 FONTS = ("https://fonts.googleapis.com/css2?family=Dela+Gothic+One"
          "&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap")
@@ -155,14 +158,14 @@ class Site:
             badge = f'<span class="star s{rank}"><small>おすすめ</small><b>{rank}</b><small>位</small></span>'
         else:
             badge = f'<span class="no">{rank}</span>'
-        rev = f'<span class="stars">★{p.review_average:.1f}</span>({p.review_count:,})' if p.review_count else ""
         note = f'<p class="note">{e(p.note)}</p>' if p.note else ""
         return f"""<li class="cell" data-unit="{p.unit_price:.4f}" data-price="{p.price}" data-reviews="{p.review_count}">
 {badge}<a class="ph" {link}>{img}</a>
 <p class="nm"><a {link}>{e(p.short_name)}</a></p>
 {self.price_tag(p, cat)}
 <p class="sub"><b>{yen(p.price)}</b>(送料込み)で {e(p.amount_text)}</p>
-<p class="meta">{e(p.shop)} {rev}</p>{note}
+{review_html(p.review_count, p.review_average)}
+<p class="meta">{e(p.shop)}</p>{note}
 <a class="go" {link}>楽天で見る</a>
 </li>"""
 

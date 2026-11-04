@@ -172,6 +172,11 @@ h1 { font-family: var(--round); font-weight: 900; }
 .nm a { color: var(--ink); text-decoration: none; }
 .meta { margin: 0; font-size: .78rem; color: var(--ink-2); }
 .star { color: #c88a00; font-weight: 700; }
+.rv { margin: 0; font-size: .78rem; color: var(--ink-2); }
+.rv-s { color: #c88a00; font-weight: 700; }
+.rv b { color: var(--ink); }
+.chips { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.chip { font-size: .64rem; font-weight: 800; padding: 0 7px; border-radius: 999px; background: var(--yellow); color: #1d1a16; }
 .fig { grid-area: fig; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "big sub go" "hot sub go";
   align-items: center; gap: 0 12px; margin-top: 8px; background: var(--paper-2); border-radius: 6px; padding: 8px 10px; }
 .big { grid-area: big; margin: 0; color: var(--red); line-height: 1; white-space: nowrap; }

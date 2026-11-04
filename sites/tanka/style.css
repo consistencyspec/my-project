@@ -98,7 +98,11 @@ a { color: var(--red-dark); }
 .sub { margin: 0; font-size: .8rem; }
 .sub b { font-size: 1rem; }
 .meta { margin: 0; font-size: .72rem; color: var(--ink-2); }
-.stars { color: #d08a00; font-weight: 900; }
+.rv { margin: 0; font-size: .78rem; }
+.rv-s { color: #d08a00; font-weight: 900; }
+.rv b { font-size: .95rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.chip { font-size: .66rem; font-weight: 900; padding: 1px 7px; border: 2px solid var(--ink); border-radius: 999px; background: var(--yellow-2); color: var(--ink); }
 .note { margin: 0; font-size: .72rem; color: var(--ink-2); }
 .go { margin-top: auto; text-align: center; background: var(--red); color: #fff; text-decoration: none; font-weight: 900; padding: 9px; border-radius: 4px;
   box-shadow: 0 3px 0 var(--red-dark); }

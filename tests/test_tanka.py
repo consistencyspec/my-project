@@ -53,6 +53,14 @@ class RankTests(unittest.TestCase):
         self.assertEqual([p.code for p in tr.rank_category(raws, CATS["omutsu-pants-l"])], ["l"])
 
 
+class ReviewBadgeTests(unittest.TestCase):
+    def test_badges(self):
+        from reviews import review_badges
+        self.assertEqual(review_badges(1200, 4.6), ["レビュー1,000件以上", "★4.5以上"])
+        self.assertEqual(review_badges(150, 4.2), ["レビュー100件以上"])
+        self.assertEqual(review_badges(5, 5.0), [])  # 件数が少ない高評価は目印にしない
+
+
 class BuildTests(unittest.TestCase):
     def test_demo_build(self):
         with tempfile.TemporaryDirectory() as tmp:
