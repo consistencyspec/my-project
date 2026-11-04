@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "sites" / "furusato"
 sys.path.insert(0, str(SITE))
+sys.path.insert(0, str(ROOT / "sites" / "common"))
 
 from quantity import parse_quantity, to_display  # noqa: E402
 from rank import rank_category, short_name  # noqa: E402

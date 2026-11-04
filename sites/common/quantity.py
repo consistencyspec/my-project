@@ -1,4 +1,4 @@
-"""返礼品の商品名から「量」を読み取る部品。
+"""商品名から「量」を読み取る部品(ふるさと納税サイト・日用品サイトで共通)。
 
 方針: 読み取りが確実なものだけを比較に使う(あやしいものは None を返して比較から外す)。
 ・容量や回数を選べる返礼品(「300g〜30kg」「5kg 10kg 20kg」など)は、寄付額と量の対応が分からないので外す
@@ -15,6 +15,7 @@ UNIT_FAMILIES = {
     "volume": {"l": 1000, "ℓ": 1000, "リットル": 1000, "ml": 1},
     "roll": {"ロール": 1},
     "box": {"箱": 1},
+    "sheet": {"枚": 1},
 }
 # 表示用(基準単位の量 → 表示の単位)
 DISPLAY = {
@@ -22,14 +23,17 @@ DISPLAY = {
     "volume": ("L", 1000),
     "roll": ("ロール", 1),
     "box": ("箱", 1),
+    "sheet": ("枚", 1),
 }
 
 _NUM = r"(\d+(?:\.\d+)?)"
 _COUNTER = r"(?:袋|パック|本|個|箱|セット|缶|ケース|p|枚|入|玉|尾|パック入)?"
-_MULT = r"(?:\s*[×x*]\s*(\d+)\s*" + _COUNTER + r")"
+_MULT = r"(?:\s*(?:入り?)?\s*[×x*]\s*(\d+)\s*" + _COUNTER + r")"
 _SUBSCRIPTION = re.compile(r"定期便|頒布会")
 _SUBSCRIPTION_COUNT = re.compile(r"\d+\s*(?:回|ヶ月|か月|カ月|ケ月)")
 _CHOICE = re.compile(r"(?:容量|内容量|量|サイズ|重量|本数|個数)(?:が|を)?選べる|選べる(?:容量|内容量|量|サイズ|重量|本数|個数)")
+_SET = re.compile(r"(\d+)\s*(?:個|袋|パック|ケース)\s*セット")
+_OTHER_PACK = re.compile(r"\d+\s*(?:箱|袋|パック|個入|ケース)")
 _ROLL_FACTOR = re.compile(r"(\d+(?:\.\d+)?)\s*倍(?:巻|長)")
 
 
@@ -58,8 +62,11 @@ def parse_quantity(name, family):
     if _CHOICE.search(text):
         return None
     # 「300g〜30kg」のような範囲の表記は、容量を選べる返礼品
-    if re.search(_NUM + r"\s*(?:kg|g|l|ml|ロール|箱)?\s*[〜~～]\s*\d", text):
-        return None
+    if family in ("weight", "volume"):
+        if re.search(_NUM + r"\s*(?:kg|g|l|ml)?\s*[〜~～]\s*\d", text):
+            return None
+    elif re.search(_NUM + r"\s*(?:" + "|".join(UNIT_FAMILIES[family]) + r")\s*[〜~～]\s*\d", text):
+        return None  # 枚・ロール・箱は、その単位の範囲の表記だけを見る(「6〜11kg」などの体重の目安は無関係)
 
     if family == "roll":
         equivalents = {float(x) for x in re.findall(_NUM + r"\s*ロール相当", text)}
@@ -84,13 +91,29 @@ def parse_quantity(name, family):
         totals = {m["base"] * m["factor"] for m in marked}
         return totals.pop() if len(totals) == 1 else None
 
-    bases = {m["base"] for m in matches}
-    if len(bases) != 1:
-        return None  # 「5kg 10kg 20kg」のように量が複数 → 選べる返礼品
-    factors = {m["factor"] for m in matches if m["factor"] != 1}
-    if len(factors) > 1:
-        return None  # 「2L×6本」「2L×12本」が両方ある → 選べる返礼品
-    total = bases.pop() * (factors.pop() if factors else 1)
+    chains = [m for m in matches if m["factor"] != 1]
+    plains = {m["base"] for m in matches if m["factor"] == 1}
+    if chains:
+        # 「186枚 62枚×3」「900g×5本 900g」のように、合計や中身の量がほかに書いてあっても同じものなら問題ない
+        chain_totals = {m["base"] * m["factor"] for m in chains}
+        chain_bases = {m["base"] for m in chains}
+        if len(chain_totals) != 1 or plains - chain_totals - chain_bases:
+            return None  # 「2L×6本」「2L×12本」など、量が複数ある → 選べる商品
+        total = chain_totals.pop()
+    else:
+        if len(plains) != 1:
+            return None  # 「5kg 10kg 20kg」のように量が複数ある → 選べる商品
+        total = plains.pop()
+
+    # 「24枚 3個セット」のように「×」を使わないまとめ買いの表記(枚・ロールのときだけ)
+    if family in ("sheet", "roll") and not chains:
+        sets = {int(x) for x in _SET.findall(text)}
+        if len(sets) > 1:
+            return None
+        if sets:
+            if _OTHER_PACK.search(_SET.sub("", text)):
+                return None  # 「2個セット 2箱 100枚」のように、セットの中身の数え方が分からない
+            total *= sets.pop()
 
     if family == "roll":
         roll_factors = {float(x) for x in _ROLL_FACTOR.findall(text)}

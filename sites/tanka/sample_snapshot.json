@@ -1,0 +1,107 @@
+{
+ "fetched_at": "2026-11-03T05:00+09:00",
+ "categories": {
+  "water-2l": [
+   {
+    "itemCode": "sample:1",
+    "itemName": "(ダミー)天然水 2L×12本",
+    "itemPrice": 1900,
+    "itemPriceMin3": 1900,
+    "itemPriceMax3": 1900,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 0
+   },
+   {
+    "itemCode": "sample:2",
+    "itemName": "(ダミー)天然水 2L×9本",
+    "itemPrice": 1070,
+    "itemPriceMin3": 1070,
+    "itemPriceMax3": 1070,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 0
+   },
+   {
+    "itemCode": "sample:3",
+    "itemName": "(ダミー)天然水 2L×6本",
+    "itemPrice": 1200,
+    "itemPriceMin3": 1200,
+    "itemPriceMax3": 1200,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 0
+   },
+   {
+    "itemCode": "sample:4",
+    "itemName": "(ダミー)天然水 2L×12本 送料別",
+    "itemPrice": 900,
+    "itemPriceMin3": 900,
+    "itemPriceMax3": 900,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 1
+   }
+  ],
+  "kome": [
+   {
+    "itemCode": "sample:5",
+    "itemName": "(ダミー)ブレンド米 10kg",
+    "itemPrice": 3580,
+    "itemPriceMin3": 3580,
+    "itemPriceMax3": 3580,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 0
+   },
+   {
+    "itemCode": "sample:6",
+    "itemName": "(ダミー)コシヒカリ 5kg",
+    "itemPrice": 2980,
+    "itemPriceMin3": 2980,
+    "itemPriceMax3": 2980,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 0
+   },
+   {
+    "itemCode": "sample:7",
+    "itemName": "(ダミー)無洗米 5kg×2袋",
+    "itemPrice": 4980,
+    "itemPriceMin3": 4980,
+    "itemPriceMax3": 4980,
+    "affiliateUrl": "https://example.com/dummy",
+    "mediumImageUrls": [],
+    "shopName": "サンプル商店",
+    "shopCode": "sample",
+    "reviewCount": 50,
+    "reviewAverage": 4.3,
+    "postageFlag": 0
+   }
+  ]
+ }
+}

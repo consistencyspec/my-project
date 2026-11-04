@@ -6,8 +6,8 @@ Threads とは別に、**検索から人が来るサイト**を自動で作っ�
 | サイト | フォルダ | 状態 |
 |---|---|---|
 | ① ふるさと納税コスパ比較 | `sites/furusato/` | 作成済み |
+| ② 単価でえらぶ 日用品(tanka-erabu.com) | `sites/tanka/` | 作成済み |
 | ③ 楽天セール「買い時」トラッカー | (予定) | ①の `history.csv` で価格の記録をためはじめています |
-| ② 日用品の単価比較 | (予定) | ①の仕組みを使い回して作る予定です |
 
 ---
 
@@ -121,3 +121,22 @@ GitHub Actions(自動実行の仕組み)は、毎回ちがうIPアドレスか�
 - 寄付額・在庫は毎日変わります。ページには取得日時を表示しています
 - 「最安」「No.1」などの言葉は使っていません。順位は「1万円あたりの量」という一つの基準での並びです
 - 控除の上限額の計算はしていません(人によって違い、間違えると迷惑をかけるため)。総務省のページへの案内だけにしています
+
+---
+
+## ② 単価でえらぶ 日用品(tanka-erabu.com)
+
+楽天市場の日用品(水・炭酸水・おむつ・おしりふき・トイレットペーパー・ティッシュ・お米・ゴミ袋・マスク)を、**送料込みの値段**で集め、**1枚・1L・1kgあたりの値段**が安い順に並べるサイトです。見た目はスーパーのチラシ風です。
+
+- 送料が別にかかる商品・種類や個数を選ぶ商品・ふるさと納税の返礼品は、比べません
+- 量の読み取りは `sites/common/quantity.py` を①と共通で使っています
+- 品目は `sites/tanka/config.json` に足すだけで増やせます(`family` は `weight`/`volume`/`sheet`(枚)/`roll`/`box`、`per` は単価の単位)
+- 毎日5時40分ごろ(日本時間)に `.github/workflows/tanka-site.yml` が取得・公開します
+
+### 公開までの準備
+1. Cloudflare で `tanka-erabu.com` を買い、Workers & Pages の `tanka-erabu` プロジェクト(初回の自動実行で作られます)の「カスタムドメイン」につなぐ
+2. 楽天ウェブサービスで、Webアプリケーションのアプリを新しく作る(許可されたWebサイト: `tanka-erabu.com`)
+3. GitHub の Secrets に `TANKA_RAKUTEN_APPLICATION_ID`・`TANKA_RAKUTEN_ACCESS_KEY`・`TANKA_RAKUTEN_REFERER`(`https://tanka-erabu.com/`)を登録する
+   - 登録しないあいだは、①と同じ楽天のアプリを使って動きます
+4. Search Console に `tanka-erabu.com` を追加し、`https://tanka-erabu.com/sitemap.xml` を送信する
+5. Cloudflare の Pages プロジェクトの「Metrics」で Web Analytics を有効にする
