@@ -26,6 +26,7 @@ from unitprice import rank_category, yen_unit  # noqa: E402
 sys.path.insert(0, str(ROOT / "sites" / "common"))
 from quantity import normalize  # noqa: E402
 from reviews import review_html  # noqa: E402
+from notfound import not_found_body  # noqa: E402
 
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
 FONTS = ("https://fonts.googleapis.com/css2?family=Dela+Gothic+One"
@@ -317,8 +318,9 @@ class Site:
         return self.layout("/privacy/", f"プライバシーポリシー | {self.c['site_name']}", "プライバシーポリシー。", body)
 
     def not_found(self):
-        return self.layout("/404.html", "ページが見つかりません", "ページが見つかりません。",
-                           '<h1 class="ch1">ページが見つかりません</h1><p><a href="/">トップページへ</a></p>', noindex=True)
+        links = [("/", "トップページ")] + [(f"/{sl}/", c["title"]) for sl, (c, _) in self.results.items()]
+        body = not_found_body("ch1", links, ("https://furusato-yosan.com/", "ふるさと納税の予算別の比較"))
+        return self.layout("/404.html", "ページが見つかりません", "ページが見つかりません。", body, noindex=True)
 
     def build(self, out):
         if out.exists():

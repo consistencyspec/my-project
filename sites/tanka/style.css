@@ -152,3 +152,6 @@ a { color: var(--red-dark); }
   .nm { font-size: .78rem; }
   .ch1 { font-size: 1.6rem; }
 }
+
+/* 見つからないページ */
+.nf-links { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-left: 0; list-style: none; }

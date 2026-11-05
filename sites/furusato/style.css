@@ -246,3 +246,6 @@ h1 { font-family: var(--round); font-weight: 900; }
 .ig { flex: 0 0 min(326px, 85vw); margin: 0; scroll-snap-align: start; }
 .ig .instagram-media { min-width: 0 !important; width: 100% !important; margin: 0 !important; }
 .ig figcaption { font-size: .75rem; color: var(--ink-2); margin-top: 4px; }
+
+/* 見つからないページ */
+.nf-links { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-left: 0; list-style: none; }
