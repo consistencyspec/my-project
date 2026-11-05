@@ -320,21 +320,6 @@ class Site:
         return self.layout("/404.html", "ページが見つかりません", "ページが見つかりません。",
                            '<h1 class="ch1">ページが見つかりません</h1><p><a href="/">トップページへ</a></p>', noindex=True)
 
-    def summary(self):
-        """SNS投稿の下書きなどに使う、数字のまとめ(IDやアフィリエイトリンクは含めない)。"""
-        cats = []
-        for slug, (cat, ranked) in self.results.items():
-            top = ranked[0]
-            cats.append({
-                "slug": slug, "title": cat["title"], "group": cat["group"], "per": cat["per"]["label"],
-                "count": len(ranked), "typical": round(median(p.unit_price for p in ranked), 2),
-                "max": round(max(p.unit_price for p in ranked), 2),
-                "top": {"unit_price": round(top.unit_price, 2), "shop": top.shop, "name": top.short_name,
-                        "price": top.price, "amount_text": top.amount_text},
-            })
-        return {"site": "tanka", "url": self.base, "updated": self.updated, "date": self.today.isoformat(),
-                "categories": cats}
-
     def build(self, out):
         if out.exists():
             shutil.rmtree(out)
@@ -350,7 +335,6 @@ class Site:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(html, encoding="utf-8")
         shutil.copy(HERE / "style.css", out / "style.css")
-        (out / "data.json").write_text(json.dumps(self.summary(), ensure_ascii=False, indent=1), encoding="utf-8")
         for f in (HERE / "static").iterdir():  # ファビコンなど
             shutil.copy(f, out / f.name)
         urls = (["/"] + [f"/{s}/" for s in self.results]

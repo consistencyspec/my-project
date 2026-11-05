@@ -450,28 +450,6 @@ class Site:
         return self.layout("/404.html", "ページが見つかりません", "ページが見つかりません。",
                            '<h1 class="gh1">ページが見つかりません</h1><p><a href="/">トップページへ</a></p>', noindex=True)
 
-    def summary(self):
-        """SNS投稿の下書きなどに使う、数字のまとめ(IDやアフィリエイトリンクは含めない)。"""
-        genres = []
-        for slug, (cat, ranked, _) in self.results.items():
-            top = ranked[0]
-            genres.append({
-                "slug": slug, "title": cat["title"], "short": cat["short"], "unit": FAMILY_UNIT[cat["family"]],
-                "count": len(ranked), "typical": round(median(g.per10k for g in ranked), 2),
-                "top": {"per10k": round(top.per10k, 2), "shop": top.shop, "name": top.short_name,
-                        "price": top.price_min, "amount_text": top.amount_text},
-            })
-        plans = []
-        for b in self.budgets:
-            for pd in self.c.get("plans", []):
-                picks, total = make_plan(self.ranked_by_genre, pd["genres"], b["amount"])
-                if picks:
-                    plans.append({"budget": b["amount"], "slug": b["slug"], "name": pd["name"], "total": total,
-                                  "items": [{"short": self.short(s), "amount_text": g.amount_text, "price": g.price_min}
-                                            for s, g in picks]})
-        return {"site": "furusato", "url": self.base, "updated": self.updated, "date": self.today.isoformat(),
-                "days_left": self.days_left, "genres": genres, "plans": plans}
-
     def build(self, out):
         if out.exists():
             shutil.rmtree(out)
@@ -489,7 +467,6 @@ class Site:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(html, encoding="utf-8")
         shutil.copy(HERE / "style.css", out / "style.css")
-        (out / "data.json").write_text(json.dumps(self.summary(), ensure_ascii=False, indent=1), encoding="utf-8")
         for f in (HERE / "static").iterdir():  # ファビコンなど
             shutil.copy(f, out / f.name)
         urls = (["/"] + [f"/{b['slug']}/" for b in self.budgets] + [f"/{s}/" for s in self.results]

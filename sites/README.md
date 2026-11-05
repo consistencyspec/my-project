@@ -140,10 +140,3 @@ GitHub Actions(自動実行の仕組み)は、毎回ちがうIPアドレスか�
    - 登録しないあいだは、①と同じ楽天のアプリを使って動きます
 4. Search Console に `tanka-erabu.com` を追加し、`https://tanka-erabu.com/sitemap.xml` を送信する
 5. Cloudflare の Pages プロジェクトの「Metrics」で Web Analytics を有効にする
-
----
-
-## SNS投稿の下書き(Threads・X)
-
-2つのサイトは毎朝の更新で、数字のまとめ `data.json`(IDやアフィリエイトリンクは含まない)も公開します。
-`sites/social/make_posts.py` がその数字から Threads 用・X 用の下書きを作り、`.github/workflows/social-drafts.yml` が毎朝7時13分に `drafts/social/日付.md` へ保存します。**投稿は自動ではしません。** 使い方は `drafts/social/README.md` を読んでください。
