@@ -240,3 +240,9 @@ h1 { font-family: var(--round); font-weight: 900; }
   .fig { grid-template-columns: auto 1fr; grid-template-areas: "big sub" "hot sub" "go go"; }
   .go { margin-top: 8px; text-align: center; }
 }
+
+/* 自治体の公式Instagram */
+.ig-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.ig { flex: 0 0 min(326px, 85vw); margin: 0; scroll-snap-align: start; }
+.ig .instagram-media { min-width: 0 !important; width: 100% !important; margin: 0 !important; }
+.ig figcaption { font-size: .75rem; color: var(--ink-2); margin-top: 4px; }
