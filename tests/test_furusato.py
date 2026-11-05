@@ -153,3 +153,20 @@ class GenreBudgetPageTests(unittest.TestCase):
         html = site.genre_budget_page("rice", *pages["1man"])
         self.assertIn("寄付額1万円以内で選ぶなら", html)
         self.assertIn('href="/rice/2man/"', html)
+
+
+class EmbedTests(unittest.TestCase):
+    def test_only_instagram_posts(self):
+        import importlib.util
+        import tempfile as _tf
+        spec = importlib.util.spec_from_file_location("furusato_build2", SITE / "build.py")
+        fb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fb)
+        with _tf.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "embeds.json"
+            path.write_text(json.dumps({"_例": {"rice": []}, "rice": [
+                {"url": "https://www.instagram.com/p/AbC_123-x/?igsh=xyz", "source": "甲佐町 公式"},
+                {"url": "https://example.com/p/abc/", "source": "ほかのサイト"},
+                {"url": "https://www.instagram.com/someone/", "source": "アカウントのページ"}]}), encoding="utf-8")
+            embeds = fb.load_embeds(path)
+        self.assertEqual(embeds, {"rice": [{"url": "https://www.instagram.com/p/AbC_123-x/", "source": "甲佐町 公式"}]})

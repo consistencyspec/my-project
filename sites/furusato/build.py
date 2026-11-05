@@ -8,6 +8,7 @@
 公開先のURLは環境変数 FURUSATO_BASE_URL(例: https://furusato-yosan.com)で指定します。
 """
 import argparse
+import re
 import hashlib
 import json
 import os
@@ -82,13 +83,38 @@ def median(values):
     return v[n // 2] if n % 2 else (v[n // 2 - 1] + v[n // 2]) / 2
 
 
+INSTAGRAM_POST = re.compile(r"^https://(?:www\.)?instagram\.com/(?:p|reel)/[A-Za-z0-9_-]+/?$")
+
+
+def load_embeds(path):
+    """embeds.json を読み、InstagramのURLとして正しいものだけを品目ごとに返す。"""
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    result = {}
+    for slug, posts in data.items():
+        if slug.startswith("_") or not isinstance(posts, list):
+            continue
+        ok = []
+        for post in posts:
+            url = str(post.get("url", "")).strip().split("?")[0].split("#")[0]  # 「?igsh=…」などを取り除く
+            if INSTAGRAM_POST.match(url):
+                ok.append({"url": url.rstrip("/") + "/", "source": str(post.get("source", ""))})
+            else:
+                print(f"  ! embeds.json の {slug}: Instagramの投稿のURLではないので表示しません: {url}", file=sys.stderr)
+        if ok:
+            result[slug] = ok
+    return result
+
+
 def sponsored(url):
     return f'href="{e(url)}" rel="nofollow sponsored noopener" target="_blank"'
 
 
 class Site:
-    def __init__(self, config, snapshot, overrides, base_url, today, demo=False):
+    def __init__(self, config, snapshot, overrides, base_url, today, demo=False, embeds=None):
         self.c = config
+        self.embeds = embeds or {}
         self.base = base_url.rstrip("/")
         self.today = today
         self.demo = demo
@@ -180,6 +206,22 @@ class Site:
 </body>
 </html>
 """
+
+    def embed_section(self, slug):
+        """自治体などの公式Instagramの投稿を、Instagramの公式の埋め込み機能で表示する。"""
+        posts = self.embeds.get(slug)
+        if not posts:
+            return ""
+        cards = "".join(
+            f'<figure class="ig"><blockquote class="instagram-media" data-instgrm-permalink="{e(p["url"])}" '
+            f'data-instgrm-version="14"><a href="{e(p["url"])}" rel="noopener" target="_blank">Instagramで見る</a></blockquote>'
+            f'<figcaption>{e(p["source"])}</figcaption></figure>' for p in posts)
+        return f"""<section class="igs">
+<h2 class="hd"><span>自治体の公式Instagramから</span></h2>
+<p class="lead small">返礼品を出している自治体などの公式アカウントの投稿を、Instagramの埋め込み機能で表示しています。</p>
+<div class="ig-row">{cards}</div>
+<script async src="https://www.instagram.com/embed.js"></script>
+</section>"""
 
     def deadline(self):
         if self.days_left < 0:
@@ -352,6 +394,7 @@ class Site:
 </div>
 <ol class="items" data-list>{items}</ol>
 <p class="empty" data-empty hidden>この予算で寄付できる返礼品はありません。</p>
+{self.embed_section(slug)}
 <h2 class="hd"><span>量を選べる人気の返礼品</span><small>レビューが多い順</small></h2>
 <p class="lead small">量によって寄付額が変わるため、ランキングには入れていません。</p>
 <ul class="items">{pop}</ul>
@@ -387,6 +430,7 @@ class Site:
 {self.deadline()}
 <h2 class="hd"><span>{man(amount)}以内のランキング</span><small>{e(self.updated)}時点</small></h2>
 <ol class="items" data-list>{items}</ol>
+{self.embed_section(slug)}
 {siblings}
 <p class="pager"><a href="/{b['slug']}/">{man(amount)}で選べるほかの品目と、組み合わせ例を見る</a></p>"""
         title = f"ふるさと納税 {cat['title']} {man(amount)}以内でいちばん届く返礼品【{self.year}年】"
@@ -438,6 +482,8 @@ class Site:
 <section class="memo">
 <h2 class="hd"><span>アフィリエイトについて</span></h2>
 <p>このサイトは楽天アフィリエイトを使っています。リンクをクリックすると、楽天グループ株式会社がCookieなどで紹介の成果を記録することがあります。くわしくは楽天グループ株式会社のプライバシーポリシーをご覧ください。</p>
+<h2 class="hd"><span>Instagramの投稿の表示について</span></h2>
+<p>一部のページでは、自治体などの公式Instagramの投稿を、Instagram(Meta Platforms, Inc.)の埋め込み機能で表示しています。表示のときに、Metaが閲覧の情報やCookieを使うことがあります。くわしくはMetaのプライバシーポリシーをご覧ください。</p>
 <h2 class="hd"><span>アクセス解析について</span></h2>
 <p>このサイトでは、閲覧数などを知るために、Cloudflare, Inc.の「Cloudflare Web Analytics」を使っています。Cookieは使わず、閲覧者を特定できる情報も集めていません。集めるのは、見られたページ、参照元、ブラウザや端末の種類、おおまかな国・地域などの統計情報です。くわしくは<a href="https://www.cloudflare.com/ja-jp/privacypolicy/" rel="noopener" target="_blank">Cloudflareのプライバシーポリシー</a>をご覧ください。</p>
 <h2 class="hd"><span>個人情報について</span></h2>
@@ -502,7 +548,8 @@ def main():
         if "ここに" in config[key] and not args.demo:
             print(f"  ! config.json の {key} がまだ書き換えられていません(運営者情報のページに表示されます)", file=sys.stderr)
 
-    site = Site(config, snapshot, overrides, base_url, today, demo=args.demo)
+    embeds = load_embeds(HERE / "embeds.json")
+    site = Site(config, snapshot, overrides, base_url, today, demo=args.demo, embeds=embeds)
     if not site.results:
         sys.exit("公開できるカテゴリがありません。")
     n = site.build(Path(args.out))
