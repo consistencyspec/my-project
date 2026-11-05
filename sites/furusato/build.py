@@ -23,6 +23,7 @@ sys.path.insert(0, str(HERE))
 
 from plans import make_plan  # noqa: E402
 from rank import rank_category  # noqa: E402
+from reviews import review_html  # noqa: E402
 
 FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
@@ -189,13 +190,12 @@ class Site:
         link = sponsored(g.url)
         img = (f'<img src="{e(g.image)}" alt="" width="120" height="120" loading="lazy">'
                if g.image else '<span class="noimg"></span>')
-        rev = f'<span class="star">★{g.review_average:.1f}</span> {g.review_count:,}件' if g.review_count else "レビューなし"
         if g.per10k is None:
             price = yen(g.price_min) if g.price_min == g.price_max else f"{yen(g.price_min)}〜{yen(g.price_max)}"
             return f"""<li class="it plain">
 <a class="ph" {link}>{img}</a>
 <div class="tx"><p class="town">{e(g.shop)}</p><p class="nm"><a {link}>{e(g.short_name)}</a></p>
-<p class="meta">{rev}</p><p class="meta">寄付額 <b>{price}</b>(量によって変わります)</p></div>
+{review_html(g.review_count, g.review_average)}<p class="meta">寄付額 <b>{price}</b>(量によって変わります)</p></div>
 </li>"""
         if rank and rank <= 3:
             badge = f'<span class="rec r{rank}"><small>おすすめ</small>{rank}<small>位</small></span>'
@@ -210,7 +210,7 @@ class Site:
 <div class="tx">
 <p class="town">{e(g.shop)}</p>
 <p class="nm"><a {link}>{e(g.short_name)}</a></p>
-<p class="meta">{rev}</p>{note}
+{review_html(g.review_count, g.review_average)}{note}
 </div>
 <div class="fig">
 <p class="big"><small>1万円で</small><b>{num(g.per10k, family)}</b><small>{e(unit)}</small></p>{hot}

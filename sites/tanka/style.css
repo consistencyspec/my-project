@@ -1,5 +1,6 @@
 /* 単価でえらぶ — スーパーのチラシ風(赤い帯・黄色の値札・マス目) */
 :root {
+  --night: #1b1b1b; /* 明るい文字を載せる黒い背景。ダークモードでも黒のまま */
   --paper: #fffdf6; --ink: #1b1b1b; --ink-2: #5b5750; --rule: #e8e0cf;
   --red: #e8382f; --red-dark: #b3241c; --yellow: #ffe14d; --yellow-2: #fff6bf; --blue: #1d4ea3; --cell: #ffffff;
   --pop: "Dela Gothic One", "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
@@ -14,7 +15,7 @@ body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(
 a { color: var(--red-dark); }
 .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
 .sp { display: none; }
-.demo { background: var(--ink); color: var(--yellow); text-align: center; padding: 6px; font-weight: 700; }
+.demo { background: var(--night); color: var(--yellow); text-align: center; padding: 6px; font-weight: 700; }
 
 /* 赤い帯の題字 */
 .top { background: var(--red); color: #fff; border-bottom: 4px solid var(--yellow); }
@@ -26,10 +27,10 @@ a { color: var(--red-dark); }
 .burst { flex: none; width: 82px; height: 82px; display: grid; place-items: center; color: var(--red-dark); background: var(--yellow);
   font-family: var(--pop); font-size: .78rem; line-height: 1.15; text-align: center; transform: rotate(-10deg);
   clip-path: polygon(50% 0, 61% 12%, 75% 5%, 79% 21%, 95% 25%, 88% 39%, 100% 50%, 88% 61%, 95% 75%, 79% 79%, 75% 95%, 61% 88%, 50% 100%, 39% 88%, 25% 95%, 21% 79%, 5% 75%, 12% 61%, 0 50%, 12% 39%, 5% 25%, 21% 21%, 25% 5%, 39% 12%); }
-.pr-tag { flex: none; display: flex; flex-direction: column; align-items: center; background: #fff; color: var(--ink); border-radius: 4px;
+.pr-tag { flex: none; display: flex; flex-direction: column; align-items: center; background: #fff; color: #1b1b1b; border-radius: 4px;
   padding: 3px 6px; font-weight: 900; font-size: .8rem; line-height: 1.2; }
 .pr-tag small { font-size: .56rem; font-weight: 700; }
-.ticker { margin: 0; background: var(--ink); color: var(--yellow); font-size: .75rem; font-weight: 700; padding: 5px 0;
+.ticker { margin: 0; background: var(--night); color: var(--yellow); font-size: .75rem; font-weight: 700; padding: 5px 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ticker .wrap { display: block; overflow: hidden; text-overflow: ellipsis; }
 
@@ -38,11 +39,11 @@ a { color: var(--red-dark); }
 .cats .wrap { display: flex; gap: 6px; overflow-x: auto; padding: 8px 16px; scrollbar-width: none; white-space: nowrap; }
 .cats a { flex: none; text-decoration: none; color: var(--ink); font-weight: 700; font-size: .85rem; padding: 3px 12px;
   border: 2px solid var(--ink); border-radius: 999px; background: var(--paper); }
-.cats a.on { background: var(--yellow); }
+.cats a.on { background: var(--yellow); color: #1b1b1b; }
 
 /* 大見出し */
 .hero { padding: 26px 0 6px; }
-.hero-k { display: inline-block; margin: 0; background: var(--ink); color: var(--yellow); font-weight: 900; font-size: .85rem; padding: 2px 10px; transform: rotate(-2deg); }
+.hero-k { display: inline-block; margin: 0; background: var(--night); color: var(--yellow); font-weight: 900; font-size: .85rem; padding: 2px 10px; transform: rotate(-2deg); }
 .hero h1 { font-family: var(--pop); font-weight: 400; font-size: 2.8rem; line-height: 1.2; margin: 10px 0 8px; }
 .hero-s { margin: 0; }
 .hero-s b, .memo b { background: linear-gradient(transparent 60%, var(--yellow) 60%); }
@@ -98,13 +99,17 @@ a { color: var(--red-dark); }
 .sub { margin: 0; font-size: .8rem; }
 .sub b { font-size: 1rem; }
 .meta { margin: 0; font-size: .72rem; color: var(--ink-2); }
-.stars { color: #d08a00; font-weight: 900; }
+.rv { margin: 0; font-size: .78rem; }
+.rv-s { color: #d08a00; font-weight: 900; }
+.rv b { font-size: .95rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.chip { font-size: .66rem; font-weight: 900; padding: 1px 7px; border: 2px solid var(--ink); border-radius: 999px; background: var(--yellow-2); color: var(--ink); }
 .note { margin: 0; font-size: .72rem; color: var(--ink-2); }
 .go { margin-top: auto; text-align: center; background: var(--red); color: #fff; text-decoration: none; font-weight: 900; padding: 9px; border-radius: 4px;
   box-shadow: 0 3px 0 var(--red-dark); }
 .go::after { content: " ▶"; font-size: .7rem; }
 .no { position: absolute; top: 8px; left: 8px; min-width: 28px; height: 28px; display: grid; place-items: center; font-family: var(--pop);
-  background: var(--ink); color: #fff; border-radius: 50%; font-size: .9rem; }
+  background: var(--night); color: #fff; border-radius: 50%; font-size: .9rem; }
 .star { position: absolute; top: 4px; left: 4px; z-index: 1; width: 66px; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: center;
   line-height: 1; color: #1b1b1b; transform: rotate(-12deg);
   clip-path: polygon(50% 0, 61% 12%, 75% 5%, 79% 21%, 95% 25%, 88% 39%, 100% 50%, 88% 61%, 95% 75%, 79% 79%, 75% 95%, 61% 88%, 50% 100%, 39% 88%, 25% 95%, 21% 79%, 5% 75%, 12% 61%, 0 50%, 12% 39%, 5% 25%, 21% 21%, 25% 5%, 39% 12%); }
@@ -118,7 +123,7 @@ a { color: var(--red-dark); }
 .sign { text-align: right; font-weight: 900; }
 .pager { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 6px 12px; font-weight: 700; font-size: .9rem; }
 
-.foot { margin-top: 56px; background: var(--ink); color: #cfc8bb; font-size: .78rem; padding: 26px 0; border-top: 6px solid var(--red); }
+.foot { margin-top: 56px; background: var(--night); color: #cfc8bb; font-size: .78rem; padding: 26px 0; border-top: 6px solid var(--red); }
 .foot a { color: #fff; }
 .foot-logo { font-family: var(--pop); font-size: 1.3rem; color: #fff; }
 .foot-logo em { font-style: normal; color: var(--yellow); }
