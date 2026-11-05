@@ -1,5 +1,6 @@
 /* 予算でえらぶ ふるさと納税 — 紙のチラシのような、黄色×赤×墨の配色 */
 :root {
+  --night: #1d1a16; /* 明るい文字を載せる黒い背景。ダークモードでも黒のまま */
   --paper: #fffaf0; --paper-2: #fff3d6; --ink: #1d1a16; --ink-2: #5a5249; --rule: #e7dcc4;
   --yellow: #ffd23f; --red: #e2382b; --red-dark: #b8261b; --white: #ffffff;
   --round: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif;
@@ -18,7 +19,7 @@ b { font-weight: 800; }
 .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
 .sp { display: none; }
 .small { font-size: .85rem; }
-.demo { background: var(--ink); color: var(--yellow); text-align: center; padding: 6px; font-weight: 700; }
+.demo { background: var(--night); color: var(--yellow); text-align: center; padding: 6px; font-weight: 700; }
 
 /* 題字 */
 .masthead { background: var(--yellow); color: #1d1a16; border-bottom: 3px solid #1d1a16; }
@@ -123,7 +124,7 @@ h1 { font-family: var(--round); font-weight: 900; }
 .ph1-amt small { font-family: var(--round); font-size: 1.6rem; color: var(--ink); }
 .plans { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .plan { background: var(--white); border: 2px solid var(--ink); border-radius: 6px; padding: 14px; box-shadow: 4px 4px 0 var(--yellow); }
-.plan-k { display: inline-block; margin: 0; background: var(--ink); color: var(--yellow); font-weight: 800; font-size: .8rem; padding: 2px 10px; border-radius: 3px; }
+.plan-k { display: inline-block; margin: 0; background: var(--night); color: var(--yellow); font-weight: 800; font-size: .8rem; padding: 2px 10px; border-radius: 3px; }
 .plan-haul { font-family: var(--round); font-weight: 900; font-size: 1.15rem; margin: 8px 0; line-height: 1.5; }
 .plan-list { list-style: none; padding: 0; margin: 0; font-size: .85rem; }
 .plan-list li { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "g n n" "g v p"; column-gap: 8px;
@@ -191,7 +192,7 @@ h1 { font-family: var(--round); font-weight: 900; }
 .go::after { content: " ›"; }
 .go:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--red-dark); }
 .no { position: absolute; top: 10px; left: -6px; z-index: 1; min-width: 28px; height: 28px; padding: 0 6px; display: grid; place-items: center;
-  font-family: var(--digit); font-weight: 800; font-size: 1rem; background: var(--ink); color: #fff; border-radius: 3px; }
+  font-family: var(--digit); font-weight: 800; font-size: 1rem; background: var(--night); color: #fff; border-radius: 3px; }
 .rec { position: absolute; top: 6px; left: -8px; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   width: 54px; height: 54px; border-radius: 50%; font-family: var(--digit); font-weight: 800; font-size: 1.35rem; line-height: 1;
   color: #1d1a16; border: 2px solid #1d1a16; box-shadow: 2px 2px 0 #1d1a16; }
