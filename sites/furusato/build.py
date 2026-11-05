@@ -224,6 +224,14 @@ class Site:
 <script async src="https://www.instagram.com/embed.js"></script>
 </section>"""
 
+    def instagram_policy(self):
+        """Instagramの投稿を載せているときだけ、プライバシーポリシーに説明を出す。"""
+        if not self.embeds:
+            return ""
+        return """<h2 class="hd"><span>Instagramの投稿の表示について</span></h2>
+<p>一部のページでは、自治体などの公式Instagramの投稿を、Instagram(Meta Platforms, Inc.)の埋め込み機能で表示しています。表示のときに、Metaが閲覧の情報やCookieを使うことがあります。くわしくはMetaのプライバシーポリシーをご覧ください。</p>
+"""
+
     def deadline(self):
         if self.days_left < 0:
             return ""
@@ -483,9 +491,7 @@ class Site:
 <section class="memo">
 <h2 class="hd"><span>アフィリエイトについて</span></h2>
 <p>このサイトは楽天アフィリエイトを使っています。リンクをクリックすると、楽天グループ株式会社がCookieなどで紹介の成果を記録することがあります。くわしくは楽天グループ株式会社のプライバシーポリシーをご覧ください。</p>
-<h2 class="hd"><span>Instagramの投稿の表示について</span></h2>
-<p>一部のページでは、自治体などの公式Instagramの投稿を、Instagram(Meta Platforms, Inc.)の埋め込み機能で表示しています。表示のときに、Metaが閲覧の情報やCookieを使うことがあります。くわしくはMetaのプライバシーポリシーをご覧ください。</p>
-<h2 class="hd"><span>アクセス解析について</span></h2>
+{self.instagram_policy()}<h2 class="hd"><span>アクセス解析について</span></h2>
 <p>このサイトでは、閲覧数などを知るために、Cloudflare, Inc.の「Cloudflare Web Analytics」を使っています。Cookieは使わず、閲覧者を特定できる情報も集めていません。集めるのは、見られたページ、参照元、ブラウザや端末の種類、おおまかな国・地域などの統計情報です。くわしくは<a href="https://www.cloudflare.com/ja-jp/privacypolicy/" rel="noopener" target="_blank">Cloudflareのプライバシーポリシー</a>をご覧ください。</p>
 <h2 class="hd"><span>個人情報について</span></h2>
 <p>お問い合わせでいただいた個人情報は、お返事のためだけに使い、法令にもとづく場合を除いて第三者に渡しません。</p>
