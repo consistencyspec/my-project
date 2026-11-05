@@ -25,6 +25,7 @@ sys.path.insert(0, str(HERE))
 from plans import make_plan  # noqa: E402
 from rank import rank_category  # noqa: E402
 from reviews import review_html  # noqa: E402
+from notfound import not_found_body  # noqa: E402
 
 FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
@@ -493,8 +494,10 @@ class Site:
         return self.layout("/privacy/", f"プライバシーポリシー | {self.c['site_name']}", "プライバシーポリシー。", body)
 
     def not_found(self):
-        return self.layout("/404.html", "ページが見つかりません", "ページが見つかりません。",
-                           '<h1 class="gh1">ページが見つかりません</h1><p><a href="/">トップページへ</a></p>', noindex=True)
+        links = ([("/", "トップページ")] + [(f"/{b['slug']}/", f"予算 {man(b['amount'])}") for b in self.budgets]
+                 + [(f"/{sl}/", c["title"]) for sl, (c, _, _) in self.results.items()])
+        body = not_found_body("gh1", links, ("https://tanka-erabu.com/", "日用品(水・おむつ・お米など)の単価の比較"))
+        return self.layout("/404.html", "ページが見つかりません", "ページが見つかりません。", body, noindex=True)
 
     def build(self, out):
         if out.exists():
