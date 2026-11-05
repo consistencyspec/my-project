@@ -101,13 +101,23 @@ class Site:
         self.results = {}
         for cat in config["categories"]:
             ranked, popular = rank_category(snapshot.get("categories", {}).get(cat["slug"], []), cat, overrides,
-                                            config.get("min_review_count", 10))
+                                            config.get("min_review_count", 10), top=200)
             if len(ranked) >= config.get("min_ranked_to_publish", 3):
                 self.results[cat["slug"]] = (cat, ranked, popular)
             else:
                 print(f"  - {cat['title']}: 比較できる返礼品が{len(ranked)}件のため、ページを作りません", file=sys.stderr)
         self.ranked_by_genre = {s: r for s, (_, r, _) in self.results.items()}
         self.budgets = config.get("budgets", [])
+        # 品目×予算のページ。3件以上あり、品目のページや、ひとつ下の予算のページと中身が同じにならないときだけ作る
+        self.genre_budgets = {}
+        for slug, ranked in self.ranked_by_genre.items():
+            pages, prev = {}, None
+            for b in sorted(self.budgets, key=lambda x: x["amount"]):
+                pool = [g for g in ranked if g.price_min <= b["amount"]]
+                if len(pool) >= 3 and len(pool) < len(ranked) and len(pool) != prev:
+                    pages[b["slug"]] = (b, pool)
+                    prev = len(pool)
+            self.genre_budgets[slug] = pages
 
     def short(self, slug):
         return self.results[slug][0]["short"]
@@ -292,7 +302,7 @@ class Site:
             typical = median(g.per10k for g in ranked)
             items = "".join(self.item(g, cat["family"], i, typical, compact=True) for i, g in enumerate(pool, 1))
             genre_secs.append(f"""<section class="gsec">
-<h3 class="gh">{e(cat['title'])}<a href="/{slug}/">すべて見る</a></h3>
+<h3 class="gh">{e(cat['title'])}<a href="{f"/{slug}/{b['slug']}/" if b['slug'] in self.genre_budgets.get(slug, {}) else f"/{slug}/"}">すべて見る</a></h3>
 <ol class="items">{items}</ol>
 </section>""")
         others = "".join(f'<a href="/{x["slug"]}/">{man(x["amount"])}</a>' for x in self.budgets if x is not b)
@@ -314,16 +324,18 @@ class Site:
         unit = FAMILY_UNIT[family]
         top = ranked[0]
         typical = median(g.per10k for g in ranked)
-        items = "".join(self.item(g, family, i, typical) for i, g in enumerate(ranked, 1))
+        items = "".join(self.item(g, family, i, typical) for i, g in enumerate(ranked[:30], 1))
         pop = "".join(self.item(g, family) for g in popular)
         by_budget = []
         for b in self.budgets:
             pool = [g for g in ranked if g.price_min <= b["amount"]]
             if pool:
                 g = max(pool, key=lambda x: x.per10k)
+                more = (f'<a class="bb-more" href="/{slug}/{b["slug"]}/">{man(b["amount"])}以内の一覧</a>'
+                        if b["slug"] in self.genre_budgets.get(slug, {}) else "")
                 by_budget.append(f'<li><span class="bb-k">{man(b["amount"])}まで</span>'
                                  f'<a {sponsored(g.url)}>{e(g.shop)}<br><small>{e(g.short_name[:24])}</small></a>'
-                                 f'<span class="bb-v"><b>{num(g.per10k, family)}</b>{e(unit)}</span></li>')
+                                 f'<span class="bb-v"><b>{num(g.per10k, family)}</b>{e(unit)}</span>{more}</li>')
         unit_note = f"<li>{e(cat['unit_note'])}</li>" if cat.get("unit_note") else ""
         body = f"""<nav class="crumbs"><a href="/">トップ</a> ／ {e(cat['title'])}</nav>
 <h1 class="gh1">ふるさと納税の{e(cat['title'])}<br><small>1万円でどれだけ届く？【{self.year}年】</small></h1>
@@ -355,6 +367,32 @@ class Site:
         desc = (f"楽天ふるさと納税の{cat['title']}を、1万円で届く量で比較。ふつうは{num(typical, family)}{unit}、"
                 f"いちばん多いのは{num(top.per10k, family)}{unit}。予算別の1位つき・毎朝更新。")
         return self.layout(f"/{slug}/", title, desc, body, current=slug)
+
+    def genre_budget_page(self, slug, b, pool):
+        cat, ranked, _ = self.results[slug]
+        family = cat["family"]
+        unit = FAMILY_UNIT[family]
+        amount = b["amount"]
+        top = pool[0]
+        typical = median(g.per10k for g in ranked)
+        items = "".join(self.item(g, family, i, typical) for i, g in enumerate(pool[:30], 1))
+        siblings = "".join(f'<a href="/{slug}/{bs}/">{man(bb["amount"])}以内</a>'
+                           for bs, (bb, _) in self.genre_budgets[slug].items() if bs != b["slug"])
+        siblings = f'<p class="pager">ほかの予算の{e(cat["short"])}：{siblings}<a href="/{slug}/">上限なし</a></p>'
+        body = f"""<nav class="crumbs"><a href="/">トップ</a> ／ <a href="/{slug}/">{e(cat['title'])}</a> ／ {man(amount)}以内</nav>
+<h1 class="gh1">ふるさと納税の{e(cat['title'])}<br><small>寄付額{man(amount)}以内で選ぶなら【{self.year}年】</small></h1>
+<p class="verdict">寄付額{man(amount)}以内で選べる{e(cat['short'])}は<b>{len(pool)}</b>件。<br>
+1万円あたりいちばん多いのは<b class="red">{num(top.per10k, family)}{e(unit)}</b>({e(top.shop)}・寄付額{yen(top.price_min)}で{e(top.amount_text)})です。</p>
+<p class="lead">{e(cat['intro'])}</p>
+{self.deadline()}
+<h2 class="hd"><span>{man(amount)}以内のランキング</span><small>{e(self.updated)}時点</small></h2>
+<ol class="items" data-list>{items}</ol>
+{siblings}
+<p class="pager"><a href="/{b['slug']}/">{man(amount)}で選べるほかの品目と、組み合わせ例を見る</a></p>"""
+        title = f"ふるさと納税 {cat['title']} {man(amount)}以内でいちばん届く返礼品【{self.year}年】"
+        desc = (f"寄付額{man(amount)}以内で選べる楽天ふるさと納税の{cat['title']}{len(pool)}件を、1万円あたりに届く量で比較。"
+                f"いちばん多いのは1万円で{num(top.per10k, family)}{unit}。毎朝更新。")
+        return self.layout(f"/{slug}/{b['slug']}/", title, desc, body, current=slug)
 
     def meyasu(self):
         links = "".join(f'<a class="ticket mini" href="/{b["slug"]}/"><span class="t-amt">{b["amount"] // 10000}<small>万円</small></span></a>'
@@ -444,6 +482,8 @@ class Site:
             pages[f"{b['slug']}/index.html"] = self.budget_page(b)
         for slug in self.results:
             pages[f"{slug}/index.html"] = self.category(slug)
+            for bs, (b, pool) in self.genre_budgets[slug].items():
+                pages[f"{slug}/{bs}/index.html"] = self.genre_budget_page(slug, b, pool)
         for rel, html in pages.items():
             p = out / rel
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -453,7 +493,7 @@ class Site:
         for f in (HERE / "static").iterdir():  # ファビコンなど
             shutil.copy(f, out / f.name)
         urls = (["/"] + [f"/{b['slug']}/" for b in self.budgets] + [f"/{s}/" for s in self.results]
-                + ["/meyasu/", "/about/"])
+                + [f"/{s}/{bs}/" for s in self.results for bs in self.genre_budgets[s]] + ["/meyasu/", "/about/"])
         sitemap = "".join(f"<url><loc>{e(self.base + u)}</loc><lastmod>{self.today.isoformat()}</lastmod></url>"
                           for u in urls)
         (out / "sitemap.xml").write_text(

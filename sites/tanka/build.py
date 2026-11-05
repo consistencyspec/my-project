@@ -24,6 +24,7 @@ sys.path.insert(0, str(HERE))
 from unitprice import rank_category, yen_unit  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "sites" / "common"))
+from quantity import normalize  # noqa: E402
 from reviews import review_html  # noqa: E402
 
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
@@ -80,15 +81,37 @@ class Site:
         self.results = {}
         for cat in config["categories"]:
             ranked = rank_category(snapshot.get("categories", {}).get(cat["slug"], []), cat, overrides,
-                                   config.get("min_review_count", 5))
+                                   config.get("min_review_count", 5), top=300)
             if len(ranked) >= config.get("min_ranked_to_publish", 3):
                 self.results[cat["slug"]] = (cat, ranked)
             else:
                 print(f"  - {cat['title']}: 比較できる商品が{len(ranked)}件のため、ページを作りません", file=sys.stderr)
+        # 銘柄・容量・種類で絞り込んだページ。3件以上あり、元のページと中身が同じにならないときだけ作る
+        self.subpages = {}
+        for slug, (cat, ranked) in self.results.items():
+            subs = {}
+            for sub in cat.get("subpages", []):
+                pool = [p for p in ranked if self.matches_sub(p, sub)]
+                if len(pool) >= 3 and len(pool) < len(ranked):
+                    subs[sub["slug"]] = (sub, pool)
+            self.subpages[slug] = subs
         self.groups = []
         for cat, _ in self.results.values():
             if cat["group"] not in self.groups:
                 self.groups.append(cat["group"])
+
+    @staticmethod
+    def matches_sub(p, sub):
+        name = normalize(p.name)
+        if sub.get("keywords") and not any(normalize(k) in name for k in sub["keywords"]):
+            return False
+        if any(normalize(k) in name for k in sub.get("not_keywords", [])):
+            return False
+        if sub.get("amount"):
+            lo, hi = sub["amount"]
+            if p.amount < lo or (hi is not None and p.amount > hi):
+                return False
+        return True
 
     # ---------- 共通部品 ----------
     def layout(self, path, title, description, body, noindex=False, current=""):
@@ -203,19 +226,20 @@ class Site:
         desc = "楽天市場の日用品を送料込みの値段で集め、1枚・1L・1kgあたりの単価が安い順に毎朝更新。水、おむつ、おしりふき、トイレットペーパー、お米など。"
         return self.layout("/", title, desc, body)
 
-    def category(self, slug):
-        cat, ranked = self.results[slug]
+    def list_page(self, path, cat, ranked, name, crumbs, intro, current, extra=""):
+        """単価ランキングのページ(品目のページと、絞り込みのページで共通)。"""
         per = cat["per"]["label"]
         top = ranked[0]
         typical = median(p.unit_price for p in ranked)
-        cells = "".join(self.card(p, cat, i) for i, p in enumerate(ranked, 1))
+        cells = "".join(self.card(p, cat, i) for i, p in enumerate(ranked[:30], 1))
         unit_note = f"<li>{e(cat['unit_note'])}</li>" if cat.get("unit_note") else ""
-        others = "".join(f'<a href="/{s}/">{e(c["title"])}</a>' for s, (c, _) in self.results.items() if s != slug)
-        body = f"""<nav class="crumbs"><a href="/">トップ</a> ／ {e(cat['title'])}</nav>
-<h1 class="ch1"><small>{e(self.updated_day)}の</small>{e(cat['title'])}<br>単価ランキング</h1>
+        others = "".join(f'<a href="/{s}/">{e(c["title"])}</a>' for s, (c, _) in self.results.items() if s != cat["slug"])
+        body = f"""<nav class="crumbs">{crumbs}</nav>
+<h1 class="ch1"><small>{e(self.updated_day)}の</small>{e(name)}<br>単価ランキング</h1>
 <p class="verdict">{e(per)}あたり、ふつうは<b>{yen_unit(typical)}円</b>前後。<br>
-いちばん安いのは<b class="red">{yen_unit(top.unit_price)}円</b>です。</p>
-<p class="lead">{e(cat['intro'])}</p>
+いちばん安いのは<b class="red">{yen_unit(top.unit_price)}円</b>です。<small>(送料込みの{len(ranked)}件を比較)</small></p>
+<p class="lead">{e(intro)}</p>
+{extra}
 <div class="controls" data-controls hidden>
 <label>並び順<select data-sort><option value="unit">{e(per)}あたりが安い順</option><option value="price">値段が安い順</option><option value="reviews">レビューが多い順</option></select></label>
 </div>
@@ -230,10 +254,34 @@ class Site:
 </ul>
 </section>
 <p class="pager">ほかの日用品：{others}</p>"""
-        title = f"{cat['title']}の単価ランキング【{self.year}年】送料込み・{per}あたりで比較"
-        desc = (f"楽天市場の{cat['title']}を送料込みの値段で集め、{per}あたりの値段で比較。ふつうは{yen_unit(typical)}円、"
+        title = f"{name}の単価ランキング【{self.year}年】送料込み・{per}あたりで比較"
+        desc = (f"楽天市場の{name}を送料込みの値段で集め、{per}あたりの値段で比較。ふつうは{yen_unit(typical)}円、"
                 f"いちばん安いのは{yen_unit(top.unit_price)}円。毎朝更新。")
-        return self.layout(f"/{slug}/", title, desc, body, current=slug)
+        return self.layout(path, title, desc, body, current=current)
+
+    def sub_links(self, slug, current_sub=None):
+        subs = self.subpages.get(slug, {})
+        if not subs:
+            return ""
+        links = "".join(f'<a class="{"on" if ss == current_sub else ""}" href="/{slug}/{ss}/">{e(sub["title"])}</a>'
+                        for ss, (sub, _) in subs.items())
+        if current_sub:
+            links = f'<a href="/{slug}/">すべて</a>' + links
+        return f'<p class="subs"><span>しぼりこむ</span>{links}</p>'
+
+    def category(self, slug):
+        cat, ranked = self.results[slug]
+        return self.list_page(f"/{slug}/", cat, ranked, cat["title"], f'<a href="/">トップ</a> ／ {e(cat["title"])}',
+                              cat["intro"], slug, self.sub_links(slug))
+
+    def subpage(self, slug, sub_slug):
+        cat, _ = self.results[slug]
+        sub, pool = self.subpages[slug][sub_slug]
+        intro = sub.get("intro") or (f"{cat['title']}のうち「{sub['title']}」だけを、{cat['per']['label']}あたりの値段で並べました。"
+                                     f"{cat['intro']}")
+        crumbs = f'<a href="/">トップ</a> ／ <a href="/{slug}/">{e(cat["title"])}</a> ／ {e(sub["title"])}'
+        return self.list_page(f"/{slug}/{sub_slug}/", cat, pool, sub["title"], crumbs, intro, slug,
+                              self.sub_links(slug, sub_slug))
 
     def about(self):
         body = f"""<h1 class="ch1">運営者・計算方法</h1>
@@ -295,6 +343,8 @@ class Site:
                  "privacy/index.html": self.privacy(), "404.html": self.not_found()}
         for slug in self.results:
             pages[f"{slug}/index.html"] = self.category(slug)
+            for ss in self.subpages[slug]:
+                pages[f"{slug}/{ss}/index.html"] = self.subpage(slug, ss)
         for rel, html in pages.items():
             p = out / rel
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -303,7 +353,8 @@ class Site:
         (out / "data.json").write_text(json.dumps(self.summary(), ensure_ascii=False, indent=1), encoding="utf-8")
         for f in (HERE / "static").iterdir():  # ファビコンなど
             shutil.copy(f, out / f.name)
-        urls = ["/"] + [f"/{s}/" for s in self.results] + ["/about/"]
+        urls = (["/"] + [f"/{s}/" for s in self.results]
+                + [f"/{s}/{ss}/" for s in self.results for ss in self.subpages[s]] + ["/about/"])
         sitemap = "".join(f"<url><loc>{e(self.base + u)}</loc><lastmod>{self.today.isoformat()}</lastmod></url>"
                           for u in urls)
         (out / "sitemap.xml").write_text(

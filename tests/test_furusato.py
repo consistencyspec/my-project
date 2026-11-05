@@ -133,3 +133,23 @@ class BuildTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GenreBudgetPageTests(unittest.TestCase):
+    def test_pages_only_when_different(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("furusato_build", SITE / "build.py")
+        fb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fb)
+        from datetime import date as _date
+        raws = [raw(f"r{i}", f"【ふるさと納税】米 {kg}kg", price) for i, (kg, price) in
+                enumerate([(5, 9000), (5, 9500), (5, 9800), (10, 15000), (10, 25000)])]
+        config = json.loads((SITE / "config.json").read_text(encoding="utf-8"))
+        site = fb.Site(config, {"fetched_at": "2026-11-05T05:00+09:00", "categories": {"rice": raws}}, {},
+                       "https://example.com", _date(2026, 11, 5))
+        pages = site.genre_budgets["rice"]
+        self.assertEqual(sorted(pages), ["1man", "2man"])          # 3万円以上は全件と同じなので作らない
+        self.assertEqual(len(pages["1man"][1]), 3)
+        html = site.genre_budget_page("rice", *pages["1man"])
+        self.assertIn("寄付額1万円以内で選ぶなら", html)
+        self.assertIn('href="/rice/2man/"', html)

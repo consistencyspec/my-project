@@ -61,6 +61,19 @@ class ReviewBadgeTests(unittest.TestCase):
         self.assertEqual(review_badges(5, 5.0), [])  # 件数が少ない高評価は目印にしない
 
 
+class SubpageTests(unittest.TestCase):
+    def test_matches_sub(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("tanka_build", SITE / "build.py")
+        tb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(tb)
+        p = tr.Product("c", "トイレットペーパー ダブル 2倍巻き 48ロール", "", "店", 3980, "u", "", 10, 4.0, amount=96)
+        self.assertTrue(tb.Site.matches_sub(p, {"keywords": ["ダブル"], "not_keywords": ["シングル"]}))
+        self.assertFalse(tb.Site.matches_sub(p, {"keywords": ["シングル"]}))
+        self.assertTrue(tb.Site.matches_sub(p, {"amount": [48, None]}))
+        self.assertFalse(tb.Site.matches_sub(p, {"amount": [10, 50]}))
+
+
 class BuildTests(unittest.TestCase):
     def test_demo_build(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -154,6 +154,7 @@ h1 { font-family: var(--round); font-weight: 900; }
 .bybudget a { color: var(--ink); text-decoration: none; font-size: .85rem; line-height: 1.4; }
 .bybudget small { color: var(--ink-2); }
 .bb-v { color: var(--red); }
+.bb-more { font-size: .72rem; font-weight: 700; margin-top: 2px; }
 .bb-v b { font-family: var(--digit); font-size: 1.6rem; }
 .controls { display: flex; gap: 10px; margin-bottom: 10px; }
 .controls label { flex: 1; display: flex; flex-direction: column; font-size: .72rem; font-weight: 700; }
