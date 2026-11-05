@@ -1,0 +1,37 @@
+# 3分野まとめて調べるキーワード(1行に「eBayで検索する英語 | メルカリで探す日本語」)
+# 使うときは、このファイルの名前を keywords.txt にしてください。
+
+# ① 日本の文房具・日本限定コラボ品
+Hobonichi Techo 2027 | ほぼ日手帳 2027
+Hobonichi Techo Sanrio | ほぼ日手帳 サンリオ
+uni-ball Zento 3 color | ゼント 3色
+Kuru Toga Dive | クルトガ ダイブ
+Pilot Custom 74 fountain pen | パイロット カスタム74
+Traveler's notebook limited | トラベラーズノート 限定
+Starbucks Japan limited tumbler | スターバックス 限定 タンブラー
+Starbucks Japan Sakura | スターバックス さくら
+Starbucks Japan Peanuts | スターバックス スヌーピー
+
+# ② 日本の工具
+Hakko FR-301 | 白光 FR-301
+Hakko soldering station | 白光 はんだごて
+Koken socket set | コーケン ソケットセット
+Vessel ratchet screwdriver | ベッセル ラチェット
+Vessel ball grip screwdriver | ベッセル ボールグリップ
+Sun-Star scissors | サンスター ハサミ
+Okatsune pruning shears | 岡恒 剪定鋏
+Shapton sharpening stone | シャプトン 砥石
+Engineer screw extractor pliers | ネジザウルス
+Tajima tape measure | タジマ メジャー
+Fujiya pliers | フジ矢 ペンチ
+
+# ③ 日本限定のおもちゃ
+Beyblade X Japan | ベイブレードX
+Beyblade X limited | ベイブレードX 限定
+Kamen Rider DX belt | 仮面ライダー DX ベルト
+Super Sentai DX | 戦隊 DX
+Sylvanian Families Japan exclusive | シルバニアファミリー 限定
+Tamagotchi Japan | たまごっち
+Gundam Base limited Gunpla | ガンダムベース 限定
+Pokemon Center Japan exclusive | ポケモンセンター 限定
+Chiikawa Japan exclusive | ちいかわ 限定
