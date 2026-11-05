@@ -2,7 +2,16 @@
   "_説明": "品目のページに表示する、自治体などの公式Instagramの投稿です。品目(slug)ごとに、投稿のURLと、どこの公式アカウントかを書きます。InstagramのURL(https://www.instagram.com/p/〜 または /reel/〜)以外は表示しません。個人の投稿は、本人の許可がない限り載せないでください。",
   "_例": {
     "rice": [
-      {"url": "https://www.instagram.com/p/XXXXXXXXXXX/", "source": "熊本県甲佐町 公式Instagram"}
+      {
+        "url": "https://www.instagram.com/p/XXXXXXXXXXX/",
+        "source": "熊本県甲佐町 公式Instagram"
+      }
     ]
-  }
+  },
+  "rice": [
+    {
+      "url": "https://www.instagram.com/p/DdTZLJrlFz0/",
+      "source": "山形県鶴岡市 公式Instagram"
+    }
+  ]
 }
