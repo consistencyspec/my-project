@@ -1145,5 +1145,35 @@
       ],
       "intro": "不織布マスクは、個包装・立体型・カラーで1枚あたりの値段が大きく変わります。"
     }
-  ]
+  ],
+  "hero_slides": [
+    {
+      "kicker": "DAILY GOODS",
+      "title": "1枚あたりで、\nくらべる。",
+      "text": "楽天市場の日用品を送料込みで集めて、1枚・1L・1kgあたりの値段が安い順に並べています。",
+      "button": "おむつを見る",
+      "href": "/omutsu-pants-m/",
+      "image": "hero-1.jpg",
+      "image_alt": ""
+    },
+    {
+      "kicker": "POINT 01",
+      "title": "送料込みで、\n比べる。",
+      "text": "送料が別にかかる商品は入れていません。届くまでの本当の値段で比べられます。",
+      "button": "お米を見る",
+      "href": "/kome/",
+      "image": "hero-2.jpg",
+      "image_alt": ""
+    },
+    {
+      "kicker": "POINT 02",
+      "title": "まとめ買いを、\nもっと賢く。",
+      "text": "大容量パックは本当にお得？1枚あたりで割ると、意外な差が見えてきます。",
+      "button": "トイレットペーパーを見る",
+      "href": "/toilet-paper/",
+      "image": "hero-3.jpg",
+      "image_alt": ""
+    }
+  ],
+  "hero_brand": "TANKA DE ERABU"
 }

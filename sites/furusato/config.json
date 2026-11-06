@@ -414,5 +414,44 @@
         "rice"
       ]
     }
-  ]
+  ],
+  "hero_slides": [
+    {
+      "kicker": "FURUSATO NOZEI",
+      "title": "ふるさと納税を、\nかしこく。",
+      "text": "予算を決めるだけ。その金額でいちばんたくさん届く返礼品を、毎朝集計しています。",
+      "button": "1万円で選ぶ",
+      "href": "/1man/",
+      "image": "hero-1.jpg",
+      "image_alt": ""
+    },
+    {
+      "kicker": "STEP 01",
+      "title": "まず、予算を\n決める。",
+      "text": "控除の上限の目安から、無理のない寄付額を決めましょう。少し下をねらうのが安心です。",
+      "button": "予算の決め方",
+      "href": "/meyasu/",
+      "image": "hero-2.jpg",
+      "image_alt": ""
+    },
+    {
+      "kicker": "STEP 02",
+      "title": "予算で、\nえらぶ。",
+      "text": "1万円から10万円まで。予算内で、1万円あたりに届く量が多い順に並べています。",
+      "button": "3万円で選ぶ",
+      "href": "/3man/",
+      "image": "hero-3.jpg",
+      "image_alt": ""
+    },
+    {
+      "kicker": "STEP 03",
+      "title": "予算を、\n使い切る。",
+      "text": "お米と肉、日用品など。予算いっぱいまで組み合わせた例を、毎朝計算しています。",
+      "button": "5万円の組み合わせ",
+      "href": "/5man/",
+      "image": "hero-4.jpg",
+      "image_alt": ""
+    }
+  ],
+  "hero_brand": "YOSAN DE ERABU"
 }

@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT / "sites" / "common"))
 from quantity import normalize  # noqa: E402
 from reviews import review_html  # noqa: E402
 from notfound import not_found_body  # noqa: E402
+from hero import hero_html  # noqa: E402
 
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
 FONTS = ("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600"
@@ -211,7 +212,10 @@ class Site:
 <span class="fl-more">ランキングを見る</span>
 </a>""")
             sections.append(f'<h2 class="band"><span>{e(g)}</span></h2><div class="flyers">{"".join(cells)}</div>')
-        body = f"""<section class="hero">
+        images = {f.name for f in (HERE / "static").iterdir()}
+        carousel = hero_html(self.c.get("hero_slides", []), images, self.c.get("hero_brand", ""))
+        body = f"""{carousel}
+<section class="hero">
 <p class="hero-k">{e(self.updated_day)}の 安い単価</p>
 <h1>1枚・1Lあたりで、<br class="sp">くらべる。</h1>
 <p class="hero-s">楽天市場の日用品を<b>送料込み</b>の値段で集めて、<br class="sp">1枚・1L・1kgあたりの値段が安い順に並べています。毎朝更新。</p>

@@ -26,6 +26,7 @@ from plans import make_plan  # noqa: E402
 from rank import rank_category  # noqa: E402
 from reviews import review_html  # noqa: E402
 from notfound import not_found_body  # noqa: E402
+from hero import hero_html  # noqa: E402
 
 FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
@@ -319,7 +320,10 @@ class Site:
 <a class="more" href="/5man/">5万円の組み合わせをもっと見る</a>
 </section>"""
                 break
-        body = f"""<section class="hero">
+        images = {f.name for f in (HERE / "static").iterdir()}
+        carousel = hero_html(self.c.get("hero_slides", []), images, self.c.get("hero_brand", ""))
+        body = f"""{carousel}
+<section class="hero">
 <p class="hero-k">楽天ふるさと納税／毎朝集計</p>
 <h1>予算を<br class="sp">えらぶだけ。</h1>
 <p class="hero-s">寄付する金額を決めたら、<br class="sp">その金額で「いちばんたくさん届く」返礼品を出します。</p>
