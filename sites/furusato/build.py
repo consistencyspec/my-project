@@ -26,13 +26,14 @@ from plans import make_plan  # noqa: E402
 from rank import rank_category  # noqa: E402
 from reviews import review_html  # noqa: E402
 from notfound import not_found_body  # noqa: E402
+from hero import hero_html  # noqa: E402
 
 FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
 # style.css の中身が変わると値が変わり、ブラウザが古い見た目を使い続けるのを防ぐ
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
-FONTS = ("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900"
-         "&family=Roboto+Condensed:wght@700;800&display=swap")
+FONTS = ("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600"
+         "&family=Cormorant+Garamond:wght@500;600&display=swap")
 
 # 並び替え・絞り込み(JavaScriptが動かない環境では、量が多い順のまま表示される)
 SORT_JS = """
@@ -167,7 +168,7 @@ class Site:
 <meta name="description" content="{e(description)}">
 <link rel="canonical" href="{e(canonical)}">
 {robots}
-<meta name="theme-color" content="#ffd23f">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(description)}">
@@ -319,7 +320,10 @@ class Site:
 <a class="more" href="/5man/">5万円の組み合わせをもっと見る</a>
 </section>"""
                 break
-        body = f"""<section class="hero">
+        images = {f.name for f in (HERE / "static").iterdir()}
+        carousel = hero_html(self.c.get("hero_slides", []), images, self.c.get("hero_brand", ""))
+        body = f"""{carousel}
+<section class="hero">
 <p class="hero-k">楽天ふるさと納税／毎朝集計</p>
 <h1>予算を<br class="sp">えらぶだけ。</h1>
 <p class="hero-s">寄付する金額を決めたら、<br class="sp">その金額で「いちばんたくさん届く」返礼品を出します。</p>

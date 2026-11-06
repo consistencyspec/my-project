@@ -1,0 +1,38 @@
+# カメラ分野を調べるキーワード(1行に「eBayで検索する英語 | メルカリで探す日本語」)
+# 使うときは、このファイルの名前を keywords.txt にしてください。
+
+# A. フィルムのコンパクトカメラ
+Contax T2 | コンタックス T2
+Contax T3 | コンタックス T3
+Ricoh GR1 | リコー GR1
+Nikon 35Ti | ニコン 35Ti
+Fujifilm Klasse | フジフイルム クラッセ
+Konica Big Mini | コニカ ビッグミニ
+Olympus mju II | オリンパス ミュー2
+Olympus AF-1 | オリンパス AF-1
+Canon Autoboy | キヤノン オートボーイ
+
+# B. フィルムの一眼レフ・中判
+Canon AE-1 | キヤノン AE-1
+Nikon FM2 | ニコン FM2
+Minolta X-700 | ミノルタ X-700
+Pentax 67 | ペンタックス 67
+Mamiya 7 | マミヤ 7
+
+# C. デジタルカメラ
+Fujifilm X100V | 富士フイルム X100V
+Fujifilm X100F | 富士フイルム X100F
+Ricoh GR III | リコー GR III
+Ricoh GR Digital | リコー GRデジタル
+Sony RX100 | ソニー RX100
+Canon PowerShot G7 X | キヤノン G7X
+Canon IXY CCD | キヤノン IXY
+Fujifilm FinePix | ファインピックス
+Olympus PEN E-P | オリンパス PEN E-P
+
+# D. オールドレンズ
+Nikon Nikkor Ai-S lens | ニッコール Ai-s
+Canon FD lens | キヤノン FD レンズ
+Pentax Takumar lens | タクマー レンズ
+Minolta Rokkor lens | ロッコール
+Voigtlander lens | フォクトレンダー
