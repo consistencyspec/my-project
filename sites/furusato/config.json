@@ -423,7 +423,7 @@
       "button": "1万円で選ぶ",
       "href": "/1man/",
       "image": "hero-1.jpg",
-      "image_alt": ""
+      "image_alt": "実った稲穂"
     },
     {
       "kicker": "STEP 01",
@@ -432,7 +432,7 @@
       "button": "予算の決め方",
       "href": "/meyasu/",
       "image": "hero-2.jpg",
-      "image_alt": ""
+      "image_alt": "田んぼのそばに並べた野菜とお米"
     },
     {
       "kicker": "STEP 02",
@@ -441,7 +441,7 @@
       "button": "3万円で選ぶ",
       "href": "/3man/",
       "image": "hero-3.jpg",
-      "image_alt": ""
+      "image_alt": "木箱に詰めた牛肉と豚肉"
     },
     {
       "kicker": "STEP 03",
@@ -450,7 +450,7 @@
       "button": "5万円の組み合わせ",
       "href": "/5man/",
       "image": "hero-4.jpg",
-      "image_alt": ""
+      "image_alt": "季節の果物の盛り合わせ"
     }
   ],
   "hero_brand": "YOSAN DE ERABU"
