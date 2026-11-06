@@ -1,0 +1,39 @@
+# UX-21に似た商品 + ヴィンテージサングラス(1行に「eBayで検索する英語 | メルカリで探す日本語」)
+# 使うときは、このファイルの名前を keywords.txt にしてください。
+
+# A. 今回のデータで売れているのが確認できたもの
+Beyblade X CX-20 customization set | ベイブレードX CX-20
+Beyblade X UX-00 metal coat | ベイブレードX UX-00
+Beyblade X deck set | ベイブレードX デッキセット
+Sylvanian Families Halloween Japan | シルバニア ハロウィン 限定
+One Piece card game Japanese premium box | ワンピースカード プレミアム ボックス
+One Piece card Japanese promo | ワンピースカード プロモ
+
+# B. 属性が合っていそうなもの(仮説)
+Beyblade X random booster Japan | ベイブレードX ランダムブースター
+Duel Masters Japanese box | デュエルマスターズ ボックス
+Zoids Takara Tomy | ゾイド
+Tomica Premium | トミカプレミアム
+Tomica limited set | トミカ 限定 セット
+Licca-chan limited | リカちゃん 限定
+Tamagotchi Japan limited | たまごっち 限定
+
+# C. ヴィンテージサングラス(ブランド別)
+Jean Paul Gaultier vintage sunglasses | ジャンポールゴルチエ サングラス ヴィンテージ
+Oakley vintage sunglasses | オークリー ヴィンテージ サングラス
+Oakley Juliet | オークリー ジュリエット
+Oakley Romeo | オークリー ロメオ
+Oakley wires | オークリー ワイヤー
+Oakley X Metal | オークリー Xメタル
+Ray-Ban Bausch Lomb vintage | レイバン ボシュロム
+Matsuda vintage sunglasses | マツダ サングラス ヴィンテージ
+Yohji Yamamoto vintage sunglasses | ヨウジヤマモト サングラス ヴィンテージ
+Issey Miyake vintage sunglasses | イッセイミヤケ サングラス ヴィンテージ
+Kansai Yamamoto sunglasses | 山本寛斎 サングラス
+Christian Dior vintage sunglasses | ディオール サングラス ヴィンテージ
+Gucci vintage sunglasses | グッチ サングラス ヴィンテージ
+Versace vintage sunglasses | ヴェルサーチ サングラス ヴィンテージ
+Persol Ratti vintage | ペルソール ラッティ
+Oliver Peoples vintage sunglasses | オリバーピープルズ サングラス
+Masunaga vintage sunglasses | 増永眼鏡 サングラス ヴィンテージ
+Made in Japan vintage titanium sunglasses | 日本製 チタン サングラス ヴィンテージ
