@@ -31,8 +31,8 @@ FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
 # style.css の中身が変わると値が変わり、ブラウザが古い見た目を使い続けるのを防ぐ
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
-FONTS = ("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900"
-         "&family=Roboto+Condensed:wght@700;800&display=swap")
+FONTS = ("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600"
+         "&family=Cormorant+Garamond:wght@500;600&display=swap")
 
 # 並び替え・絞り込み(JavaScriptが動かない環境では、量が多い順のまま表示される)
 SORT_JS = """
@@ -167,7 +167,7 @@ class Site:
 <meta name="description" content="{e(description)}">
 <link rel="canonical" href="{e(canonical)}">
 {robots}
-<meta name="theme-color" content="#ffd23f">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(description)}">

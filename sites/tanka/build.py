@@ -29,8 +29,8 @@ from reviews import review_html  # noqa: E402
 from notfound import not_found_body  # noqa: E402
 
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
-FONTS = ("https://fonts.googleapis.com/css2?family=Dela+Gothic+One"
-         "&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap")
+FONTS = ("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600"
+         "&family=Cormorant+Garamond:wght@500;600&display=swap")
 
 SORT_JS = """
 document.querySelectorAll('[data-controls]').forEach(function (c) {
@@ -130,7 +130,7 @@ class Site:
 <meta name="description" content="{e(description)}">
 <link rel="canonical" href="{e(canonical)}">
 {robots}
-<meta name="theme-color" content="#e8382f">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(description)}">
