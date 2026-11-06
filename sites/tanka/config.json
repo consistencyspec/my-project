@@ -1151,10 +1151,10 @@
       "kicker": "DAILY GOODS",
       "title": "1枚あたりで、\nくらべる。",
       "text": "楽天市場の日用品を送料込みで集めて、1枚・1L・1kgあたりの値段が安い順に並べています。",
-      "button": "おむつを見る",
-      "href": "/omutsu-pants-m/",
+      "button": "トイレットペーパーを見る",
+      "href": "/toilet-paper/",
       "image": "hero-1.jpg",
-      "image_alt": ""
+      "image_alt": "日用品が並んだ木の棚"
     },
     {
       "kicker": "POINT 01",
@@ -1163,16 +1163,16 @@
       "button": "お米を見る",
       "href": "/kome/",
       "image": "hero-2.jpg",
-      "image_alt": ""
+      "image_alt": "玄関で段ボールの荷物を受け取る様子"
     },
     {
       "kicker": "POINT 02",
-      "title": "まとめ買いを、\nもっと賢く。",
-      "text": "大容量パックは本当にお得？1枚あたりで割ると、意外な差が見えてきます。",
-      "button": "トイレットペーパーを見る",
-      "href": "/toilet-paper/",
+      "title": "毎日つかうものほど、\n単価で。",
+      "text": "おむつやおしりふき、トイレットペーパー。毎日使うものは、1枚の差が少しずつ積み重なります。",
+      "button": "おむつを見る",
+      "href": "/omutsu-pants-m/",
       "image": "hero-3.jpg",
-      "image_alt": ""
+      "image_alt": "おもちゃで遊ぶ赤ちゃん"
     }
   ],
   "hero_brand": "TANKA DE ERABU"
