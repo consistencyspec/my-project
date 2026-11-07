@@ -28,6 +28,7 @@ from quantity import normalize  # noqa: E402
 from reviews import review_html  # noqa: E402
 from notfound import not_found_body  # noqa: E402
 from hero import hero_html  # noqa: E402
+from news import article_html, load_articles, news_cards  # noqa: E402
 
 CSS_VERSION = hashlib.sha1((HERE / "style.css").read_bytes()).hexdigest()[:8]
 FONTS = ("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600"
@@ -115,12 +116,43 @@ class Site:
                 return False
         return True
 
+    def news_init(self):
+        self.news = load_articles(HERE / "news", self.today)
+        self.item_urls = {}
+        for slug, (cat, ranked) in self.results.items():
+            for p in ranked:
+                self.item_urls.setdefault(p.code, p.url)
+
+    def resolve_item(self, code):
+        return self.item_urls.get(code)
+
+    def news_index(self):
+        body = f"""<h1 class="ch1">ニュース</h1>
+<p class="lead">値下がりや変化を、データから自動でまとめた記事と、お知らせです。</p>
+{news_cards(self.news)}"""
+        return self.layout("/news/", f"ニュース | {self.c['site_name']}", "データから自動でまとめた記事と、お知らせの一覧。", body, current="news")
+
+    def news_page(self, i):
+        a = self.news[i]
+        newer = self.news[i - 1] if i > 0 else None
+        older = self.news[i + 1] if i + 1 < len(self.news) else None
+        body = article_html(a, "ch1", newer, older, self.resolve_item)
+        return self.layout(a.path, f"{a.title} | {self.c['site_name']}", a.summary, body, current="news")
+
+    def news_section(self):
+        if not self.news:
+            return ""
+        return f"""<h2 class="band"><span>新着ニュース</span></h2>
+{news_cards(self.news, 3)}
+<p class="pager"><a href="/news/">ニュースの一覧へ</a></p>"""
+
     # ---------- 共通部品 ----------
     def layout(self, path, title, description, body, noindex=False, current=""):
         canonical = self.base + path
         robots = '<meta name="robots" content="noindex">' if (noindex or self.demo) else ""
         nav = "".join(f'<a class="{"on" if s == current else ""}" href="/{s}/">{e(c["title"])}</a>'
                       for s, (c, _) in self.results.items())
+        nav = f'<a class="{"on" if current == "news" else ""}" href="/news/">ニュース</a>' + nav
         demo = '<div class="demo">デモ表示です(ダミーデータ)。公開しないでください。</div>' if self.demo else ""
         return f"""<!doctype html>
 <html lang="ja">
@@ -221,6 +253,7 @@ class Site:
 <p class="hero-s">楽天市場の日用品を<b>送料込み</b>の値段で集めて、<br class="sp">1枚・1L・1kgあたりの値段が安い順に並べています。毎朝更新。</p>
 </section>
 {''.join(sections)}
+{self.news_section()}
 <section class="memo">
 <h2 class="band"><span>このサイトのこと</span></h2>
 <p>「お得そう」に見える大容量パックも、1枚あたりで割ってみると意外と高いことがあります。このサイトでは、楽天市場の商品のうち<b>送料込みの商品だけ</b>を集めて、商品名に書かれた量で値段を割り、単価の安い順に並べています。</p>
@@ -330,12 +363,16 @@ class Site:
         if out.exists():
             shutil.rmtree(out)
         out.mkdir(parents=True)
+        self.news_init()
         pages = {"index.html": self.index(), "about/index.html": self.about(),
                  "privacy/index.html": self.privacy(), "404.html": self.not_found()}
         for slug in self.results:
             pages[f"{slug}/index.html"] = self.category(slug)
             for ss in self.subpages[slug]:
                 pages[f"{slug}/{ss}/index.html"] = self.subpage(slug, ss)
+        pages["news/index.html"] = self.news_index()
+        for i, a in enumerate(self.news):
+            pages[f"news/{a.slug}/index.html"] = self.news_page(i)
         for rel, html in pages.items():
             p = out / rel
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -344,7 +381,7 @@ class Site:
         for f in (HERE / "static").iterdir():  # ファビコンなど
             shutil.copy(f, out / f.name)
         urls = (["/"] + [f"/{s}/" for s in self.results]
-                + [f"/{s}/{ss}/" for s in self.results for ss in self.subpages[s]] + ["/about/"])
+                + [f"/{s}/{ss}/" for s in self.results for ss in self.subpages[s]] + ["/news/"] + [a.path for a in self.news] + ["/about/"])
         sitemap = "".join(f"<url><loc>{e(self.base + u)}</loc><lastmod>{self.today.isoformat()}</lastmod></url>"
                           for u in urls)
         (out / "sitemap.xml").write_text(

@@ -27,6 +27,7 @@ from rank import rank_category  # noqa: E402
 from reviews import review_html  # noqa: E402
 from notfound import not_found_body  # noqa: E402
 from hero import hero_html  # noqa: E402
+from news import article_html, load_articles, news_cards  # noqa: E402
 
 FAMILY_UNIT = {"weight": "kg", "volume": "L", "roll": "ロール", "box": "箱"}
 UNIT_DIV = {"weight": 1000, "volume": 1000, "roll": 1, "box": 1}
@@ -150,6 +151,36 @@ class Site:
     def short(self, slug):
         return self.results[slug][0]["short"]
 
+    def news_init(self):
+        self.news = load_articles(HERE / "news", self.today)
+        self.item_urls = {}
+        for slug, (cat, ranked, popular) in self.results.items():
+            for g in ranked + popular:
+                self.item_urls.setdefault(g.code, g.url)
+
+    def resolve_item(self, code):
+        return self.item_urls.get(code)
+
+    def news_index(self):
+        body = f"""<h1 class="gh1">ニュース</h1>
+<p class="lead">値下がりや変化を、データから自動でまとめた記事と、お知らせです。</p>
+{news_cards(self.news)}"""
+        return self.layout("/news/", f"ニュース | {self.c['site_name']}", "データから自動でまとめた記事と、お知らせの一覧。", body, current="news")
+
+    def news_page(self, i):
+        a = self.news[i]
+        newer = self.news[i - 1] if i > 0 else None
+        older = self.news[i + 1] if i + 1 < len(self.news) else None
+        body = article_html(a, "gh1", newer, older, self.resolve_item)
+        return self.layout(a.path, f"{a.title} | {self.c['site_name']}", a.summary, body, current="news")
+
+    def news_section(self):
+        if not self.news:
+            return ""
+        return f"""<h2 class="hd"><span>新着ニュース</span></h2>
+{news_cards(self.news, 3)}
+<p class="pager"><a href="/news/">ニュースの一覧へ</a></p>"""
+
     # ---------- 共通部品 ----------
     def layout(self, path, title, description, body, noindex=False, current=""):
         canonical = self.base + path
@@ -191,7 +222,7 @@ class Site:
 <span class="stamp">毎朝更新<br><b>{e(self.updated)}</b></span>
 </div></header>
 <nav class="rail"><div class="wrap">
-<div class="rail-row"><span class="rail-k">予算</span>{budgets}</div>
+<div class="rail-row"><span class="rail-k">予算</span>{budgets}<a class="{"on" if current == "news" else ""}" href="/news/">ニュース</a></div>
 <div class="rail-row"><span class="rail-k">品目</span>{genres}</div>
 </div></nav>
 <main class="wrap">
@@ -334,6 +365,7 @@ class Site:
 {teaser}
 <h2 class="hd"><span>{e(self.updated_day)}の1位</span><small>1万円あたりに届く量</small></h2>
 <ul class="board">{''.join(rows)}</ul>
+{self.news_section()}
 <section class="memo">
 <h2 class="hd"><span>このサイトのこと</span></h2>
 <p>返礼品の量を寄付額で割って、「1万円でどれだけ届くか」で並べています。商品名から量がはっきり読み取れたものだけを数え、レビューが{self.c.get('min_review_count', 10)}件に満たないものは外しています。</p>
@@ -513,6 +545,7 @@ class Site:
         if out.exists():
             shutil.rmtree(out)
         out.mkdir(parents=True)
+        self.news_init()
         pages = {"index.html": self.index(), "meyasu/index.html": self.meyasu(), "about/index.html": self.about(),
                  "privacy/index.html": self.privacy(), "404.html": self.not_found()}
         for b in self.budgets:
@@ -521,6 +554,9 @@ class Site:
             pages[f"{slug}/index.html"] = self.category(slug)
             for bs, (b, pool) in self.genre_budgets[slug].items():
                 pages[f"{slug}/{bs}/index.html"] = self.genre_budget_page(slug, b, pool)
+        pages["news/index.html"] = self.news_index()
+        for i, a in enumerate(self.news):
+            pages[f"news/{a.slug}/index.html"] = self.news_page(i)
         for rel, html in pages.items():
             p = out / rel
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -529,7 +565,7 @@ class Site:
         for f in (HERE / "static").iterdir():  # ファビコンなど
             shutil.copy(f, out / f.name)
         urls = (["/"] + [f"/{b['slug']}/" for b in self.budgets] + [f"/{s}/" for s in self.results]
-                + [f"/{s}/{bs}/" for s in self.results for bs in self.genre_budgets[s]] + ["/meyasu/", "/about/"])
+                + [f"/{s}/{bs}/" for s in self.results for bs in self.genre_budgets[s]] + ["/news/"] + [a.path for a in self.news] + ["/meyasu/", "/about/"])
         sitemap = "".join(f"<url><loc>{e(self.base + u)}</loc><lastmod>{self.today.isoformat()}</lastmod></url>"
                           for u in urls)
         (out / "sitemap.xml").write_text(

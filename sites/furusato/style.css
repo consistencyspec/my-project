@@ -275,3 +275,34 @@ h1 { font-weight: 500; letter-spacing: .1em; }
   .hs-desc { margin-bottom: 22px; }
   .hs-dot { width: 32px; }
 }
+
+/* ニュース */
+.nw-list { list-style: none; padding: 0; margin: 0 auto; max-width: 820px; border-top: 1px solid var(--ink); }
+.nw-list li { border-bottom: 1px solid var(--rule); }
+.nw-list a { display: grid; gap: 4px; padding: 20px 6px; color: var(--ink); text-decoration: none; transition: background .2s; }
+.nw-list a:hover { background: var(--bg-2); }
+.nw-meta { display: flex; gap: 12px; align-items: center; margin: 0; font-size: .74rem; color: var(--ink-3); letter-spacing: .1em; }
+.nw-meta time { font-family: var(--latin); font-size: .86rem; color: var(--ink-2); }
+.nw-kind { font-size: .66rem; letter-spacing: .12em; border: 1px solid var(--rule); padding: 0 8px; color: var(--ink-2); }
+.nw-title { font-size: 1.02rem; letter-spacing: .08em; line-height: 1.7; }
+.nw-sum { font-size: .8rem; color: var(--ink-2); line-height: 1.8; }
+.nw-empty { text-align: center; color: var(--ink-2); }
+.nw-article { max-width: 760px; margin: 0 auto; }
+.nw-article > .nw-meta { justify-content: center; margin-top: 36px; }
+.nw-h1 { text-align: center; font-size: 1.6rem; line-height: 1.6; margin: 14px 0 22px; letter-spacing: .12em; }
+.nw-pr { text-align: center; font-size: .72rem; color: var(--ink-2); border: 1px solid var(--rule); padding: 6px 10px; }
+.nw-body { font-size: .95rem; line-height: 2.1; }
+.nw-body h2 { font-size: 1.15rem; font-weight: 500; letter-spacing: .12em; margin: 44px 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
+.nw-body h3 { font-size: 1rem; font-weight: 500; letter-spacing: .1em; margin: 28px 0 8px; }
+.nw-body p, .nw-body li { color: var(--ink); }
+.nw-body ul { padding-left: 1.2em; }
+.nw-table { overflow-x: auto; margin: 18px 0; }
+.nw-table table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.nw-table th, .nw-table td { border-bottom: 1px solid var(--rule); padding: 10px 8px; text-align: left; vertical-align: top; }
+.nw-table th { font-weight: 500; color: var(--ink-2); font-size: .74rem; letter-spacing: .1em; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+.nw-table td:not(:first-child) { white-space: nowrap; font-family: var(--latin); font-size: .95rem; }
+.nw-nav { display: flex; justify-content: space-between; gap: 16px; max-width: 760px; margin: 48px auto 0; padding-top: 18px; border-top: 1px solid var(--rule); font-size: .8rem; }
+.nw-nav a { color: var(--ink-2); text-decoration: none; max-width: 48%; }
+.nw-nav a:hover { color: var(--ink); }
+.nw-next { text-align: right; margin-left: auto; }
+@media (max-width: 600px) { .nw-h1 { font-size: 1.3rem; } .nw-body { font-size: .9rem; } }
