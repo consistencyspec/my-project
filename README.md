@@ -28,6 +28,7 @@ Threads とは別に、検索から人が来るサイトを自動で更新する
 | 投稿文の下書きを作る(自動投稿はしません) | `scripts/generate_drafts.py` |
 | 成果(クリック・売上)を記録・集計する | `tracking/` |
 | 毎週の振り返りをする | [`tracking/review-guide.md`](tracking/review-guide.md) |
+| 同じ読者で使い回せる、ほかの副業案を見る | [`docs/side-business-ideas.md`](docs/side-business-ideas.md) |
 
 **投稿は、すべてあなたの手で行います。** ツールが作るのは「下書きファイル」だけです。内容を確認して、自分で Threads に投稿してください。
 
