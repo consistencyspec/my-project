@@ -44,6 +44,9 @@ jobs:
           RAKUTEN_REFERER: ${{ secrets.TANKA_RAKUTEN_REFERER || secrets.RAKUTEN_REFERER }}
         run: python sites/tanka/fetch.py
 
+      - name: 値下がりの記事を作る(条件を満たしたときだけ)
+        run: python sites/tanka/make_news.py
+
       - name: サイトを作る
         env:
           TANKA_BASE_URL: ${{ vars.TANKA_BASE_URL }}
@@ -68,7 +71,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sites/tanka/data/history.csv
-          git diff --cached --quiet || git commit -m "日用品: 価格の記録を更新 ($(date +%F))"
+          git add sites/tanka/data/history.csv sites/tanka/news
+          git diff --cached --quiet || git commit -m "日用品: 価格の記録とニュースを更新 ($(date +%F))"
           git pull --rebase origin main
           git push
