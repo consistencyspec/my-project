@@ -36,12 +36,12 @@ class TemplateTests(unittest.TestCase):
                 if reply:  # リプライがある場合は、リプライにも【PR】
                     self.assertIn("【PR】", reply.split("\n")[0])
 
-    def test_link_in_main_by_default(self):
+    def test_link_in_main_option(self):
         long_url = "https://hb.afl.rakuten.co.jp/ichiba/" + "x" * 140  # 実際のアフィリエイトURLに近い長さ
         items = [rc.Item(f"c{i}", "あ" * 60, 5000, "u", long_url, "s", 4.5, 100) for i in range(3)]
         for type_id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 14):
             n = pt.ITEM_COUNT[type_id]
-            main, reply = pt.build(type_id, items[:n], date(2026, 10, 5), "テスト")
+            main, reply = pt.build(type_id, items[:n], date(2026, 10, 5), "テスト", link_in_main=True)
             self.assertTrue(pt.has_pr_mark(main), type_id)
             self.assertIn(long_url, main, type_id)  # リンクが本文にある
             self.assertLessEqual(pt.estimated_length(main), 500, type_id)
@@ -57,22 +57,22 @@ class TemplateTests(unittest.TestCase):
         very_long = "https://hb.afl.rakuten.co.jp/ichiba/" + "x" * 400
         item = rc.Item("c", "あ" * 60, 5000, "u", very_long, "s", 4.5, 100)
         row = {"type_id": "1", "ad": "1", "keyword": "k", "type_name": "悩み解決型"}
-        d = gd.make_draft(row, date(2026, 10, 5), [item])
+        d = gd.make_draft(row, date(2026, 10, 5), [item], link_in_main=True)
         self.assertIn(very_long, d["main"])
         self.assertTrue(any("500文字" in w for w in d["warnings"]))
 
     def test_pr_style(self):
         items = rc.parse_items(DEMO)[:1]
-        inline, _ = pt.build(1, items, date(2026, 10, 5), "x")  # 初期設定
+        inline, _ = pt.build(1, items, date(2026, 10, 5), "x", link_in_main=True)
         self.assertFalse(inline.startswith("【PR】"))
         self.assertTrue(inline.split("\n")[0].endswith("(PR)"))
         self.assertIn("▼リンク(広告)", inline)
         head, _ = pt.build(1, items, date(2026, 10, 5), "x", pr_style="head")
         self.assertTrue(head.startswith("【PR】"))
 
-    def test_link_in_reply_option(self):
+    def test_link_in_reply_by_default(self):  # 2段構成(初期設定)
         items = rc.parse_items(DEMO)[:1]
-        main, reply = pt.build(1, items, date(2026, 10, 5), "x", link_in_main=False)
+        main, reply = pt.build(1, items, date(2026, 10, 5), "x")
         self.assertNotIn("https://", main)
         self.assertIn("https://", reply)
 

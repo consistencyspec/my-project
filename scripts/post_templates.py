@@ -204,12 +204,13 @@ def apply_pr_style(main, pr_style):
     return first.rstrip() + "(PR)" + sep + tail
 
 
-def build(type_id, items, d, keyword="", link_in_main=True, pr_style="inline"):
+def build(type_id, items, d, keyword="", link_in_main=False, pr_style="inline"):
     """(本文, リプライ) を返す。
 
-    link_in_main=True(初期値): アフィリエイトリンクを本文に入れる。1商品の型はリプライ不要。
+    link_in_main=False(初期値): 2段構成。リンクはリプライ(返信)に置く。
+      実測(11/9): 1つ目の投稿にリンクを入れると半日で23回しか表示されなかった(同時期のリンクなし投稿は1,670〜23,097回)。
+    link_in_main=True: アフィリエイトリンクを本文に入れる(非推奨)。1商品の型はリプライ不要。
     比較型・ランキング型は、本文に1つ目の商品のリンク、リプライに2つ目以降の商品のリンクを置く。
-    link_in_main=False: 従来どおり、リンクはリプライに置く。
     本文が500文字を超えるときは、商品名・評価の表示を短くして収める(それでも超える場合は make_draft が警告する)。
     """
     global _NAME_LEN, _COMPACT

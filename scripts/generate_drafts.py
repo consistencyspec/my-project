@@ -48,7 +48,7 @@ def pick_items(row, settings, demo, used_codes, demo_items):
     return rc.select_items(items, count, exclude_codes=used_codes)
 
 
-def make_draft(row, day, items, link_in_main=True, pr_style="inline"):
+def make_draft(row, day, items, link_in_main=False, pr_style="inline"):
     type_id = int(row["type_id"])
     warnings = []
     needed = pt.ITEM_COUNT[type_id]
@@ -105,7 +105,8 @@ def main():
     ap.add_argument("--calendar", default=str(ROOT / "scripts" / "calendar.csv"))
     ap.add_argument("--posts", default=str(tl.POSTS_CSV), help="投稿記録CSV")
     ap.add_argument("--out-dir", default=str(ROOT / "output"))
-    ap.add_argument("--link-in-reply", action="store_true", help="リンクを本文ではなくリプライに置く形にする(比較テスト用)")
+    ap.add_argument("--link-in-main", action="store_true",
+                    help="リンクを1つ目の投稿(本文)に入れる。実測で表示が激減したため非推奨(初期設定は返信に置く2段構成)")
     ap.add_argument("--pr-style", choices=["inline", "head"], default="inline",
                     help="広告表示の位置。inline=1行目の終わりに(PR)(初期設定)/ head=先頭に【PR】")
     ap.add_argument("--no-track", action="store_true", help="posts.csv に記録しない")
@@ -140,7 +141,7 @@ def main():
         except rc.RakutenError as e:
             sys.exit(str(e))
         used.update(i.item_code for i in items)  # 同じ商品を重複して投稿しない
-        d = make_draft(row, day, items, not args.link_in_reply, args.pr_style)
+        d = make_draft(row, day, items, args.link_in_main, args.pr_style)
         d.update(row=row, day=day, items=items, post_id=f"P{day:%Y%m%d}")
         drafts.append(d)
         for w in d["warnings"]:
