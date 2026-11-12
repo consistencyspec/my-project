@@ -7,7 +7,8 @@ AI などで作った「文字の入っていない背景画像」に、左側�
     "thumbnail": {
         "title": "不動産屋へ\\n行く",            ← 大きく出す文字。\\n で改行の位置を決められる（省略時は title_ja）
         "background": "thumbnails/ep01.jpg",  ← 背景画像（youtube-spanish/ からの場所）。省略時は無地
-        "band": "会話・和訳・単語付き"           ← 下の帯の文字
+        "band": "会話・和訳・単語付き",          ← 下の帯の文字
+        "panel_top": 0.56, "panel_bottom": 0.47  ← 赤い帯の右端（上・下）の位置。背景の文字などを隠したいときに広げる
     }
 
 単体で使うとき（音声や動画は作らない）:
@@ -118,7 +119,8 @@ def make_thumbnail(ep, path, root=ROOT):
     d = ImageDraw.Draw(img)
 
     # 左の赤い帯（斜め）と、左端の黄色い線
-    top_x, bottom_x = int(TW * PANEL_TOP_X), int(TW * PANEL_BOTTOM_X)
+    top_x = int(TW * conf.get("panel_top", PANEL_TOP_X))
+    bottom_x = int(TW * conf.get("panel_bottom", PANEL_BOTTOM_X))
     d.polygon([(0, 0), (top_x, 0), (bottom_x, TH), (0, TH)], fill=RED)
     d.rectangle([0, 0, 14, TH], fill=YELLOW)
 

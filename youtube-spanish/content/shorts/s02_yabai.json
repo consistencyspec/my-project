@@ -1,0 +1,36 @@
+{
+  "id": "s02",
+  "word": "やばい",
+  "literal": {
+    "es": "¡Peligroso!",
+    "ja": "「危険だ！」と本当に心配される"
+  },
+  "answer": {
+    "es": "¡Qué fuerte!",
+    "ja": "やばい！（びっくり・衝撃）",
+    "voice": "F"
+  },
+  "alternatives": [
+    {
+      "es": "¡Qué pasada!",
+      "ja": "やばい、最高！（良い意味）"
+    },
+    {
+      "es": "¡Qué locura!",
+      "ja": "やばい、ありえない！"
+    }
+  ],
+  "example": [
+    {
+      "voice": "M",
+      "es": "¿Sabes que Marta se casa mañana?",
+      "ja": "マルタが明日結婚するって知ってる？"
+    },
+    {
+      "voice": "F",
+      "es": "¡Qué fuerte! No me lo puedo creer.",
+      "ja": "やばい！信じられない。"
+    }
+  ],
+  "tip": "良い意味の「やばい」は ¡Qué pasada!、驚きや衝撃は ¡Qué fuerte!"
+}

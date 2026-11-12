@@ -1,0 +1,32 @@
+{
+  "id": "s06",
+  "word": "草（www）",
+  "literal": {
+    "es": "Hierba.",
+    "ja": "「草」と書いても、笑っているとは思われない"
+  },
+  "answer": {
+    "es": "jajaja",
+    "ja": "草／www",
+    "voice": "F"
+  },
+  "alternatives": [
+    {
+      "es": "XD",
+      "ja": "笑った顔の文字。スペイン語圏でもよく使う"
+    }
+  ],
+  "example": [
+    {
+      "voice": "M",
+      "es": "Mi perro se ha comido mis deberes.",
+      "ja": "犬に宿題を食べられた。"
+    },
+    {
+      "voice": "F",
+      "es": "¡Jajaja! Esa excusa no se la cree nadie.",
+      "ja": "草。その言い訳は誰も信じないよ。"
+    }
+  ],
+  "tip": "スペイン語の j は「ハ」の音。だから笑い声は jajaja と書く"
+}

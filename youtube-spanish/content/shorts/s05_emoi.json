@@ -1,0 +1,36 @@
+{
+  "id": "s05",
+  "word": "エモい",
+  "literal": {
+    "es": "¡Qué emo!",
+    "ja": "emo は音楽や服装の「エモ系」のこと。意味が変わる"
+  },
+  "answer": {
+    "es": "¡Qué nostalgia!",
+    "ja": "エモい…（なつかしくて胸がいっぱい）",
+    "voice": "M"
+  },
+  "alternatives": [
+    {
+      "es": "Me pone nostálgico.",
+      "ja": "エモい気持ちになる"
+    },
+    {
+      "es": "Es muy emotivo.",
+      "ja": "すごく心に響く"
+    }
+  ],
+  "example": [
+    {
+      "voice": "F",
+      "es": "Mira, una foto de cuando éramos niños.",
+      "ja": "見て、子どもの頃の写真。"
+    },
+    {
+      "voice": "M",
+      "es": "¡Qué nostalgia! Parece que fue ayer.",
+      "ja": "エモい！昨日のことみたい。"
+    }
+  ],
+  "tip": "なつかしい「エモい」は nostalgia、感動の「エモい」は emotivo"
+}

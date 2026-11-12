@@ -1,0 +1,32 @@
+{
+  "id": "s03",
+  "word": "沼る",
+  "literal": {
+    "es": "Me he caído en un pantano.",
+    "ja": "「沼に落ちた」…本当に助けを呼ばれる"
+  },
+  "answer": {
+    "es": "Me he enganchado.",
+    "ja": "沼った（ハマった）",
+    "voice": "M"
+  },
+  "alternatives": [
+    {
+      "es": "Estoy enganchada a esta serie.",
+      "ja": "このドラマに沼ってる（話し手が女性）"
+    }
+  ],
+  "example": [
+    {
+      "voice": "F",
+      "es": "¿Has visto la nueva serie?",
+      "ja": "新しいドラマ見た？"
+    },
+    {
+      "voice": "M",
+      "es": "Sí, y me he enganchado. ¡Vi diez capítulos en un día!",
+      "ja": "うん、沼った。1日で10話見たよ！"
+    }
+  ],
+  "tip": "enganchar は「フックに引っかける」。engancharse a ～ で「～にハマる」"
+}

@@ -1,0 +1,36 @@
+{
+  "id": "s01",
+  "word": "それな",
+  "literal": {
+    "es": "Eso.",
+    "ja": "「それ」だけだと「何が？」と聞き返される"
+  },
+  "answer": {
+    "es": "¡Ya te digo!",
+    "ja": "ほんとそれ！",
+    "voice": "M"
+  },
+  "alternatives": [
+    {
+      "es": "¡Totalmente!",
+      "ja": "完全にそう！"
+    },
+    {
+      "es": "¡Y que lo digas!",
+      "ja": "まったくだよ！"
+    }
+  ],
+  "example": [
+    {
+      "voice": "F",
+      "es": "Los lunes deberían estar prohibidos.",
+      "ja": "月曜日は禁止にするべきだよ。"
+    },
+    {
+      "voice": "M",
+      "es": "¡Ya te digo!",
+      "ja": "それな！"
+    }
+  ],
+  "tip": "¡Ya te digo! はスペインでよく使う口語。¡Totalmente! はどの国でも通じる"
+}

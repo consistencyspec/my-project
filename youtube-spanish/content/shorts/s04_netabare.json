@@ -1,0 +1,28 @@
+{
+  "id": "s04",
+  "word": "ネタバレ",
+  "answer": {
+    "es": "¡No me hagas spoiler!",
+    "ja": "ネタバレしないで！",
+    "voice": "F"
+  },
+  "alternatives": [
+    {
+      "es": "Sin spoilers, por favor.",
+      "ja": "ネタバレなしでお願い"
+    }
+  ],
+  "example": [
+    {
+      "voice": "M",
+      "es": "¿Sabes quién muere al final de la película?",
+      "ja": "映画の最後に誰が死ぬか知ってる？"
+    },
+    {
+      "voice": "F",
+      "es": "¡Calla! ¡No me hagas spoiler!",
+      "ja": "だまって！ネタバレしないで！"
+    }
+  ],
+  "tip": "英語の spoiler がそのまま使われる。スペイン語らしく言い換えるなら destripe（はらわたを抜くこと）という言葉も"
+}
