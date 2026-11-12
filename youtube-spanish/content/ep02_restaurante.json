@@ -5,36 +5,310 @@
   "level": "中級（B1）",
   "grammar": "過去未来形でていねいに頼む・現在完了で「今起きたこと」を伝える",
   "speakers": {
-    "Carmen": {"voice": "F", "role": "お客さん"},
-    "Pablo": {"voice": "M", "role": "店員"}
+    "Carmen": {
+      "voice": "F",
+      "role": "お客さん"
+    },
+    "Pablo": {
+      "voice": "M",
+      "role": "店員"
+    }
   },
   "lines": [
-    {"speaker": "Pablo", "es": "¿Qué tal todo? ¿Está todo a su gusto?", "ja": "いかがですか？お料理はお口に合っていますか？"},
-    {"speaker": "Carmen", "es": "Perdone, creo que ha habido un error con mi pedido.", "ja": "すみません、注文に間違いがあったようなんです。"},
-    {"speaker": "Pablo", "es": "Vaya, lo siento. ¿Qué ha pasado?", "ja": "それは申し訳ありません。どうなさいましたか？"},
-    {"speaker": "Carmen", "es": "Pedí la paella de verduras, pero esta lleva marisco.", "ja": "野菜のパエリアを頼んだのですが、これには魚介が入っています。"},
-    {"speaker": "Pablo", "es": "Tiene razón, disculpe. Ahora mismo se la cambio.", "ja": "おっしゃるとおりです、失礼しました。すぐにお取り替えします。"},
-    {"speaker": "Carmen", "es": "Gracias. Es que soy alérgica al marisco.", "ja": "ありがとうございます。実は魚介アレルギーなんです。"},
-    {"speaker": "Pablo", "es": "Entonces es muy importante. Voy a avisar a la cocina.", "ja": "それならとても大事なことですね。厨房に伝えておきます。"},
-    {"speaker": "Carmen", "es": "¿Cuánto tardará, más o menos?", "ja": "だいたい、どのくらいかかりそうですか？"},
-    {"speaker": "Pablo", "es": "Unos quince minutos. ¿Le apetece algo mientras espera?", "ja": "15分ほどです。お待ちの間に何か召し上がりますか？"},
-    {"speaker": "Carmen", "es": "Pues sí. ¿Me podría traer un poco más de pan?", "ja": "そうですね。パンをもう少しいただけますか？"},
-    {"speaker": "Pablo", "es": "Claro que sí. ¿Quiere algo más de beber?", "ja": "もちろんです。お飲み物は他にいかがですか？"},
-    {"speaker": "Carmen", "es": "Un agua sin gas, por favor.", "ja": "炭酸なしの水をお願いします。"},
-    {"speaker": "Pablo", "es": "Aquí tiene su paella de verduras. Siento mucho las molestias.", "ja": "野菜のパエリアをお持ちしました。ご迷惑をおかけして大変申し訳ありません。"},
-    {"speaker": "Carmen", "es": "No se preocupe, son cosas que pasan.", "ja": "気にしないでください、よくあることですから。"},
-    {"speaker": "Pablo", "es": "El postre corre por cuenta de la casa, como disculpa.", "ja": "おわびとして、デザートはお店からのサービスです。"},
-    {"speaker": "Carmen", "es": "¡Qué amable! No hacía falta.", "ja": "ご親切に！そこまでしていただかなくてもよかったのに。"},
-    {"speaker": "Pablo", "es": "Insistimos. ¡Que aproveche!", "ja": "ぜひどうぞ。ごゆっくりお召し上がりください！"},
-    {"speaker": "Carmen", "es": "Muchas gracias. Tiene una pinta estupenda.", "ja": "ありがとうございます。とてもおいしそうですね。"}
+    {
+      "speaker": "Pablo",
+      "es": "¿Qué tal todo? ¿Está todo a su gusto?",
+      "ja": "いかがですか？お料理はお口に合っていますか？",
+      "vocab": [
+        {
+          "es": "a su gusto",
+          "ja": "お好みどおりの"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "Perdone, creo que ha habido un error con mi pedido.",
+      "ja": "すみません、注文に間違いがあったようなんです。",
+      "vocab": [
+        {
+          "es": "ha habido",
+          "ja": "あった（hay の現在完了）"
+        },
+        {
+          "es": "pedido",
+          "ja": "注文"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Vaya, lo siento. ¿Qué ha pasado?",
+      "ja": "それは申し訳ありません。どうなさいましたか？",
+      "vocab": [
+        {
+          "es": "vaya",
+          "ja": "あらまあ"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "Pedí la paella de verduras, pero esta lleva marisco.",
+      "ja": "野菜のパエリアを頼んだのですが、これには魚介が入っています。",
+      "vocab": [
+        {
+          "es": "verduras",
+          "ja": "野菜"
+        },
+        {
+          "es": "llevar",
+          "ja": "（材料が）入っている"
+        },
+        {
+          "es": "marisco",
+          "ja": "魚介"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Tiene razón, disculpe. Ahora mismo se la cambio.",
+      "ja": "おっしゃるとおりです、失礼しました。すぐにお取り替えします。",
+      "vocab": [
+        {
+          "es": "tener razón",
+          "ja": "言うとおりだ"
+        },
+        {
+          "es": "disculpe",
+          "ja": "失礼しました"
+        },
+        {
+          "es": "ahora mismo",
+          "ja": "今すぐ"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "Gracias. Es que soy alérgica al marisco.",
+      "ja": "ありがとうございます。実は魚介アレルギーなんです。",
+      "vocab": [
+        {
+          "es": "es que",
+          "ja": "実は〜なので"
+        },
+        {
+          "es": "alérgica a",
+          "ja": "〜のアレルギーがある"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Entonces es muy importante. Voy a avisar a la cocina.",
+      "ja": "それならとても大事なことですね。厨房に伝えておきます。",
+      "vocab": [
+        {
+          "es": "avisar",
+          "ja": "知らせる"
+        },
+        {
+          "es": "cocina",
+          "ja": "厨房"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "¿Cuánto tardará, más o menos?",
+      "ja": "だいたい、どのくらいかかりそうですか？",
+      "vocab": [
+        {
+          "es": "tardar",
+          "ja": "（時間が）かかる"
+        },
+        {
+          "es": "más o menos",
+          "ja": "だいたい"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Unos quince minutos. ¿Le apetece algo mientras espera?",
+      "ja": "15分ほどです。お待ちの間に何か召し上がりますか？",
+      "vocab": [
+        {
+          "es": "apetecer",
+          "ja": "〜が欲しい気分だ"
+        },
+        {
+          "es": "mientras",
+          "ja": "〜の間"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "Pues sí. ¿Me podría traer un poco más de pan?",
+      "ja": "そうですね。パンをもう少しいただけますか？",
+      "vocab": [
+        {
+          "es": "traer",
+          "ja": "持ってくる"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Claro que sí. ¿Quiere algo más de beber?",
+      "ja": "もちろんです。お飲み物は他にいかがですか？",
+      "vocab": [
+        {
+          "es": "claro que sí",
+          "ja": "もちろん"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "Un agua sin gas, por favor.",
+      "ja": "炭酸なしの水をお願いします。",
+      "vocab": [
+        {
+          "es": "sin gas",
+          "ja": "炭酸なしの"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Aquí tiene su paella de verduras. Siento mucho las molestias.",
+      "ja": "野菜のパエリアをお持ちしました。ご迷惑をおかけして大変申し訳ありません。",
+      "vocab": [
+        {
+          "es": "molestias",
+          "ja": "迷惑"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "No se preocupe, son cosas que pasan.",
+      "ja": "気にしないでください、よくあることですから。",
+      "vocab": [
+        {
+          "es": "preocuparse",
+          "ja": "心配する"
+        },
+        {
+          "es": "son cosas que pasan",
+          "ja": "よくあること"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "El postre corre por cuenta de la casa, como disculpa.",
+      "ja": "おわびとして、デザートはお店からのサービスです。",
+      "vocab": [
+        {
+          "es": "postre",
+          "ja": "デザート"
+        },
+        {
+          "es": "por cuenta de la casa",
+          "ja": "お店のおごりで"
+        },
+        {
+          "es": "disculpa",
+          "ja": "おわび"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "¡Qué amable! No hacía falta.",
+      "ja": "ご親切に！そこまでしていただかなくてもよかったのに。",
+      "vocab": [
+        {
+          "es": "amable",
+          "ja": "親切な"
+        },
+        {
+          "es": "no hacía falta",
+          "ja": "必要なかった"
+        }
+      ]
+    },
+    {
+      "speaker": "Pablo",
+      "es": "Insistimos. ¡Que aproveche!",
+      "ja": "ぜひどうぞ。ごゆっくりお召し上がりください！",
+      "vocab": [
+        {
+          "es": "insistir",
+          "ja": "強くすすめる"
+        },
+        {
+          "es": "que aproveche",
+          "ja": "召し上がれ"
+        }
+      ]
+    },
+    {
+      "speaker": "Carmen",
+      "es": "Muchas gracias. Tiene una pinta estupenda.",
+      "ja": "ありがとうございます。とてもおいしそうですね。",
+      "vocab": [
+        {
+          "es": "pinta",
+          "ja": "見た目"
+        },
+        {
+          "es": "estupendo",
+          "ja": "すばらしい"
+        }
+      ]
+    }
   ],
   "phrases": [
-    {"es": "Creo que ha habido un error.", "ja": "間違いがあったようです。", "note": "ha habido は hay（〜がある）の現在完了。たった今起きたことを伝える"},
-    {"es": "Es que soy alérgica al marisco.", "ja": "実は魚介アレルギーなんです。", "note": "Es que...：理由や事情を添える。男性なら alérgico"},
-    {"es": "¿Me podría traer un poco más de pan?", "ja": "パンをもう少しいただけますか？", "note": "poder の過去未来形（podría）で、ていねいに頼む"},
-    {"es": "¿Le apetece algo?", "ja": "何か召し上がりますか？", "note": "apetecer：〜が欲しい気分だ。gustar と同じ形で使う"},
-    {"es": "Son cosas que pasan.", "ja": "よくあることです。", "note": "謝られたときに、相手を気づかって返すひと言"},
-    {"es": "corre por cuenta de la casa", "ja": "お店のサービス（おごり）です", "note": "correr por cuenta de 〜：〜が費用を持つ"},
-    {"es": "Tiene una pinta estupenda.", "ja": "とてもおいしそうですね。", "note": "tener buena pinta：見た目が良い・おいしそう"}
+    {
+      "es": "Creo que ha habido un error.",
+      "ja": "間違いがあったようです。",
+      "note": "ha habido は hay（〜がある）の現在完了。たった今起きたことを伝える"
+    },
+    {
+      "es": "Es que soy alérgica al marisco.",
+      "ja": "実は魚介アレルギーなんです。",
+      "note": "Es que...：理由や事情を添える。男性なら alérgico"
+    },
+    {
+      "es": "¿Me podría traer un poco más de pan?",
+      "ja": "パンをもう少しいただけますか？",
+      "note": "poder の過去未来形（podría）で、ていねいに頼む"
+    },
+    {
+      "es": "¿Le apetece algo?",
+      "ja": "何か召し上がりますか？",
+      "note": "apetecer：〜が欲しい気分だ。gustar と同じ形で使う"
+    },
+    {
+      "es": "Son cosas que pasan.",
+      "ja": "よくあることです。",
+      "note": "謝られたときに、相手を気づかって返すひと言"
+    },
+    {
+      "es": "corre por cuenta de la casa",
+      "ja": "お店のサービス（おごり）です",
+      "note": "correr por cuenta de 〜：〜が費用を持つ"
+    },
+    {
+      "es": "Tiene una pinta estupenda.",
+      "ja": "とてもおいしそうですね。",
+      "note": "tener buena pinta：見た目が良い・おいしそう"
+    }
   ]
 }

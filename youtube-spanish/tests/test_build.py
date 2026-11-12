@@ -48,6 +48,31 @@ class LayoutTests(unittest.TestCase):
         lines = bv.wrap(text, f, 600, by_char=True)
         self.assertEqual("".join(lines), text)
 
+    def test_japanese_line_never_starts_with_punctuation(self):
+        f = bv.font(bv.FONT_JA, 50)
+        for path in EPISODES:
+            ep = bv.load_episode(path)
+            for ln in ep["lines"]:
+                for width in (500, 900, bv.W - 240):
+                    for row in bv.wrap(ln["ja"], f, width, by_char=True)[1:]:
+                        self.assertNotIn(row[0], bv.NO_LINE_START, ln["ja"])
+
+    def test_vocab_never_overlaps_text(self):
+        for path in EPISODES:
+            ep = bv.load_episode(path)
+            for i, ln in enumerate(ep["lines"], 1):
+                vocab = ln.get("vocab", [])
+                if not vocab:
+                    continue
+                with self.subTest(ep=ep["id"], line=i):
+                    layout = bv.vocab_layout(vocab)
+                    self.assertLessEqual(max(r for _, r, _ in layout), 1, "単語は2行まで")
+                    for x, _, w in layout:
+                        self.assertLessEqual(x + w, bv.W - 240)
+                    bottom = bv.vocab_top(vocab) - 30
+                    es, ja = bv.fit_text_sizes(ln, bottom)
+                    self.assertLessEqual(bv.text_bottom(ln, es, ja), bottom)
+
     def test_slides_render(self):
         ep = bv.load_episode(EPISODES[0])
         with tempfile.TemporaryDirectory() as d:

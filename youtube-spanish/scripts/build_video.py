@@ -97,6 +97,12 @@ def validate_episode(ep):
             raise ValueError(f"{i}行目の話し手「{line.get('speaker')}」が speakers にいません")
         if not line.get("es") or not line.get("ja"):
             raise ValueError(f"{i}行目に es（スペイン語）か ja（和訳）がありません")
+        vocab = line.get("vocab", [])
+        if len(vocab) > 3:
+            raise ValueError(f"{i}行目の単語（vocab）は3つまでにしてください")
+        for v in vocab:
+            if not v.get("es") or not v.get("ja"):
+                raise ValueError(f"{i}行目の単語に es か ja がありません")
     for i, p in enumerate(ep["phrases"], 1):
         if not p.get("es") or not p.get("ja"):
             raise ValueError(f"キーフレーズ{i}に es か ja がありません")
@@ -141,6 +147,9 @@ def font(path, size):
     return ImageFont.truetype(path, size)
 
 
+NO_LINE_START = set("、。，．！？）」』】ーっゃゅょァィゥェォッャュョ")
+
+
 def wrap(text, fnt, max_width, by_char=False):
     """表示幅に収まるように改行する。日本語は1文字ずつ、スペイン語は単語ごとに区切る。"""
     units = list(text) if by_char else text.split(" ")
@@ -148,7 +157,8 @@ def wrap(text, fnt, max_width, by_char=False):
     lines, cur = [], ""
     for u in units:
         trial = u if not cur else cur + sep + u
-        if fnt.getlength(trial) <= max_width or not cur:
+        # 句読点や閉じかっこは行の先頭に置かない（前の行の末尾にぶら下げる）
+        if fnt.getlength(trial) <= max_width or not cur or (by_char and u in NO_LINE_START):
             cur = trial
         else:
             lines.append(cur)
@@ -214,20 +224,75 @@ def slide_line(ep, section_label, line, idx, total, path, show_es=True, show_ja=
     if tag:
         ft = font(FONT_JA, 38)
         d.text((120 + name_w + 100, 268), tag, font=ft, fill=COLORS["accent"])
-    y = 390
+    vocab = line.get("vocab", []) if show_ja else []
     if show_es:
-        fe = font(FONT_ES, 70)
-        y = draw_lines(d, wrap(line["es"], fe, W - 240), fe, 120, y, COLORS["text"], 22) + 40
+        bottom = vocab_top(vocab) - 30 if vocab else H - 110
+        es_size, ja_size = fit_text_sizes(line, bottom)
+        fe = font(FONT_ES, es_size)
+        y = draw_lines(d, wrap(line["es"], fe, W - 240), fe, 120, TEXT_TOP, COLORS["text"], 22) + 40
     else:
-        d.text((120, y), "（字幕なし）", font=font(FONT_JA, 56), fill=COLORS["sub"])
-        y += 120
+        d.text((120, TEXT_TOP), "（字幕なし）", font=font(FONT_JA, 56), fill=COLORS["sub"])
+        y, ja_size = TEXT_TOP + 120, 50
     if show_ja:
-        fj = font(FONT_JA, 50)
+        fj = font(FONT_JA, ja_size)
         draw_lines(d, wrap(line["ja"], fj, W - 240, by_char=True), fj, 120, y, COLORS["sub"], 18)
+    if vocab:
+        draw_vocab(d, vocab)
     prog = f"{idx} / {total}"
     fp = font(FONT_ES, 36)
     d.text((W - 60 - fp.getlength(prog), H - 80), prog, font=fp, fill=COLORS["sub"])
     img.save(path)
+
+
+TEXT_TOP = 390      # セリフを書き始める高さ
+VOCAB_BOTTOM = 985  # 単語の欄の下端（右下のページ番号に重ならない高さ）
+VOCAB_ROW = 46
+
+
+def text_bottom(line, es_size, ja_size):
+    """セリフ（スペイン語＋和訳）を書いたときの下端の高さ。"""
+    fe, fj = font(FONT_ES, es_size), font(FONT_JA, ja_size)
+    n_es = len(wrap(line["es"], fe, W - 240))
+    n_ja = len(wrap(line["ja"], fj, W - 240, by_char=True))
+    return TEXT_TOP + n_es * (es_size + 22) + 40 + n_ja * (ja_size + 18)
+
+
+def fit_text_sizes(line, bottom):
+    """長いセリフでも単語の欄に重ならないように、文字を少しずつ小さくする。"""
+    for es_size, ja_size in ((70, 50), (64, 46), (58, 42), (52, 38)):
+        if text_bottom(line, es_size, ja_size) <= bottom:
+            return es_size, ja_size
+    return 52, 38
+
+
+def vocab_layout(vocab, max_width=W - 240):
+    """単語を横に並べ、入りきらなければ次の行に回す。各単語の (x, 行番号) を返す。"""
+    fe, fj = font(FONT_ES_BOLD, 36), font(FONT_JA, 34)
+    pos, x, row = [], 0, 0
+    for v in vocab:
+        w = fe.getlength(v["es"]) + 18 + fj.getlength(v["ja"])
+        if x > 0 and x + w > max_width:
+            x, row = 0, row + 1
+        pos.append((x, row, w))
+        x += w + 60
+    return pos
+
+
+def vocab_top(vocab):
+    """単語の欄の上端。単語が2行になるときは、その分だけ上に広げる。"""
+    rows = max(row for _, row, _ in vocab_layout(vocab)) + 1
+    return VOCAB_BOTTOM - (58 + rows * VOCAB_ROW + 14)
+
+
+def draw_vocab(d, vocab):
+    top = vocab_top(vocab)
+    d.rounded_rectangle([90, top, W - 90, VOCAB_BOTTOM], radius=24, fill=COLORS["panel"])
+    d.text((120, top + 14), "単語", font=font(FONT_JA, 30), fill=COLORS["accent"])
+    fe, fj = font(FONT_ES_BOLD, 36), font(FONT_JA, 34)
+    for v, (x, row, _) in zip(vocab, vocab_layout(vocab)):
+        y = top + 58 + row * VOCAB_ROW
+        d.text((120 + x, y), v["es"], font=fe, fill=COLORS["text"])
+        d.text((120 + x + fe.getlength(v["es"]) + 18, y + 2), v["ja"], font=fj, fill=COLORS["sub"])
 
 
 def slide_phrase(ep, phrase, idx, total, path, tag=None):
@@ -434,6 +499,10 @@ def description(ep, tl):
     out += ["", "■ キーフレーズ"]
     for p in ep["phrases"]:
         out.append(f"・{p['es']} … {p['ja']}" + (f"（{p['note']}）" if p.get("note") else ""))
+    words = [v for ln in ep["lines"] for v in ln.get("vocab", [])]
+    if words:
+        out += ["", "■ 単語"]
+        out += [f"・{v['es']} … {v['ja']}" for v in words]
     out += ["", "■ クレジット", VOICE_CREDIT, "会話文はこのチャンネルのオリジナルです（AIを使って作成し、内容を確認しています）。"]
     return "\n".join(out) + "\n"
 
@@ -441,9 +510,10 @@ def description(ep, tl):
 def review_sheet(ep):
     out = [f"# ネイティブチェック用: {ep['id']} {ep['title_es']}", "",
            "スペイン語として不自然な所・間違いがあれば、右の欄に修正案を書いてください。", "",
-           "| # | 話し手 | スペイン語 | 和訳 | 修正案 |", "|---|---|---|---|---|"]
+           "| # | 話し手 | スペイン語 | 和訳 | 単語 | 修正案 |", "|---|---|---|---|---|---|"]
     for i, ln in enumerate(ep["lines"], 1):
-        out.append(f"| {i} | {ln['speaker']} | {ln['es']} | {ln['ja']} | |")
+        words = " / ".join(f"{v['es']}：{v['ja']}" for v in ln.get("vocab", []))
+        out.append(f"| {i} | {ln['speaker']} | {ln['es']} | {ln['ja']} | {words} | |")
     out += ["", "## キーフレーズ", "", "| # | スペイン語 | 和訳 | 説明 | 修正案 |", "|---|---|---|---|---|"]
     for i, p in enumerate(ep["phrases"], 1):
         out.append(f"| {i} | {p['es']} | {p['ja']} | {p.get('note', '')} | |")
