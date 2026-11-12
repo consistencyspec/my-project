@@ -26,6 +26,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+import commentary as cm
 from thumbnail import make_thumbnail
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -108,6 +109,18 @@ def validate_episode(ep):
     for i, p in enumerate(ep["phrases"], 1):
         if not p.get("es") or not p.get("ja"):
             raise ValueError(f"キーフレーズ{i}に es か ja がありません")
+    if "commentary" in ep:
+        cm.validate(ep["commentary"])
+
+
+def sections_for(ep, with_commentary):
+    """この回の区切りの並び。解説があるときは、指定の区切りの後に「解説」を入れる。"""
+    out = list(SECTIONS)
+    if with_commentary:
+        after = ep["commentary"].get("after", cm.DEFAULT_AFTER)
+        idx = [k for k, _, _ in out].index(after)
+        out.insert(idx + 1, cm.SECTION)
+    return out
 
 
 # ---------- 音声 ----------
@@ -190,7 +203,7 @@ def base_canvas(ep, section_label=None):
     return img, d
 
 
-def slide_title(ep, path):
+def slide_title(ep, path, sections=SECTIONS):
     img, d = base_canvas(ep)
     d.text((120, 230), ep["title_es"], font=font(FONT_ES_BOLD, 110), fill=COLORS["text"])
     d.text((120, 380), ep["title_ja"], font=font(FONT_JA, 64), fill=COLORS["accent"])
@@ -201,9 +214,10 @@ def slide_title(ep, path):
     y += 20
     d.text((120, y), "この動画の流れ", font=font(FONT_JA, 36), fill=COLORS["sub"])
     y += 56
-    for _, title, _ in SECTIONS:
+    step = 48 if len(sections) <= 6 else 42
+    for _, title, _ in sections:
         d.text((150, y), "・" + title, font=font(FONT_JA, 34), fill=COLORS["text"])
-        y += 48
+        y += step
     img.save(path)
 
 
@@ -312,6 +326,32 @@ def slide_phrase(ep, phrase, idx, total, path, tag=None):
     img.save(path)
 
 
+def slide_commentary(ep, slide, idx, total, path):
+    """解説のスライド：見出しと箇条書き。箇条書きは文字列か {"es": ..., "ja": ...}。"""
+    img, d = base_canvas(ep, cm.SECTION[1])
+    ft = font(FONT_JA, 64)
+    d.text((120, 240), slide.get("title", "この回のポイント"), font=ft, fill=COLORS["accent"])
+    y = 380
+    fj, fe = font(FONT_JA, 50), font(FONT_ES_BOLD, 58)
+    for pt in slide.get("points", []):
+        if y > H - 200:
+            break
+        d.ellipse([120, y + 20, 140, y + 40], fill=COLORS["accent"])
+        if isinstance(pt, dict):
+            if pt.get("es"):
+                y = draw_lines(d, wrap(pt["es"], fe, W - 320), fe, 170, y, COLORS["text"], 16)
+            if pt.get("ja"):
+                y = draw_lines(d, wrap(pt["ja"], fj, W - 320, by_char=True), fj, 170, y + 6, COLORS["sub"], 14)
+        else:
+            y = draw_lines(d, wrap(pt, fj, W - 320, by_char=True), fj, 170, y, COLORS["text"], 14)
+        y += 44
+    if total > 1:
+        prog = f"{idx} / {total}"
+        fp = font(FONT_ES, 36)
+        d.text((W - 60 - fp.getlength(prog), H - 80), prog, font=fp, fill=COLORS["sub"])
+    img.save(path)
+
+
 def slide_end(ep, path):
     img, d = base_canvas(ep)
     f1, f2 = font(FONT_JA, 72), font(FONT_JA, 44)
@@ -410,9 +450,21 @@ def build(ep_path, keep_work=False):
 
     lines, total = ep["lines"], len(ep["lines"])
 
-    p = img_path(); slide_title(ep, p); tl.chapter("はじめに"); tl.add(p, [TITLE_SECONDS])
+    # 自分の声の解説（録音ファイルがあるときだけ）
+    talk_parts = []
+    if "commentary" in ep:
+        src = cm.find_audio(ep["commentary"], ROOT)
+        if src:
+            talk = cm.prepare_audio(src, work / "commentary.wav", rate)
+            slides = ep["commentary"].get("slides", [])
+            starts = cm.slide_times(slides, cm.wav_seconds(talk))
+            talk_parts = list(zip(slides or [{"title": "この回のポイント", "points": [ep["grammar"]]}],
+                                  cm.split_wav(talk, starts, work)))
+    sections = sections_for(ep, bool(talk_parts))
 
-    for key, title, sub in SECTIONS:
+    p = img_path(); slide_title(ep, p, sections); tl.chapter("はじめに"); tl.add(p, [TITLE_SECONDS])
+
+    for key, title, sub in sections:
         tl.chapter(title)
         p = img_path(); slide_card(ep, title, sub, p); tl.add(p, [CARD_SECONDS])
         if key in ("listen1", "listen2", "listen3"):
@@ -433,6 +485,11 @@ def build(ep_path, keep_work=False):
                 wav = speaker.say(ln["es"], voice_of[ln["speaker"]])
                 p = img_path(); slide_line(ep, title, ln, i, total, p, show_ja=False, tag="あとについて言う")
                 tl.add(p, [wav, wav_seconds(wav) + SHADOW_EXTRA])
+        elif key == "commentary":
+            for i, (slide, part) in enumerate(talk_parts, 1):
+                p = img_path(); slide_commentary(ep, slide, i, len(talk_parts), p)
+                tl.add(p, [part])
+            tl.add(p, [0.8])  # 解説のあと、次へ進む前のひと呼吸
         elif key == "phrases":
             ph = ep["phrases"]
             for i, item in enumerate(ph, 1):
@@ -461,6 +518,7 @@ def build(ep_path, keep_work=False):
     make_thumbnail(ep, out / "thumbnail.png")
     (out / "description.txt").write_text(description(ep, tl), encoding="utf-8")
     (out / "review.md").write_text(review_sheet(ep), encoding="utf-8")
+    (out / "commentary_script.md").write_text(cm.script_template(ep), encoding="utf-8")
     if not keep_work:
         shutil.rmtree(work, ignore_errors=True)
     print(f"できました: {mp4}（{fmt_time(tl.now)}）")
