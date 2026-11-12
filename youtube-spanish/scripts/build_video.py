@@ -26,6 +26,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+from thumbnail import make_thumbnail
+
 ROOT = Path(__file__).resolve().parent.parent
 VOICE_DIR = ROOT / "voices"
 OUT_DIR = ROOT / "output"
@@ -319,24 +321,6 @@ def slide_end(ep, path):
         (580, "台本と和訳は概要欄にあります", f2, COLORS["sub"]),
     ):
         d.text(((W - f.getlength(text)) / 2, y), text, font=f, fill=c)
-    img.save(path)
-
-
-def make_thumbnail(ep, path):
-    tw, th = 1280, 720
-    img = Image.new("RGB", (tw, th), COLORS["bg"])
-    d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, tw, 120], fill=COLORS["accent"])
-    d.text((50, 28), "スペイン語 中級リスニング", font=font(FONT_JA, 64), fill=COLORS["bg"])
-    fe = font(FONT_ES_BOLD, 84)
-    y = draw_lines(d, wrap(ep["title_es"], fe, tw - 100), fe, 50, 180, COLORS["text"], 10) + 20
-    fj = font(FONT_JA, 64)
-    y = draw_lines(d, wrap(ep["title_ja"], fj, tw - 100, by_char=True), fj, 50, y, COLORS["accent"], 10)
-    d.rounded_rectangle([50, th - 150, 520, th - 50], radius=20, fill=COLORS["F"])
-    d.text((80, th - 133), "和訳付き・会話", font=font(FONT_JA, 56), fill=COLORS["bg"])
-    lvl = ep["level"]
-    fl = font(FONT_JA, 52)
-    d.text((tw - 50 - fl.getlength(lvl), th - 128), lvl, font=fl, fill=COLORS["text"])
     img.save(path)
 
 

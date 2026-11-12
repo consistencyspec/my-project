@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_video as bv  # noqa: E402
+import thumbnail as th  # noqa: E402
 
 EPISODES = sorted((ROOT / "content").glob("*.json"))
 
@@ -83,6 +84,34 @@ class LayoutTests(unittest.TestCase):
             bv.make_thumbnail(ep, p / "th.png")
             for name in ("t.png", "l.png", "p.png", "th.png"):
                 self.assertTrue((p / name).stat().st_size > 1000)
+
+
+class ThumbnailTests(unittest.TestCase):
+    def test_keeps_given_line_breaks(self):
+        f, rows = th.fit_title("週末、\nどうだった？", 500, 400)
+        self.assertEqual(rows, ["週末、", "どうだった？"])
+        self.assertGreaterEqual(f.size, 80)
+
+    def test_label_has_cefr(self):
+        self.assertEqual(th.top_label({"level": "中級（B1）"}), "スペイン語 中級リスニング B1")
+
+    def test_with_background_image(self):
+        from PIL import Image
+        ep = bv.load_episode(EPISODES[0])
+        with tempfile.TemporaryDirectory() as d:
+            bg = Path(d) / "bg.png"
+            Image.new("RGB", (1376, 768), (90, 140, 200)).save(bg)
+            ep["thumbnail"] = {"title": "不動産屋\nへ行く", "background": str(bg)}
+            out = th.make_thumbnail(ep, Path(d) / "t.png")
+            img = Image.open(out)
+            self.assertEqual(img.size, (1280, 720))
+            self.assertEqual(img.getpixel((1200, 360)), (90, 140, 200))  # 右側は背景のまま
+
+    def test_missing_background_is_an_error(self):
+        ep = bv.load_episode(EPISODES[0])
+        ep["thumbnail"] = {"background": "thumbnails/no_such_file.jpg"}
+        with tempfile.TemporaryDirectory() as d, self.assertRaises(FileNotFoundError):
+            th.make_thumbnail(ep, Path(d) / "t.png")
 
 
 class TimelineTests(unittest.TestCase):
