@@ -1,0 +1,40 @@
+{
+  "id": "ep01",
+  "title_es": "Buscando piso",
+  "title_ja": "不動産屋で部屋を探す",
+  "level": "中級（B1）",
+  "grammar": "接続法：まだ見つかっていない物を「〜のような」と説明する",
+  "speakers": {
+    "Lucía": {"voice": "F", "role": "部屋を探している人"},
+    "Javier": {"voice": "M", "role": "不動産屋"}
+  },
+  "lines": [
+    {"speaker": "Javier", "es": "Buenos días. ¿En qué puedo ayudarla?", "ja": "おはようございます。どのようなご用件でしょうか？"},
+    {"speaker": "Lucía", "es": "Hola, buenos días. Estoy buscando un piso que esté cerca del centro.", "ja": "こんにちは。中心街の近くにある部屋を探しています。"},
+    {"speaker": "Javier", "es": "Muy bien. ¿Tiene alguna preferencia en cuanto al tamaño?", "ja": "かしこまりました。広さについて何かご希望はありますか？"},
+    {"speaker": "Lucía", "es": "Necesito al menos dos habitaciones, porque trabajo desde casa.", "ja": "在宅で仕事をしているので、少なくとも2部屋は必要です。"},
+    {"speaker": "Javier", "es": "Entiendo. ¿Y cuál es su presupuesto mensual?", "ja": "なるほど。月々のご予算はいくらですか？"},
+    {"speaker": "Lucía", "es": "Unos novecientos euros, como máximo.", "ja": "多くても900ユーロくらいです。"},
+    {"speaker": "Javier", "es": "Tengo uno en la calle Mayor que podría interesarle. Es luminoso y está recién reformado.", "ja": "マヨール通りに、気に入っていただけそうな物件があります。日当たりが良くて、リフォームしたばかりです。"},
+    {"speaker": "Lucía", "es": "Suena bien. ¿Tiene ascensor? Es que es importante para mí.", "ja": "いいですね。エレベーターはありますか？私にとっては大事なことなんです。"},
+    {"speaker": "Javier", "es": "Sí, tiene ascensor, pero no tiene aparcamiento.", "ja": "はい、エレベーターはありますが、駐車場はありません。"},
+    {"speaker": "Lucía", "es": "No pasa nada, no tengo coche. ¿Se admiten mascotas?", "ja": "大丈夫です、車は持っていないので。ペットは飼えますか？"},
+    {"speaker": "Javier", "es": "Depende del propietario. Si quiere, se lo pregunto hoy mismo.", "ja": "大家さんしだいです。よろしければ、今日中に聞いておきます。"},
+    {"speaker": "Lucía", "es": "Se lo agradecería. Tengo un gato muy tranquilo.", "ja": "そうしていただけると助かります。とてもおとなしい猫を飼っているんです。"},
+    {"speaker": "Javier", "es": "De acuerdo. ¿Le gustaría verlo esta semana?", "ja": "承知しました。今週、部屋を見に行かれますか？"},
+    {"speaker": "Lucía", "es": "Sí. ¿Podría ser el jueves por la tarde?", "ja": "はい。木曜日の午後でもいいですか？"},
+    {"speaker": "Javier", "es": "Perfecto. ¿Le viene bien a las cinco?", "ja": "大丈夫です。5時でご都合はいかがですか？"},
+    {"speaker": "Lucía", "es": "Me viene genial. ¿Hace falta llevar algún documento?", "ja": "ちょうどいいです。何か書類を持っていく必要はありますか？"},
+    {"speaker": "Javier", "es": "Por ahora no, pero si decide alquilarlo, necesitaremos su contrato de trabajo.", "ja": "今のところは不要です。ただ、借りると決めた場合は、雇用契約書が必要になります。"},
+    {"speaker": "Lucía", "es": "Muy bien. Entonces nos vemos el jueves. ¡Muchas gracias!", "ja": "分かりました。では木曜日にお会いしましょう。ありがとうございました！"}
+  ],
+  "phrases": [
+    {"es": "Estoy buscando un piso que esté cerca del centro.", "ja": "中心街の近くにある部屋を探しています。", "note": "まだ見つかっていない物を説明するときは、que の後が接続法（esté）になる"},
+    {"es": "en cuanto a", "ja": "〜については", "note": "en cuanto al tamaño（広さについては）"},
+    {"es": "como máximo", "ja": "多くても・最大で", "note": "反対は como mínimo（少なくとも）"},
+    {"es": "No pasa nada.", "ja": "大丈夫です・問題ありません", "note": "相手に気をつかわせないときの定番フレーズ"},
+    {"es": "Se lo agradecería.", "ja": "そうしていただけると助かります", "note": "過去未来形（agradecería）で、ていねいにお礼を言う"},
+    {"es": "¿Le viene bien a las cinco?", "ja": "5時でご都合はいかがですか？", "note": "venir bien：都合が良い。Me viene genial（とても都合が良い）"},
+    {"es": "¿Hace falta llevar algún documento?", "ja": "何か書類を持っていく必要はありますか？", "note": "hacer falta ＋ 不定詞：〜する必要がある"}
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "ep03",
+  "title_es": "¿Qué tal el fin de semana?",
+  "title_ja": "友達と週末の出来事を話す",
+  "level": "中級（B1）",
+  "grammar": "点過去と線過去の使い分け：出来事と、そのときの状況",
+  "speakers": {
+    "Marta": {"voice": "F", "role": "友達"},
+    "Diego": {"voice": "M", "role": "友達"}
+  },
+  "lines": [
+    {"speaker": "Diego", "es": "¡Marta! ¿Qué tal el fin de semana?", "ja": "マルタ！週末はどうだった？"},
+    {"speaker": "Marta", "es": "Fenomenal. Fui a Toledo con mi hermana.", "ja": "最高だったよ。妹とトレドに行ったの。"},
+    {"speaker": "Diego", "es": "¡Qué bien! ¿Hacía buen tiempo?", "ja": "いいね！天気は良かった？"},
+    {"speaker": "Marta", "es": "El sábado hacía un sol increíble, pero el domingo llovió todo el día.", "ja": "土曜はすごくいい天気だったけど、日曜は一日中雨が降ったの。"},
+    {"speaker": "Diego", "es": "Vaya. ¿Y qué hicisteis el domingo?", "ja": "あらら。それで日曜は何をしたの？"},
+    {"speaker": "Marta", "es": "Visitamos la catedral y luego comimos en un restaurante muy antiguo.", "ja": "大聖堂を見学して、それからとても古いレストランで食事したよ。"},
+    {"speaker": "Diego", "es": "¿Probasteis el mazapán? Dicen que allí es muy típico.", "ja": "マサパンは食べてみた？あそこの名物らしいよ。"},
+    {"speaker": "Marta", "es": "Sí, compramos una caja entera. Mientras volvíamos en el tren, nos la comimos casi toda.", "ja": "うん、1箱まるごと買ったの。帰りの電車の中で、ほとんど全部食べちゃった。"},
+    {"speaker": "Diego", "es": "¡Jaja! Me lo imagino.", "ja": "あはは！目に浮かぶよ。"},
+    {"speaker": "Marta", "es": "¿Y tú? ¿Hiciste algo especial?", "ja": "あなたは？何か特別なことした？"},
+    {"speaker": "Diego", "es": "Nada especial. Estaba muy cansado, así que me quedé en casa.", "ja": "特に何も。すごく疲れていたから、家にいたよ。"},
+    {"speaker": "Marta", "es": "Bueno, a veces hace falta descansar.", "ja": "まあ、たまには休むことも必要だよね。"},
+    {"speaker": "Diego", "es": "Sí, aunque el sábado por la noche salí con unos amigos del trabajo.", "ja": "うん。でも土曜の夜は、職場の友達と出かけたんだ。"},
+    {"speaker": "Marta", "es": "¿Ah, sí? ¿Adónde fuisteis?", "ja": "そうなの？どこに行ったの？"},
+    {"speaker": "Diego", "es": "A un bar de tapas nuevo que abrieron en mi barrio.", "ja": "うちの近所に新しくできたタパスバーだよ。"},
+    {"speaker": "Marta", "es": "¿Y qué tal estaba?", "ja": "どうだった？"},
+    {"speaker": "Diego", "es": "Estaba bastante bien, aunque había muchísima gente.", "ja": "なかなか良かったよ。すごく混んでいたけどね。"},
+    {"speaker": "Marta", "es": "Pues la próxima vez avísame, que me apunto.", "ja": "じゃあ次は声をかけてね、私も行くから。"}
+  ],
+  "phrases": [
+    {"es": "Fui a Toledo con mi hermana.", "ja": "妹とトレドに行ったの。", "note": "点過去：終わった出来事を「〜した」と伝える"},
+    {"es": "¿Hacía buen tiempo?", "ja": "天気は良かった？", "note": "線過去：そのときの状況や背景を説明する"},
+    {"es": "Mientras volvíamos en el tren, nos la comimos casi toda.", "ja": "帰りの電車の中で、ほとんど全部食べちゃった。", "note": "線過去（進行中の背景）＋ 点過去（その中で起きたこと）"},
+    {"es": "Me lo imagino.", "ja": "目に浮かぶよ・想像がつくよ", "note": "相手の話に共感するひと言"},
+    {"es": "Estaba muy cansado, así que me quedé en casa.", "ja": "すごく疲れていたから、家にいたよ。", "note": "理由の状況は線過去（estaba）、結果の出来事は点過去（me quedé）"},
+    {"es": "a veces hace falta descansar", "ja": "たまには休むことも必要", "note": "hacer falta ＋ 不定詞：〜する必要がある"},
+    {"es": "Avísame, que me apunto.", "ja": "声をかけてね、私も行くから。", "note": "apuntarse：（誘いに）乗る・参加する。口語でよく使う"}
+  ]
+}
