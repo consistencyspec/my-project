@@ -52,6 +52,8 @@ GAP_REPEAT = 0.8      # 1文ずつ：ふつう → ゆっくり の間
 GAP_AFTER_LINE = 1.6  # 1文ずつ：次のセリフまでの間（口に出して繰り返す時間）
 GAP_PHRASE = 1.2
 SHADOW_EXTRA = 0.8    # シャドーイング：セリフと同じ長さ＋この秒数だけ無音にする
+GAP_TALK_SPANISH = 1.0  # 解説：あなたの声とスペイン語の読み上げの間
+GAP_TALK_TALK = 0.4     # 解説：スペイン語を挟まずに、次のスライドの声へ進むときの間
 CARD_SECONDS = 3.0    # 区切りの画面を出す長さ
 TITLE_SECONDS = 6.0
 END_SECONDS = 6.0
@@ -483,9 +485,16 @@ def build(ep_path, keep_work=False):
         elif key == "commentary":
             for i, (slide, part) in enumerate(talk_parts, 1):
                 p = img_path(); slide_commentary(ep, slide, i, len(talk_parts), p)
-                spoken = []  # play: true なら、先にスペイン語を合成音声で読み上げる
-                for es in cm.spanish_to_play(slide):
-                    spoken += [speaker.say(es, "F"), GAP_REPEAT]
+                spanish = cm.spanish_to_play(slide)  # play: true なら、先にスペイン語を合成音声で読み上げる
+                spoken = []
+                if i > 1:  # 前のスライドのあなたの声との間
+                    spoken.append(GAP_TALK_SPANISH if spanish else GAP_TALK_TALK)
+                for j, es in enumerate(spanish):
+                    if j:
+                        spoken.append(GAP_TALK_SPANISH)
+                    spoken.append(speaker.say(es, "F"))
+                if spanish:
+                    spoken.append(GAP_TALK_SPANISH)  # スペイン語のあと、あなたの声が始まるまで
                 tl.add(p, spoken + [part])
             tl.add(p, [0.8])  # 解説のあと、次へ進む前のひと呼吸
         elif key == "phrases":
