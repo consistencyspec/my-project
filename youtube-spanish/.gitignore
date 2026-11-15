@@ -3,3 +3,7 @@ output/
 # 音声モデル（初回に自動でダウンロードされる）
 voices/
 .venv/
+# 自分の声の録音（元のファイルは Google Drive にあるので、GitHub には上げない）
+commentary/*.m4a
+commentary/*.mp3
+commentary/*.wav

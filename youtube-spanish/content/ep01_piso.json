@@ -324,5 +324,53 @@
   "thumbnail": {
     "title": "不動産屋\nへ行く",
     "band": "会話・和訳・単語付き"
+  },
+  "commentary": {
+    "slides": [
+      {
+        "audio": "commentary/ep01_1.m4a",
+        "title": "この回のポイント",
+        "points": [
+          "まだ見つかっていない物を説明するとき"
+        ]
+      },
+      {
+        "audio": "commentary/ep01_2.m4a",
+        "title": "このセリフに注目",
+        "play": true,
+        "points": [
+          {
+            "es": "Estoy buscando un piso que esté cerca del centro.",
+            "ja": "中心街の近くにある部屋を探しています"
+          }
+        ]
+      },
+      {
+        "audio": "commentary/ep01_3.m4a",
+        "title": "比べてみよう",
+        "play": true,
+        "points": [
+          {
+            "es": "Busco un piso que esté cerca del centro.",
+            "ja": "まだ見つかっていない部屋 → esté（エステ）"
+          },
+          {
+            "es": "Vivo en un piso que está cerca del centro.",
+            "ja": "もう住んでいる部屋 → está（エスタ）"
+          }
+        ]
+      },
+      {
+        "audio": "commentary/ep01_4.m4a",
+        "title": "覚えておきたい表現",
+        "play": true,
+        "points": [
+          {
+            "es": "No pasa nada.",
+            "ja": "大丈夫です・気にしないで"
+          }
+        ]
+      }
+    ]
   }
 }

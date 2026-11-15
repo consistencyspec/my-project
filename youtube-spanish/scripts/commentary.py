@@ -81,18 +81,30 @@ def find_audio(conf, root):
     return path
 
 
-def prepare_audio(src, dst, rate, trim_start=False):
-    """録音を動画用にそろえる：最後の無音を切り、音量を一定にし、合成音声と同じ形式（モノラル・16bit）にする。
+# 声を聞き取りやすいナレーションに整える処理（順番に）
+#   低い雑音を切る → さーっという雑音を減らす → こもりを減らす → 声の輪郭を上げる
+#   → 高音を少し補う（スマホの低い音質の録音向け） → 「さしすせそ」の刺さりを抑える → 声の大小をならす
+VOICE_CHAIN = ("highpass=f=90,afftdn=nf=-35:nr=10,"
+               "equalizer=f=250:t=q:w=1:g=-3,equalizer=f=3500:t=q:w=1.2:g=3,"
+               "aresample=44100,aexciter=amount=1:drive=5:freq=5000,deesser,"
+               "acompressor=threshold=-22dB:ratio=3:attack=6:release=150:makeup=2")
+# 長い間（0.45秒より長い無音）を縮める。話の途中の間は少し残して、自然な速さにする
+TIGHTEN_PAUSES = ("silenceremove=start_periods=1:start_threshold=-35dB:"
+                  "stop_periods=-1:stop_duration=0.45:stop_threshold=-35dB:stop_silence=0.35")
+TRIM_END = "areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse"
+LOUDNESS = "loudnorm=I=-15:TP=-1.5:LRA=7"  # 合成音声（約 -15 LUFS）と同じ大きさにそろえる
 
-    頭の無音は切らない（スライドの切り替え秒数 at を、録音を聞いたときの秒数のまま使えるように）。
+
+def prepare_audio(src, dst, rate, trim_start=False):
+    """録音を動画用に整える：聞き取りやすい声にし、音量を合成音声とそろえ、同じ形式（モノラル・16bit）にする。
+
+    trim_start=True（スライドごとの録音）のときは、頭の無音を切り、長い間も縮める。
+    False（1つの長い録音を秒数 at で区切る）のときは、秒数がずれないよう、最後の無音を切るだけにする。
     """
-    trim = "areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse"
-    if trim_start:  # スライドごとの録音なら、頭の無音も切ってよい（秒数を使わないので）
-        trim = "silenceremove=start_periods=1:start_threshold=-45dB," + trim
+    steps = [VOICE_CHAIN] + ([TIGHTEN_PAUSES, TRIM_END] if trim_start else [TRIM_END]) + [LOUDNESS]
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src),
-           "-af", f"{trim},loudnorm=I=-16:TP=-1.5:LRA=11", "-ac", "1", "-ar", str(rate),
-           "-sample_fmt", "s16", str(dst)]
-    subprocess.run(cmd, check=True)
+           "-af", ",".join(steps), "-ac", "1", "-ar", str(rate), "-sample_fmt", "s16", str(dst)]
+    subprocess.run(cmd, check=True, stderr=subprocess.DEVNULL)
     return Path(dst)
 
 
