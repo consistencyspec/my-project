@@ -125,7 +125,7 @@ python3.12 -m venv .venv-ja
 JA_TTS_PYTHON=.venv-ja/bin/python .venv/bin/python scripts/build_short.py content/shorts/*.json
 ```
 
-声は `JA_VOICE` で変えられます（jf_alpha・jf_gongitsune・jf_nezumi・jf_tebukuro が女性、jm_kumo が男性）。ナレーションなしで作るときは `--no-narration` を付けます。
+声は `JA_VOICE` で変えられます（jf_alpha・jf_gongitsune・jf_nezumi・jf_tebukuro が女性、jm_kumo が男性）。今は男性の声を3半音低く・6%ゆっくりにして、おじさんらしい声にしています（`JA_PITCH=-3`、`JA_TEMPO=0.94`。元の声は `JA_PITCH=0 JA_TEMPO=1`）。ナレーションなしで作るときは `--no-narration` を付けます。
 
 
 `output/shorts/<id>/` に動画と `description.txt`（タイトル・ハッシュタグ・概要欄）ができます。

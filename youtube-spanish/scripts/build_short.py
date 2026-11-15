@@ -55,7 +55,10 @@ END_SECONDS = 3.8
 GAP_JA_ES = 1.0     # 日本語ナレーションとスペイン語の間
 
 # 日本語ナレーション（Kokoro, Apache-2.0）。Kokoro を入れた Python を環境変数 JA_TTS_PYTHON で指定する
-JA_VOICE = os.environ.get("JA_VOICE", "jf_alpha")
+JA_VOICE = os.environ.get("JA_VOICE", "jm_kumo")
+# 声を低く・ゆっくりにして、落ち着いた大人の男性（おじさん）らしくする。0 と 1.0 で元の声のまま
+JA_PITCH = float(os.environ.get("JA_PITCH", "-3"))   # 半音
+JA_TEMPO = float(os.environ.get("JA_TEMPO", "0.94"))  # 話す速さ
 JA_TTS_PYTHON = os.environ.get("JA_TTS_PYTHON", sys.executable)
 SAY_JA = Path(__file__).resolve().parent / "say_ja.py"
 
@@ -74,13 +77,15 @@ def ja_say(text, rate, cache_dir, voice=None):
     voice = voice or JA_VOICE
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
-    key = hashlib.sha1(f"kokoro|{voice}|{text}".encode()).hexdigest()[:16]
+    key = hashlib.sha1(f"kokoro|{voice}|{JA_PITCH}|{JA_TEMPO}|{text}".encode()).hexdigest()[:16]
     out = cache_dir / f"ja_{key}.wav"
     if not out.exists():
         raw = cache_dir / f"ja_{key}_raw.wav"
         subprocess.run([JA_TTS_PYTHON, str(SAY_JA), voice, str(raw), text], check=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af", "loudnorm=I=-14:TP=-1.5:LRA=7",
+        f = 2 ** (JA_PITCH / 12)
+        voice_fx = f"asetrate=24000*{f:.6f},aresample=24000,atempo={JA_TEMPO / f:.6f},"
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af", voice_fx + "loudnorm=I=-14:TP=-1.5:LRA=7",
                         "-ac", "1", "-ar", str(rate), "-sample_fmt", "s16", str(out)], check=True)
         raw.unlink(missing_ok=True)
     return out
