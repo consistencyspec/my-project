@@ -82,12 +82,15 @@ def find_audio(conf, root):
 
 
 # 声を聞き取りやすいナレーションに整える処理（順番に）
-#   低い雑音を切る → さーっという雑音を減らす → こもりを減らす → 声の輪郭を上げる
-#   → 高音を少し補う（スマホの低い音質の録音向け） → 「さしすせそ」の刺さりを抑える → 声の大小をならす
-VOICE_CHAIN = ("highpass=f=90,afftdn=nf=-35:nr=10,"
-               "equalizer=f=250:t=q:w=1:g=-3,equalizer=f=3500:t=q:w=1.2:g=3,"
-               "aresample=44100,aexciter=amount=1:drive=5:freq=5000,deesser,"
-               "acompressor=threshold=-22dB:ratio=3:attack=6:release=150:makeup=2")
+#   スマホ録音の「こもり」対策。合成音声の周波数バランスに近づけるように調整してある（2026-11 第1話の録音で計測）
+#   低いボワつきを切る(120Hz以下・220Hz以下を下げる) → 雑音を減らす → 箱鳴りを下げる(380Hz)
+#   → 声の芯を大きく持ち上げる(700Hz) → 輪郭を少し上げる(1.5k・2.8kHz) → 高音を少し補う
+#   → 「さしすせそ」の刺さりを抑える → 声の大小をならす
+VOICE_CHAIN = ("highpass=f=120:p=2,afftdn=nf=-35:nr=12,lowshelf=f=220:g=-6,"
+               "equalizer=f=380:t=o:w=1:g=-4,equalizer=f=700:t=o:w=1.6:g=14,"
+               "equalizer=f=1500:t=o:w=1:g=1,equalizer=f=2800:t=o:w=1:g=2,"
+               "aresample=44100,aexciter=amount=1.2:drive=5:freq=5000,deesser=i=0.4,"
+               "acompressor=threshold=-24dB:ratio=3:attack=5:release=120:makeup=3,alimiter=limit=0.9")
 # 長い間（0.45秒より長い無音）を縮める。話の途中の間は少し残して、自然な速さにする
 TIGHTEN_PAUSES = ("silenceremove=start_periods=1:start_threshold=-35dB:"
                   "stop_periods=-1:stop_duration=0.45:stop_threshold=-35dB:stop_silence=0.35")
