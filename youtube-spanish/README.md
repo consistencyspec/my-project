@@ -111,6 +111,23 @@ YouTube は、テンプレートと合成音声だけで量産した動画を収
 .venv/bin/python scripts/build_short.py content/shorts/*.json
 ```
 
+### 日本語ナレーション
+最初のお題（「〇〇」って、スペイン語でなんて言うと思いますか？）と、最後のひとことを、日本語の合成音声で読み上げます。
+台本の `narration` の `hook`（最初）と `end`（最後）で文章を決めます。日本語の声にスペイン語は読ませないでください。
+
+声は Kokoro（Apache-2.0、商用利用可）を使います。Python 3.12 の別の環境に入れて、その場所を `JA_TTS_PYTHON` で指定します。
+
+```bash
+python3.12 -m venv .venv-ja
+.venv-ja/bin/pip install --index-url https://download.pytorch.org/whl/cpu torch
+.venv-ja/bin/pip install kokoro "misaki[ja]" soundfile unidic-lite
+.venv-ja/bin/pip uninstall -y unidic   # 辞書の本体を入れない場合は、同梱の unidic-lite を使わせる
+JA_TTS_PYTHON=.venv-ja/bin/python .venv/bin/python scripts/build_short.py content/shorts/*.json
+```
+
+声は `JA_VOICE` で変えられます（jf_alpha・jf_gongitsune・jf_nezumi・jf_tebukuro が女性、jm_kumo が男性）。ナレーションなしで作るときは `--no-narration` を付けます。
+
+
 `output/shorts/<id>/` に動画と `description.txt`（タイトル・ハッシュタグ・概要欄）ができます。
 新しい回は `content/shorts/` の JSON をコピーして作ります。`literal`（直訳の失敗例）は省略できます。
 流行語は旬が短いので、定着した言葉と混ぜて作るのがおすすめです。キャラクターの画像や曲の音源は使わないでください（著作権）。

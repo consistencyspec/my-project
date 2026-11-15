@@ -7,3 +7,4 @@ voices/
 commentary/*.m4a
 commentary/*.mp3
 commentary/*.wav
+.venv-ja/

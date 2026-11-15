@@ -27,6 +27,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+import hashlib
+import os
+
 import build_video as bv
 from thumbnail import heavy_font
 
@@ -49,6 +52,38 @@ VOICE_COLOR = {"F": (240, 128, 112), "M": (88, 190, 180)}
 HOOK_SECONDS = 2.8
 GAP = 0.7
 END_SECONDS = 3.8
+GAP_JA_ES = 1.0     # 日本語ナレーションとスペイン語の間
+
+# 日本語ナレーション（Kokoro, Apache-2.0）。Kokoro を入れた Python を環境変数 JA_TTS_PYTHON で指定する
+JA_VOICE = os.environ.get("JA_VOICE", "jf_alpha")
+JA_TTS_PYTHON = os.environ.get("JA_TTS_PYTHON", sys.executable)
+SAY_JA = Path(__file__).resolve().parent / "say_ja.py"
+
+
+def narration_lines(s):
+    """ショートの日本語ナレーション（最初のお題・最後のひとこと）。台本の narration で上書きできる。"""
+    n = s.get("narration", {})
+    word = s["word"].split("（")[0]
+    hook = n.get("hook", f"「{word}」って、スペイン語でなんて言うと思いますか？")
+    end = n.get("end", "")
+    return hook, end
+
+
+def ja_say(text, rate, cache_dir, voice=None):
+    """日本語を読み上げ、合成スペイン語と同じ形式・同じ音量の wav にする（同じ文はキャッシュを使う）。"""
+    voice = voice or JA_VOICE
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    key = hashlib.sha1(f"kokoro|{voice}|{text}".encode()).hexdigest()[:16]
+    out = cache_dir / f"ja_{key}.wav"
+    if not out.exists():
+        raw = cache_dir / f"ja_{key}_raw.wav"
+        subprocess.run([JA_TTS_PYTHON, str(SAY_JA), voice, str(raw), text], check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af", "loudnorm=I=-14:TP=-1.5:LRA=7",
+                        "-ac", "1", "-ar", str(rate), "-sample_fmt", "s16", str(out)], check=True)
+        raw.unlink(missing_ok=True)
+    return out
 
 
 # ---------- 台本 ----------
@@ -60,6 +95,9 @@ def load_short(path):
 
 
 def validate_short(s):
+    n = s.get("narration", {})
+    if not isinstance(n, dict) or any(k not in ("hook", "end") for k in n):
+        raise ValueError("narration には hook（最初）と end（最後）だけを書いてください")
     for key in ("id", "word", "answer", "example", "tip"):
         if key not in s:
             raise ValueError(f"台本に「{key}」がありません")
@@ -230,7 +268,7 @@ def slide_end(s, path):
 
 # ---------- 組み立て ----------
 
-def build(path, keep_work=False):
+def build(path, keep_work=False, narration=True):
     s = load_short(path)
     out = OUT_DIR / s["id"]
     out.mkdir(parents=True, exist_ok=True)
@@ -248,7 +286,13 @@ def build(path, keep_work=False):
         n[0] += 1
         return work / f"s{n[0]:03d}.png"
 
-    p = img(); slide_hook(s, p); tl.add(p, [chime, HOOK_SECONDS - bv.wav_seconds(chime)])
+    hook_text, end_text = narration_lines(s)
+    cache = ROOT / "output" / ".tts_cache"
+    if narration:
+        hook = ja_say(hook_text, rate, cache)
+        p = img(); slide_hook(s, p); tl.add(p, [chime, 0.2, hook, GAP_JA_ES])
+    else:
+        p = img(); slide_hook(s, p); tl.add(p, [chime, HOOK_SECONDS - bv.wav_seconds(chime)])
     if s.get("literal"):
         p = img(); slide_literal(s, p)
         tl.add(p, [speaker.say(s["literal"]["es"], a["voice"]), 2.2])
@@ -257,7 +301,10 @@ def build(path, keep_work=False):
     for i, ln in enumerate(s["example"]):
         p = img(); slide_example(s, p, i)
         tl.add(p, [speaker.say(ln["es"], ln["voice"]), GAP + (0.6 if i == len(s["example"]) - 1 else 0)])
-    p = img(); slide_end(s, p); tl.add(p, [chime, END_SECONDS - bv.wav_seconds(chime)])
+    if narration and end_text:
+        p = img(); slide_end(s, p); tl.add(p, [chime, 0.4, ja_say(end_text, rate, cache), 1.2])
+    else:
+        p = img(); slide_end(s, p); tl.add(p, [chime, END_SECONDS - bv.wav_seconds(chime)])
 
     audio = work / "audio.wav"
     tl.write_audio(audio)
@@ -300,9 +347,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="ショート動画「こんな時スペイン語でなんて言う？」を作る")
     ap.add_argument("shorts", nargs="+", help="台本の JSON（content/shorts/ 以下）")
     ap.add_argument("--keep-work", action="store_true", help="途中の画像を output/shorts/<id>/work に残す")
+    ap.add_argument("--no-narration", action="store_true", help="日本語ナレーションを付けない")
     args = ap.parse_args(argv)
     for p in args.shorts:
-        build(p, keep_work=args.keep_work)
+        build(p, keep_work=args.keep_work, narration=not args.no_narration)
 
 
 if __name__ == "__main__":

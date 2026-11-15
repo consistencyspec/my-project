@@ -56,6 +56,22 @@ class ShortTests(unittest.TestCase):
                 below = img.crop((0, bs.SAFE_BOTTOM, bs.SW, bs.SH))
                 self.assertEqual(below.getcolors(1 << 16), [(below.width * below.height, bs.BG)])
 
+    def test_narration_lines(self):
+        hook, end = bs.narration_lines({"word": "草（www）"})
+        self.assertEqual(hook, "「草」って、スペイン語でなんて言うと思いますか？")  # かっこ書きは読まない
+        self.assertEqual(end, "")
+        for path in SHORTS:
+            s = bs.load_short(path)
+            hook, end = bs.narration_lines(s)
+            self.assertTrue(hook and end, path.name)
+            self.assertNotRegex(hook + end, "[¡¿áéíóúñ]", "日本語の声にスペイン語を読ませない")
+
+    def test_bad_narration_key(self):
+        s = bs.load_short(SHORTS[0])
+        s["narration"] = {"middle": "x"}
+        with self.assertRaises(ValueError):
+            bs.validate_short(s)
+
     def test_description(self):
         s = bs.load_short(SHORTS[0])
         text = bs.description(s)
