@@ -1,4 +1,5 @@
 """解説（自分の声の録音）を差し込む仕組みの確認。実行: python3 -m unittest discover -s tests -v"""
+import json
 import subprocess
 import sys
 import tempfile
@@ -44,6 +45,29 @@ class ValidateTests(unittest.TestCase):
             cm.validate({"audio": "a.m4a", "slides": [{"at": 0, "title": "a"}, {"title": "b"}]})
 
 
+    def test_per_slide_audio(self):
+        conf = {"slides": [{"audio": "a.m4a", "title": "a"}, {"audio": "b.m4a", "title": "b"}]}
+        cm.validate(conf)
+        self.assertTrue(cm.per_slide(conf))
+
+    def test_per_slide_needs_audio_on_every_slide(self):
+        with self.assertRaises(ValueError):
+            cm.validate({"slides": [{"audio": "a.m4a", "title": "a"}, {"title": "b"}]})
+
+    def test_cannot_mix_single_and_per_slide(self):
+        with self.assertRaises(ValueError):
+            cm.validate({"audio": "x.m4a", "slides": [{"audio": "a.m4a", "title": "a"}]})
+
+    def test_play_needs_spanish(self):
+        with self.assertRaises(ValueError):
+            cm.validate({"slides": [{"audio": "a.m4a", "title": "a", "play": True, "points": ["日本語だけ"]}]})
+
+    def test_spanish_to_play(self):
+        sl = {"play": True, "points": ["説明", {"es": "Hola.", "ja": "やあ"}, {"ja": "訳だけ"}]}
+        self.assertEqual(cm.spanish_to_play(sl), ["Hola."])
+        self.assertEqual(cm.spanish_to_play({"points": [{"es": "Hola."}]}), [])
+
+
 class TimingTests(unittest.TestCase):
     def test_even_split_without_times(self):
         self.assertEqual(cm.slide_times([{"title": "a"}, {"title": "b"}], 60), [0.0, 30.0])
@@ -72,6 +96,23 @@ class AudioTests(unittest.TestCase):
             self.assertAlmostEqual(cm.wav_seconds(parts[0]), 4.0, places=2)
 
 
+    def test_load_parts_per_slide(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            tone(d / "p1.m4a", 2, lead=1.0, tail=1.0)
+            tone(d / "p2.m4a", 3)
+            conf = {"slides": [{"audio": str(d / "p1.m4a"), "title": "a"},
+                               {"audio": str(d / "p2.m4a"), "title": "b", "play": True, "points": [{"es": "Hola."}]}]}
+            parts = cm.load_parts(conf, ROOT, d, 22050, {"title": "x"})
+            self.assertEqual([sl["title"] for sl, _ in parts], ["a", "b"])
+            self.assertAlmostEqual(cm.wav_seconds(parts[0][1]), 2.0, delta=0.4)  # 前後の無音を切る
+
+    def test_load_parts_missing_file_gives_no_commentary(self):
+        with tempfile.TemporaryDirectory() as d:
+            conf = {"slides": [{"audio": "commentary/nope_1.m4a", "title": "a"}]}
+            self.assertEqual(cm.load_parts(conf, ROOT, d, 22050, {"title": "x"}), [])
+
+
 class IntegrationTests(unittest.TestCase):
     def test_sections_insert_after_given_key(self):
         ep = bv.load_episode(EP)
@@ -92,7 +133,10 @@ class IntegrationTests(unittest.TestCase):
             bv.slide_title(ep, Path(d) / "t.png", bv.sections_for(ep | {"commentary": {"audio": "x"}}, True))
         text = cm.script_template(ep)
         self.assertIn(ep["grammar"], text)
-        self.assertIn('"commentary"', text)
+        block = text.split("```json\n")[1].split("```")[0]
+        conf = json.loads("{" + block + "}")["commentary"]
+        cm.validate(conf)  # 下書きの設定は、そのまま台本に貼って使える
+        self.assertTrue(cm.per_slide(conf))
 
 
 if __name__ == "__main__":

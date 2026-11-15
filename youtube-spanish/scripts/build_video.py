@@ -453,13 +453,8 @@ def build(ep_path, keep_work=False):
     # 自分の声の解説（録音ファイルがあるときだけ）
     talk_parts = []
     if "commentary" in ep:
-        src = cm.find_audio(ep["commentary"], ROOT)
-        if src:
-            talk = cm.prepare_audio(src, work / "commentary.wav", rate)
-            slides = ep["commentary"].get("slides", [])
-            starts = cm.slide_times(slides, cm.wav_seconds(talk))
-            talk_parts = list(zip(slides or [{"title": "この回のポイント", "points": [ep["grammar"]]}],
-                                  cm.split_wav(talk, starts, work)))
+        talk_parts = cm.load_parts(ep["commentary"], ROOT, work, rate,
+                                   {"title": "この回のポイント", "points": [ep["grammar"]]})
     sections = sections_for(ep, bool(talk_parts))
 
     p = img_path(); slide_title(ep, p, sections); tl.chapter("はじめに"); tl.add(p, [TITLE_SECONDS])
@@ -488,7 +483,10 @@ def build(ep_path, keep_work=False):
         elif key == "commentary":
             for i, (slide, part) in enumerate(talk_parts, 1):
                 p = img_path(); slide_commentary(ep, slide, i, len(talk_parts), p)
-                tl.add(p, [part])
+                spoken = []  # play: true なら、先にスペイン語を合成音声で読み上げる
+                for es in cm.spanish_to_play(slide):
+                    spoken += [speaker.say(es, "F"), GAP_REPEAT]
+                tl.add(p, spoken + [part])
             tl.add(p, [0.8])  # 解説のあと、次へ進む前のひと呼吸
         elif key == "phrases":
             ph = ep["phrases"]

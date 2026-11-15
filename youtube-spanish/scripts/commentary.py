@@ -15,7 +15,20 @@
 
 "at" はスライドを切り替える秒数（録音の頭から数えて）。省略すると、録音の長さで均等に切り替える。
 録音ファイルがまだないときは、警告を出して解説なしで動画を作る。
+
+スライドごとに別々に録音する書き方（秒数を数えなくてよいので、こちらがおすすめ）:
+    "commentary": {
+        "slides": [
+            {"audio": "commentary/ep01_1.m4a", "title": "この回のポイント", "points": ["..."]},
+            {"audio": "commentary/ep01_2.m4a", "title": "このセリフ", "play": true,
+             "points": [{"es": "Estoy buscando un piso que esté cerca del centro.", "ja": "..."}]}
+        ]
+    }
+
+"play": true のスライドでは、表示したとたんに、points のスペイン語を合成音声で読み上げてから、あなたの録音を流す。
+スペイン語を自分で読まなくてよい。
 """
+import json
 import subprocess
 import wave
 from pathlib import Path
@@ -25,12 +38,25 @@ DEFAULT_AFTER = "line"
 SECTION = ("commentary", "解説　この回のポイント", "ポイントを日本語で解説します")
 
 
+def per_slide(conf):
+    """スライドごとに別々の録音ファイルを使う書き方かどうか。"""
+    slides = conf.get("slides", [])
+    return bool(slides) and all(sl.get("audio") for sl in slides)
+
+
 def validate(conf):
-    if not isinstance(conf, dict) or not conf.get("audio"):
-        raise ValueError("commentary には audio（録音ファイルの場所）が必要です")
+    if not isinstance(conf, dict):
+        raise ValueError("commentary の書き方が正しくありません")
+    slides = conf.get("slides", [])
+    if not conf.get("audio") and not per_slide(conf):
+        raise ValueError("commentary には audio（録音ファイル）か、すべてのスライドに audio が必要です")
+    if conf.get("audio") and any(sl.get("audio") for sl in slides):
+        raise ValueError("録音は「全体で1つ」か「スライドごと」のどちらかにしてください")
+    for i, sl in enumerate(slides, 1):
+        if sl.get("play") and not any(isinstance(pt, dict) and pt.get("es") for pt in sl.get("points", [])):
+            raise ValueError(f"解説のスライド{i}は play: true ですが、読み上げるスペイン語（es）がありません")
     if conf.get("after", DEFAULT_AFTER) not in AFTER_KEYS:
         raise ValueError(f"commentary の after は {', '.join(AFTER_KEYS)} のどれかにしてください")
-    slides = conf.get("slides", [])
     last = -1.0
     for i, sl in enumerate(slides, 1):
         if not sl.get("title"):
@@ -55,17 +81,45 @@ def find_audio(conf, root):
     return path
 
 
-def prepare_audio(src, dst, rate):
+def prepare_audio(src, dst, rate, trim_start=False):
     """録音を動画用にそろえる：最後の無音を切り、音量を一定にし、合成音声と同じ形式（モノラル・16bit）にする。
 
     頭の無音は切らない（スライドの切り替え秒数 at を、録音を聞いたときの秒数のまま使えるように）。
     """
     trim = "areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse"
+    if trim_start:  # スライドごとの録音なら、頭の無音も切ってよい（秒数を使わないので）
+        trim = "silenceremove=start_periods=1:start_threshold=-45dB," + trim
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src),
            "-af", f"{trim},loudnorm=I=-16:TP=-1.5:LRA=11", "-ac", "1", "-ar", str(rate),
            "-sample_fmt", "s16", str(dst)]
     subprocess.run(cmd, check=True)
     return Path(dst)
+
+
+def spanish_to_play(slide):
+    """play: true のスライドで読み上げるスペイン語の一覧。"""
+    if not slide.get("play"):
+        return []
+    return [pt["es"] for pt in slide.get("points", []) if isinstance(pt, dict) and pt.get("es")]
+
+
+def load_parts(conf, root, work, rate, fallback_slide):
+    """録音を動画用にそろえ、(スライド, 録音) の組を返す。録音が足りなければ空（解説なし）。"""
+    slides = conf.get("slides", [])
+    if per_slide(conf):
+        parts = []
+        for i, sl in enumerate(slides):
+            src = find_audio(sl, root)
+            if src is None:
+                return []
+            parts.append(prepare_audio(src, Path(work) / f"commentary_{i:02d}.wav", rate, trim_start=True))
+        return list(zip(slides, parts))
+    src = find_audio(conf, root)
+    if src is None:
+        return []
+    talk = prepare_audio(src, Path(work) / "commentary.wav", rate)
+    starts = slide_times(slides, wav_seconds(talk))
+    return list(zip(slides or [fallback_slide], split_wav(talk, starts, work)))
 
 
 def wav_seconds(path):
@@ -106,41 +160,36 @@ def split_wav(path, starts, out_dir):
 
 
 def script_template(ep):
-    """録音するときの原稿の下書き（Markdown）。台本の内容から、話す順番と材料を並べる。"""
+    """録音するときの原稿の下書き（Markdown）。スライドごとに1つずつ録音する形で、話すのは日本語だけ。"""
     ph = ep.get("phrases", [])
+    eid = ep["id"]
     lines = [
-        f"# 解説の原稿の下書き: {ep['id']} {ep['title_ja']}",
+        f"# 解説の原稿の下書き: {eid} {ep['title_ja']}",
         "",
-        "目安は1〜2分。読み上げるより、自分の言葉で話すほうが自然になります。",
-        "スマホのボイスメモで録音し、`youtube-spanish/commentary/` に置いて、台本に `commentary` を足してください。",
+        "- 話すのは日本語だけです。♪の所は、スペイン語を合成音声が読み上げます",
+        f"- 録音①②③…を、スマホのボイスメモで1つずつ録り、`commentary/{eid}_1.m4a` のような名前で置きます",
+        "- 全部で1〜2分が目安。読み上げるより、自分の言葉で話すほうが自然になります",
         "",
-        "## 話す順番",
+        "## 録音①（この回のポイント）",
         "",
-        f"1. **あいさつとテーマ**：今回は「{ep['title_ja']}」の会話です。",
-        f"2. **この回のポイント**：{ep['grammar']}",
+        f"今回は「{ep['title_ja']}」の会話でした。ここまで聞いてみて、どうでしたか？",
+        f"今回のポイントは、{ep['grammar']}。もう一度聞いてみましょう。",
+        "",
     ]
-    if ph:
-        lines.append(f"   - 例：{ph[0]['es']}（{ph[0]['ja']}）")
-        if ph[0].get("note"):
-            lines.append(f"   - 説明の材料：{ph[0]['note']}")
-    if len(ph) > 1:
-        lines.append("3. **間違えやすい所・使い分け**（1〜2個に絞る）")
-        for p in ph[1:3]:
-            lines.append(f"   - {p['es']}（{p['ja']}）" + (f"：{p['note']}" if p.get("note") else ""))
-    lines += [
-        "4. **自分のひとこと**：実際に使った場面、覚え方のコツ、スペインでの体験など（ここがあなたにしか話せない部分です）",
-        "5. **しめ**：「では続きを聞いてみましょう」",
-        "",
-        "## 台本に足す例（秒数は録音を聞いて合わせる）",
-        "",
-        "```json",
-        '"commentary": {',
-        f'  "audio": "commentary/{ep["id"]}.m4a",',
-        '  "slides": [',
-        '    {"at": 0, "title": "この回のポイント", "points": ["' + ep["grammar"].replace('"', "'") + '"]},',
-    ]
-    if ph:
-        lines.append('    {"at": 30, "title": "例文で確認", "points": [{"es": "'
-                     + ph[0]["es"].replace('"', "'") + '", "ja": "' + ph[0]["ja"].replace('"', "'") + '"}]}')
-    lines += ["  ]", "}", "```", ""]
+    slides = [{"audio": f"commentary/{eid}_1.m4a", "title": "この回のポイント", "points": [ep["grammar"]]}]
+    for n, p in enumerate(ph[:2], 2):
+        lines += [f"## 録音{'①②③④⑤'[n - 1]}（♪{p['es']}）", "",
+                  f"「{p['ja']}」という意味です。"]
+        if p.get("note"):
+            lines.append(f"（説明の材料：{p['note']}）")
+        lines += ["次の表現も聞いてみましょう。" if n == 2 else "", ""]
+        slides.append({"audio": f"commentary/{eid}_{n}.m4a", "title": "このフレーズ", "play": True,
+                       "points": [{"es": p["es"], "ja": p["ja"]}]})
+    last = len(slides) + 1
+    lines += [f"## 録音{'①②③④⑤'[last - 1]}（自分のひとこと）", "",
+              "【実際に使った場面、覚え方のコツ、スペインでの体験など。ここがあなたにしか話せない部分です】",
+              "では、続きを聞いてみましょう。", ""]
+    slides.append({"audio": f"commentary/{eid}_{last}.m4a", "title": "ひとこと", "points": []})
+    body = ",\n".join("    " + json.dumps(sl, ensure_ascii=False) for sl in slides)
+    lines += ["## 台本に足す設定", "", "```json", '"commentary": {', '  "slides": [', body, "  ]", "}", "```", ""]
     return "\n".join(lines)
