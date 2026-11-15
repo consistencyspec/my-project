@@ -332,7 +332,8 @@
         "title": "この回のポイント",
         "points": [
           "まだ見つかっていない物を説明するとき"
-        ]
+        ],
+        "cut_start": 4.4
       },
       {
         "audio": "commentary/ep01_2.m4a",

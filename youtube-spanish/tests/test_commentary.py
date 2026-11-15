@@ -107,6 +107,19 @@ class AudioTests(unittest.TestCase):
             self.assertEqual([sl["title"] for sl, _ in parts], ["a", "b"])
             self.assertAlmostEqual(cm.wav_seconds(parts[0][1]), 2.0, delta=0.4)  # 前後の無音を切る
 
+    def test_cut_start_skips_the_beginning(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            tone(d / "p.m4a", 6)
+            full = cm.prepare_audio(d / "p.m4a", d / "a.wav", 22050, trim_start=True)
+            full_len = cm.wav_seconds(full)
+            cut = cm.prepare_audio(d / "p.m4a", d / "b.wav", 22050, trim_start=True, cut_start=2.0)
+            self.assertAlmostEqual(full_len - cm.wav_seconds(cut), 2.0, delta=0.15)
+
+    def test_bad_cut_start(self):
+        with self.assertRaises(ValueError):
+            cm.validate({"slides": [{"audio": "a.m4a", "title": "a", "cut_start": -1}]})
+
     def test_load_parts_missing_file_gives_no_commentary(self):
         with tempfile.TemporaryDirectory() as d:
             conf = {"slides": [{"audio": "commentary/nope_1.m4a", "title": "a"}]}

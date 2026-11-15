@@ -25,6 +25,7 @@
         ]
     }
 
+"cut_start": 4.4 のように書くと、その録音の頭から4.4秒を飛ばす（言い直しや、要らないあいさつを消すとき）。
 "play": true のスライドでは、表示したとたんに、points のスペイン語を合成音声で読み上げてから、あなたの録音を流す。
 スペイン語を自分で読まなくてよい。
 """
@@ -61,6 +62,9 @@ def validate(conf):
     for i, sl in enumerate(slides, 1):
         if not sl.get("title"):
             raise ValueError(f"解説のスライド{i}に title がありません")
+        cut = sl.get("cut_start", 0)
+        if not isinstance(cut, (int, float)) or cut < 0:
+            raise ValueError(f"解説のスライド{i}の cut_start は0以上の秒数にしてください")
         for pt in sl.get("points", []):
             if isinstance(pt, dict) and not (pt.get("es") or pt.get("ja")):
                 raise ValueError(f"解説のスライド{i}の points に es か ja が必要です")
@@ -98,14 +102,15 @@ TRIM_END = "areverse,silenceremove=start_periods=1:start_threshold=-45dB,arevers
 LOUDNESS = "loudnorm=I=-15:TP=-1.5:LRA=7"  # 合成音声（約 -15 LUFS）と同じ大きさにそろえる
 
 
-def prepare_audio(src, dst, rate, trim_start=False):
+def prepare_audio(src, dst, rate, trim_start=False, cut_start=0.0):
     """録音を動画用に整える：聞き取りやすい声にし、音量を合成音声とそろえ、同じ形式（モノラル・16bit）にする。
 
     trim_start=True（スライドごとの録音）のときは、頭の無音を切り、長い間も縮める。
     False（1つの長い録音を秒数 at で区切る）のときは、秒数がずれないよう、最後の無音を切るだけにする。
     """
     steps = [VOICE_CHAIN] + ([TIGHTEN_PAUSES, TRIM_END] if trim_start else [TRIM_END]) + [LOUDNESS]
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src),
+    cut = ["-ss", f"{cut_start:.3f}"] if cut_start else []  # 録音の頭の不要な部分（言い直しなど）を飛ばす
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", *cut, "-i", str(src),
            "-af", ",".join(steps), "-ac", "1", "-ar", str(rate), "-sample_fmt", "s16", str(dst)]
     subprocess.run(cmd, check=True, stderr=subprocess.DEVNULL)
     return Path(dst)
@@ -127,7 +132,8 @@ def load_parts(conf, root, work, rate, fallback_slide):
             src = find_audio(sl, root)
             if src is None:
                 return []
-            parts.append(prepare_audio(src, Path(work) / f"commentary_{i:02d}.wav", rate, trim_start=True))
+            parts.append(prepare_audio(src, Path(work) / f"commentary_{i:02d}.wav", rate, trim_start=True,
+                                       cut_start=sl.get("cut_start", 0)))
         return list(zip(slides, parts))
     src = find_audio(conf, root)
     if src is None:
