@@ -8,6 +8,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "branding"
 N = 800
@@ -45,6 +48,49 @@ def icon_a():
     l, t, r, b = d.textbbox((0, 0), "ES", font=font(140))
     d.text((475 - (r - l) / 2 - l, 500 - (b - t) / 2 - t), "ES", font=font(140), fill=RED)
     return img
+
+
+def icon_a2():
+    """会話のへや（小さくても読める版）：吹き出し2つに、スペイン語らしい「¿?」と「¡!」"""
+    img = Image.new("RGB", (N, N), RED)
+    d = ImageDraw.Draw(img)
+    bubble(d, (110, 150, 500, 420), YELLOW, tail_left=True)
+    bubble(d, (300, 380, 690, 650), WHITE, tail_left=False)
+    f = font(210)
+    for text, cx, cy, fill in (("¿?", 305, 285, INK), ("¡!", 495, 515, RED)):
+        l, t, r, b = d.textbbox((0, 0), text, font=f)
+        d.text((cx - (r - l) / 2 - l, cy - (b - t) / 2 - t), text, font=f, fill=fill)
+    return img
+
+
+def banner(icon, path):
+    """チャンネルのバナー（2560x1440）。スマホでも切れない中央（1546x423）に文字を入れる。"""
+    from thumbnail import heavy_font
+    W, H = 2560, 1440
+    img = Image.new("RGB", (W, H), RED)
+    d = ImageDraw.Draw(img)
+    d.rectangle((0, 1040, W, H), fill=(190, 25, 32))  # 下の濃い帯は、スマホで見える範囲（中央）より下に置く
+    sx, sy, sw, sh = (W - 1546) // 2, (H - 423) // 2, 1546, 423
+    ic = icon.resize((330, 330), Image.LANCZOS)
+    mask = Image.new("L", (N, N), 0)
+    ImageDraw.Draw(mask).ellipse((0, 0, N, N), fill=255)
+    img.paste(ic, (sx + 20, sy + (sh - 330) // 2), mask.resize((330, 330)))
+    tx = sx + 400
+    right = sx + sw - 20  # スマホでも切れない範囲の右端
+
+    def fit(text, size):
+        while heavy_font(size).getlength(text) > right - tx and size > 30:
+            size -= 2
+        return heavy_font(size)
+
+    d.text((tx, sy + 40), "スペイン語 会話のへや", font=fit("スペイン語 会話のへや", 118), fill=WHITE)
+    sub = "会話を聞いて覚える 中級リスニング"
+    fs = fit(sub, 62)
+    d.rounded_rectangle((tx, sy + 225, tx + fs.getlength(sub) + 52, sy + 320), radius=18, fill=YELLOW)
+    d.text((tx + 26, sy + 236), sub, font=fs, fill=INK)
+    line = "毎週更新・和訳と単語付き・聞き流しにも"
+    d.text((tx, sy + 345), line, font=fit(line, 48), fill=WHITE)
+    img.save(path)
 
 
 def icon_b():
@@ -85,10 +131,12 @@ def preview(icons):
 
 def main():
     OUT.mkdir(exist_ok=True)
-    icons = {"icon_a": icon_a(), "icon_b": icon_b(), "icon_c": icon_c()}
+    icons = {"icon_a": icon_a(), "icon_a2": icon_a2(), "icon_b": icon_b(), "icon_c": icon_c()}
     for name, img in icons.items():
         img.save(OUT / f"{name}.png")
     preview(list(icons.values())).save(OUT / "icons_preview.png")
+    preview([icons["icon_a"], icons["icon_a2"]]).save(OUT / "icon_a_compare.png")
+    banner(icons["icon_a2"], OUT / "banner.png")
     print("できました:", ", ".join(f"branding/{n}.png" for n in icons), "と branding/icons_preview.png")
 
 

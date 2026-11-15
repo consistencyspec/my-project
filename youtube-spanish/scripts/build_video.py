@@ -42,6 +42,8 @@ VOICE_CREDIT = (
 )
 SPEAKER_IDS = {"M": 0, "F": 1}
 
+CHANNEL_NAME = "スペイン語 会話のへや"
+
 W, H = 1920, 1080
 FPS = 30
 SLOW_SCALE = 1.4  # ゆっくり読みの速さ（大きいほど遅い）
@@ -196,7 +198,7 @@ def base_canvas(ep, section_label=None):
     img = Image.new("RGB", (W, H), COLORS["bg"])
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, W, 96], fill=COLORS["panel"])
-    d.text((60, 26), "スペイン語 中級リスニング｜会話・和訳付き", font=font(FONT_JA, 40), fill=COLORS["accent"])
+    d.text((60, 26), f"{CHANNEL_NAME}｜中級リスニング・和訳付き", font=font(FONT_JA, 40), fill=COLORS["accent"])
     right = f"#{ep['id'][2:]}  {ep['title_ja']}"
     f = font(FONT_JA, 34)
     d.text((W - 60 - f.getlength(right), 32), right, font=f, fill=COLORS["sub"])
