@@ -314,5 +314,49 @@
   "thumbnail": {
     "title": "注文、\n間違ってます",
     "band": "会話・和訳・単語付き"
+  },
+  "commentary": {
+    "slides": [
+      {
+        "audio": "commentary/ep02_1.m4a",
+        "title": "この回のポイント",
+        "points": [
+          "お店でていねいに頼む言い方"
+        ]
+      },
+      {
+        "audio": "commentary/ep02_2.m4a",
+        "title": "ていねいに頼む",
+        "play": true,
+        "points": [
+          {
+            "es": "¿Me podría traer un poco más de pan?",
+            "ja": "パンをもう少しいただけますか？ podría（ポドリア）でていねいに"
+          }
+        ]
+      },
+      {
+        "audio": "commentary/ep02_3.m4a",
+        "title": "たった今起きたこと",
+        "play": true,
+        "points": [
+          {
+            "es": "Creo que ha habido un error.",
+            "ja": "間違いがあったようです"
+          }
+        ]
+      },
+      {
+        "audio": "commentary/ep02_4.m4a",
+        "title": "事情を伝える",
+        "play": true,
+        "points": [
+          {
+            "es": "Es que soy alérgica al marisco.",
+            "ja": "実は魚介アレルギーなんです。Es que（エスケ）＝実は〜"
+          }
+        ]
+      }
+    ]
   }
 }
