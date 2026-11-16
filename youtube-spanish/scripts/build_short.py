@@ -70,9 +70,12 @@ def content_bottom():
 
 # 日本語ナレーション（Kokoro, Apache-2.0）。Kokoro を入れた Python を環境変数 JA_TTS_PYTHON で指定する
 JA_VOICE = os.environ.get("JA_VOICE", "jm_kumo")
-# 声を低く・ゆっくりにして、落ち着いた大人の男性（おじさん）らしくする。0 と 1.0 で元の声のまま
-JA_PITCH = float(os.environ.get("JA_PITCH", "-3"))   # 半音
-JA_TEMPO = float(os.environ.get("JA_TEMPO", "0.94"))  # 話す速さ
+# オラポン君の声：男性の声をぐっと高くして、キモ可愛いキャラクターらしくする。0 と 1.0 で元の声のまま
+JA_PITCH = float(os.environ.get("JA_PITCH", "7"))    # 半音（+で高く、-で低く）
+JA_TEMPO = float(os.environ.get("JA_TEMPO", "1.0"))  # 話す速さ
+# キャラ設定のリアクション：不正解は「ポ〜ン…」、正解は「ポン！」
+REACT_WRONG = "ポーン…"
+REACT_RIGHT = "ポン！"
 JA_TTS_PYTHON = os.environ.get("JA_TTS_PYTHON", sys.executable)
 SAY_JA = Path(__file__).resolve().parent / "say_ja.py"
 
@@ -361,12 +364,20 @@ def build(path, keep_work=False, narration=True, character=True):
         add_talking(tl, p, ja_say(hook_text, rate, cache), [chime, 0.2], [GAP_JA_ES], ("talk", "n"), work, faces)
     else:
         tl.add(show(p, "normal", faces), [chime, HOOK_SECONDS - bv.wav_seconds(chime)])
-    # 2. 直訳すると…（しょんぼり）
+    # 2. 直訳すると…（しょんぼりして「ポーン…」）
     if s.get("literal"):
         p = img(); slide_literal(s, p)
-        tl.add(show(p, "shonbori", faces), [speaker.say(s["literal"]["es"], a["voice"]), 2.2])
-    # 3. 自然な言い方（決め顔）
-    p = img(); slide_answer(s, p, "ふつうの速さ"); tl.add(show(p, "kimegao", faces), [chime, 0.2, first, GAP])
+        lit = speaker.say(s["literal"]["es"], a["voice"])
+        if narration:
+            tl.add(show(p, "shonbori", faces), [lit, GAP_JA_ES, ja_say(REACT_WRONG, rate, cache), 1.0])
+        else:
+            tl.add(show(p, "shonbori", faces), [lit, 2.2])
+    # 3. 自然な言い方（決め顔で「ポン！」）
+    p = img(); slide_answer(s, p, "ふつうの速さ")
+    if narration:
+        tl.add(show(p, "kimegao", faces), [chime, 0.2, ja_say(REACT_RIGHT, rate, cache), GAP_JA_ES, first, GAP])
+    else:
+        tl.add(show(p, "kimegao", faces), [chime, 0.2, first, GAP])
     p = img(); slide_answer(s, p, "ゆっくり")
     tl.add(show(p, "kimegao", faces), [speaker.say(a["es"], a["voice"], slow=True), 1.2])
     # 4. 使ってみよう（通常）
