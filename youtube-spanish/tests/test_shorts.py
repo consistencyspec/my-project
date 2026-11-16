@@ -72,6 +72,34 @@ class ShortTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             bs.validate_short(s)
 
+    def test_character_sits_above_buttons_and_text_above_character(self):
+        self.assertLessEqual(bs.CHAR_Y + bs.CHAR_H, bs.SAFE_BOTTOM)
+        self.assertLess(bs.content_bottom(), bs.CHAR_Y)
+        s = bs.load_short(SHORTS[0])
+        with tempfile.TemporaryDirectory() as d:
+            base = Path(d) / "a.png"
+            bs.slide_answer(s, base, "ふつうの速さ")
+            img = Image.open(base).convert("RGB")
+            # 文字はキャラクターの場所に入っていない（背景色のまま）
+            area = img.crop((0, bs.CHAR_Y, bs.SW, bs.SH))
+            self.assertEqual(area.getcolors(1 << 16), [(area.width * area.height, bs.BG)])
+            out = bs.with_character(base, "kimegao", {})
+            self.assertNotEqual(Image.open(out).convert("RGB").getpixel((bs.SW // 2, bs.CHAR_Y + bs.CHAR_H // 2)), bs.BG)
+
+    def test_mouth_track_ends_closed(self):
+        import character as ch
+        import math, struct, wave
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "v.wav"
+            with wave.open(str(p), "wb") as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(22050)
+                w.writeframes(b"".join(struct.pack("<h", int(8000 * math.sin(i / 7) * (1 + math.sin(i / 3000)) / 2))
+                                       for i in range(22050)))
+            track, sec = ch.mouth_track(p)
+            self.assertEqual(track[-1], "n")
+            self.assertGreater(len(set(track)), 2)
+            self.assertEqual(sum(c for _, c in ch.runs(track)), len(track))
+
     def test_description(self):
         s = bs.load_short(SHORTS[0])
         text = bs.description(s)

@@ -31,6 +31,8 @@ import hashlib
 import os
 
 import build_video as bv
+import character as ch
+import commentary as cm
 from thumbnail import heavy_font
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -53,6 +55,18 @@ HOOK_SECONDS = 2.8
 GAP = 0.7
 END_SECONDS = 3.8
 GAP_JA_ES = 1.0     # 日本語ナレーションとスペイン語の間
+
+# キャラクター（オラポン君）。画面の下（ボタンで隠れない範囲の一番下）に立たせる
+CHAR_W = 440
+CHAR_H = ch.height_for(CHAR_W)
+CHAR_X = (SW - CHAR_W) // 2
+CHAR_Y = SAFE_BOTTOM - CHAR_H
+SHOW_CHARACTER = True  # build() で切り替える
+
+
+def content_bottom():
+    """文字を置いてよい範囲の下端。キャラクターを出すときは、その頭の上まで。"""
+    return CHAR_Y - 20 if SHOW_CHARACTER else SAFE_BOTTOM
 
 # 日本語ナレーション（Kokoro, Apache-2.0）。Kokoro を入れた Python を環境変数 JA_TTS_PYTHON で指定する
 JA_VOICE = os.environ.get("JA_VOICE", "jm_kumo")
@@ -168,7 +182,7 @@ def slide_hook(s, path):
     word = f"「{s['word']}」"
     f = fit_heavy(word, SW - 2 * MARGIN)
     f2 = heavy_font(84)
-    y = 300 + (SAFE_BOTTOM - 300 - (f.size + 70 + 220)) // 2
+    y = 300 + max(0, (content_bottom() - 300 - (f.size + 70 + 220)) // 2)
     centered(d, y, word, f, WHITE, stroke=max(6, f.size // 16))
     centered(d, y + f.size + 70, "って、スペイン語で", f2, YELLOW)
     centered(d, y + f.size + 70 + 110, "なんて言う？", f2, YELLOW)
@@ -176,21 +190,28 @@ def slide_hook(s, path):
 
 
 def compose(s, label, body, path, measure=None):
-    """見出しと中身を、安全な範囲（上の帯の下〜ボタンで隠れない高さ）の中で上下中央にそろえる。
+    """見出しと中身を、文字を置いてよい範囲（上の帯の下〜キャラクターの頭の上）の中で上下中央にそろえる。
 
     body(d, y) は y から描いて、描き終わりの高さを返す関数。
     measure を渡すと、その関数で高さを測る（やりとりが1行ずつ増えても位置が動かないように）。
+    中身が範囲に入りきらないときは、全体を少し縮めて収める。
     """
-    probe = ImageDraw.Draw(Image.new("RGB", (SW, SH)))
-    height = (measure or body)(probe, 0)
     label_h = 100 if label else 0
-    top = 300
-    y = top + max(0, (SAFE_BOTTOM - top - height - label_h) // 2)
-    img, d = canvas(s)
+    probe = ImageDraw.Draw(Image.new("RGB", (SW, 10)))
+    height = (measure or body)(probe, 0) + label_h
+    top, bottom = 300, content_bottom()
+    scale = min(1.0, (bottom - top) / max(1, height))
+    layer = Image.new("RGBA", (SW, int(height) + 40), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
     if label:
-        d.text((MARGIN, y), label, font=heavy_font(52), fill=YELLOW)
-        y += label_h
-    body(d, y)
+        d.text((MARGIN, 0), label, font=heavy_font(52), fill=YELLOW)
+    body(d, label_h)
+    if scale < 1.0:
+        layer = layer.resize((int(SW * scale), int(layer.height * scale)), Image.LANCZOS)
+    x = (SW - layer.width) // 2
+    y = top + max(0, int((bottom - top - height * scale) // 2))
+    img, _ = canvas(s)
+    img.paste(layer, (x, y), layer)
     img.save(path)
 
 
@@ -271,9 +292,49 @@ def slide_end(s, path):
     compose(s, "ひとことメモ", body, path)
 
 
+# ---------- キャラクター ----------
+
+def with_character(base_path, face, cache):
+    """スライドにキャラクターを重ねた画像。face は表情名か ("talk", 口の形)。同じ組み合わせは使い回す。"""
+    key = (str(base_path), face)
+    if key not in cache:
+        img = Image.open(base_path).convert("RGBA")
+        sprite = ch.talking(face[1], CHAR_W) if isinstance(face, tuple) else ch.expression(face, CHAR_W)
+        img.alpha_composite(sprite, (CHAR_X, CHAR_Y))
+        out = Path(base_path).with_name(Path(base_path).stem + f"_{face[1] if isinstance(face, tuple) else face}.png")
+        img.convert("RGB").save(out)
+        cache[key] = out
+    return cache[key]
+
+
+def add_talking(tl, base, wav, before, after, after_face, work, cache):
+    """ナレーションに合わせて口パクさせながら、タイムラインに積む。"""
+    if not SHOW_CHARACTER:
+        tl.add(base, before + [wav] + after)
+        return
+    tl.add(with_character(base, ("talk", "n"), cache), before)
+    track, frame_sec = ch.mouth_track(wav)
+    groups = ch.runs(track)
+    starts, t = [], 0.0
+    for _, count in groups:
+        starts.append(t)
+        t += count * frame_sec
+    sub = Path(work) / f"lip_{Path(base).stem}"
+    sub.mkdir(exist_ok=True)
+    for (mouth, _), part in zip(groups, cm.split_wav(wav, starts, sub)):
+        tl.add(with_character(base, ("talk", mouth), cache), [part])
+    tl.add(with_character(base, after_face, cache), after)
+
+
+def show(base, face, cache):
+    return with_character(base, face, cache) if SHOW_CHARACTER else base
+
+
 # ---------- 組み立て ----------
 
-def build(path, keep_work=False, narration=True):
+def build(path, keep_work=False, narration=True, character=True):
+    global SHOW_CHARACTER
+    SHOW_CHARACTER = character
     s = load_short(path)
     out = OUT_DIR / s["id"]
     out.mkdir(parents=True, exist_ok=True)
@@ -293,23 +354,31 @@ def build(path, keep_work=False, narration=True):
 
     hook_text, end_text = narration_lines(s)
     cache = ROOT / "output" / ".tts_cache"
+    faces = {}
+    # 1. お題（手を振りながら話す）
+    p = img(); slide_hook(s, p)
     if narration:
-        hook = ja_say(hook_text, rate, cache)
-        p = img(); slide_hook(s, p); tl.add(p, [chime, 0.2, hook, GAP_JA_ES])
+        add_talking(tl, p, ja_say(hook_text, rate, cache), [chime, 0.2], [GAP_JA_ES], ("talk", "n"), work, faces)
     else:
-        p = img(); slide_hook(s, p); tl.add(p, [chime, HOOK_SECONDS - bv.wav_seconds(chime)])
+        tl.add(show(p, "normal", faces), [chime, HOOK_SECONDS - bv.wav_seconds(chime)])
+    # 2. 直訳すると…（しょんぼり）
     if s.get("literal"):
         p = img(); slide_literal(s, p)
-        tl.add(p, [speaker.say(s["literal"]["es"], a["voice"]), 2.2])
-    p = img(); slide_answer(s, p, "ふつうの速さ"); tl.add(p, [chime, 0.2, first, GAP])
-    p = img(); slide_answer(s, p, "ゆっくり"); tl.add(p, [speaker.say(a["es"], a["voice"], slow=True), 1.2])
+        tl.add(show(p, "shonbori", faces), [speaker.say(s["literal"]["es"], a["voice"]), 2.2])
+    # 3. 自然な言い方（決め顔）
+    p = img(); slide_answer(s, p, "ふつうの速さ"); tl.add(show(p, "kimegao", faces), [chime, 0.2, first, GAP])
+    p = img(); slide_answer(s, p, "ゆっくり")
+    tl.add(show(p, "kimegao", faces), [speaker.say(a["es"], a["voice"], slow=True), 1.2])
+    # 4. 使ってみよう（通常）
     for i, ln in enumerate(s["example"]):
         p = img(); slide_example(s, p, i)
-        tl.add(p, [speaker.say(ln["es"], ln["voice"]), GAP + (0.6 if i == len(s["example"]) - 1 else 0)])
+        tl.add(show(p, "normal", faces), [speaker.say(ln["es"], ln["voice"]), GAP + (0.6 if i == len(s["example"]) - 1 else 0)])
+    # 5. ひとことメモ（話して、最後はドヤ顔）
+    p = img(); slide_end(s, p)
     if narration and end_text:
-        p = img(); slide_end(s, p); tl.add(p, [chime, 0.4, ja_say(end_text, rate, cache), 1.2])
+        add_talking(tl, p, ja_say(end_text, rate, cache), [chime, 0.4], [1.2], "doya", work, faces)
     else:
-        p = img(); slide_end(s, p); tl.add(p, [chime, END_SECONDS - bv.wav_seconds(chime)])
+        tl.add(show(p, "doya", faces), [chime, END_SECONDS - bv.wav_seconds(chime)])
 
     audio = work / "audio.wav"
     tl.write_audio(audio)
@@ -353,9 +422,10 @@ def main(argv=None):
     ap.add_argument("shorts", nargs="+", help="台本の JSON（content/shorts/ 以下）")
     ap.add_argument("--keep-work", action="store_true", help="途中の画像を output/shorts/<id>/work に残す")
     ap.add_argument("--no-narration", action="store_true", help="日本語ナレーションを付けない")
+    ap.add_argument("--no-character", action="store_true", help="キャラクター（オラポン君）を出さない")
     args = ap.parse_args(argv)
     for p in args.shorts:
-        build(p, keep_work=args.keep_work, narration=not args.no_narration)
+        build(p, keep_work=args.keep_work, narration=not args.no_narration, character=not args.no_character)
 
 
 if __name__ == "__main__":
