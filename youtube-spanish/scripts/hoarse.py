@@ -1,6 +1,6 @@
 """声を「しゃがれ声」にする。
 
-使い方: python3 scripts/hoarse.py <入力.wav> <出力.wav> <強さ 0〜3>
+使い方: python3 scripts/hoarse.py <入力.wav> <出力.wav> <強さ 0〜5>（4・5 は「つぶれた声」）
 
 しゃがれ声を作る3つの処理を重ねる：
 1. 息っぽさ … 声の大きさに合わせて「スー」という息の音（高めの雑音）を足す（無音のところには足さない）
@@ -12,11 +12,13 @@ import wave
 
 import numpy as np
 
-LEVELS = {  # 強さ: (息の量, 揺れの深さ, つぶし具合)
-    0: (0.0, 0.0, 1.0),
-    1: (0.06, 0.10, 1.4),
-    2: (0.11, 0.18, 2.0),
-    3: (0.18, 0.26, 2.8),
+LEVELS = {  # 強さ: (息の量, 揺れの深さ, つぶし具合, 声の帯域をしぼるか)
+    0: (0.0, 0.0, 1.0, False),
+    1: (0.06, 0.10, 1.4, False),
+    2: (0.11, 0.18, 2.0, False),
+    3: (0.18, 0.26, 2.8, False),
+    4: (0.20, 0.32, 5.0, True),   # つぶれた声（叫びすぎたあとのような声）
+    5: (0.26, 0.40, 8.0, True),   # かなりつぶれた声
 }
 
 
@@ -56,7 +58,7 @@ def band_noise(n, rate, lo=1500, hi=6000, seed=0):
 
 
 def hoarse(x, rate, level, seed=0):
-    breath, depth, drive = LEVELS[level]
+    breath, depth, drive, narrow = LEVELS[level]
     if level == 0:
         return x
     env = envelope(x, rate)
@@ -71,6 +73,13 @@ def hoarse(x, rate, level, seed=0):
     y = np.tanh(drive * y) / np.tanh(drive)
     # 息っぽさ（声の大きさに比例。無音には足さない）
     y = y + breath * env / (env.max() + 1e-9) * band_noise(len(x), rate, seed=seed) * np.abs(x).max()
+    if narrow:
+        # のどが詰まったような感じ：低音と高音を削り、中ほど（のどの響き）を少し持ち上げる
+        spec = np.fft.rfft(y)
+        f = np.fft.rfftfreq(len(y), 1 / rate)
+        gain = np.where((f > 250) & (f < 4500), 1.0, 0.25)
+        gain *= 1 + 0.6 * np.exp(-((f - 1200) / 500) ** 2)
+        y = np.fft.irfft(spec * gain, len(y))
     return y / (np.abs(y).max() + 1e-9) * 0.9
 
 
