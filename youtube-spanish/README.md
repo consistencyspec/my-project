@@ -115,7 +115,7 @@ YouTube は、テンプレートと合成音声だけで量産した動画を収
 ショートには、キャラクターのオラポン君が画面の下に登場します（素材は `characters/olapon/`、まだ清書前のラフ）。
 - お題：手を振って、日本語ナレーションに合わせて口パク（声の大きさから口の形を決め、最後は口を閉じる）
 - 直訳すると…：しょんぼり ／ 自然な言い方：決め顔（バラ） ／ 使ってみよう：通常 ／ ひとことメモ：口パクのあとドヤ顔
-- ナレーションはオラポン君の口調（文の終わりはすべて「ポン」）。直訳の失敗には「ポーン…」、正解には「ポン！」とリアクションします
+- ナレーションはオラポン君の口調。「ポン」は1本で4回（オラ〜ポン！／〜と思うポン？／正解の「ポン！」／覚えるポン！）
 - 文字はキャラクターの頭より上に収め、入りきらないときは自動で少し縮めます
 - 出さないときは `--no-character` を付けます。SVG の描画に cairosvg（とその元になる cairo）を使います
 
@@ -133,7 +133,7 @@ python3.12 -m venv .venv-ja
 JA_TTS_PYTHON=.venv-ja/bin/python .venv/bin/python scripts/build_short.py content/shorts/*.json
 ```
 
-声は `JA_VOICE` で変えられます（jf_alpha・jf_gongitsune・jf_nezumi・jf_tebukuro が女性、jm_kumo が男性）。今はオラポン君用に、男性の声を7半音高くしています（`JA_PITCH=7`。元の声は `JA_PITCH=0`）。ナレーションなしで作るときは `--no-narration` を付けます。
+声は `JA_VOICE` で変えられます（jf_alpha・jf_gongitsune・jf_nezumi・jf_tebukuro が女性、jm_kumo が男性）。今はオラポン君用に、女性の声（jf_alpha）を2半音下げ、声の響きも一緒に下げて「高い声のおじさん」にしています（`JA_PITCH=-2`、`JA_FORMANT=shifted`）。ピッチの変更は機械的に聞こえにくい Rubber Band を使います（ffmpeg に rubberband フィルターが必要）。ナレーションなしで作るときは `--no-narration` を付けます。
 
 
 `output/shorts/<id>/` に動画と `description.txt`（タイトル・ハッシュタグ・概要欄）ができます。

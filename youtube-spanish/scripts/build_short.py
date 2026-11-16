@@ -69,12 +69,14 @@ def content_bottom():
     return CHAR_Y - 20 if SHOW_CHARACTER else SAFE_BOTTOM
 
 # 日本語ナレーション（Kokoro, Apache-2.0）。Kokoro を入れた Python を環境変数 JA_TTS_PYTHON で指定する
-JA_VOICE = os.environ.get("JA_VOICE", "jm_kumo")
-# オラポン君の声：男性の声をぐっと高くして、キモ可愛いキャラクターらしくする。0 と 1.0 で元の声のまま
-JA_PITCH = float(os.environ.get("JA_PITCH", "7"))    # 半音（+で高く、-で低く）
+JA_VOICE = os.environ.get("JA_VOICE", "jf_alpha")
+# オラポン君の声：高い声のおじさん。女性の声を少しだけ低くし、声の響き（フォルマント）も一緒に下げて男性っぽくする。
+# 機械的に聞こえないよう、ピッチの変更は Rubber Band（ffmpeg の rubberband フィルター）で行う
+JA_PITCH = float(os.environ.get("JA_PITCH", "-2"))   # 半音（+で高く、-で低く）。0 で元の声のまま
+JA_FORMANT = os.environ.get("JA_FORMANT", "shifted")  # shifted＝響きも一緒に動かす / preserved＝響きはそのまま
 JA_TEMPO = float(os.environ.get("JA_TEMPO", "1.0"))  # 話す速さ
-# キャラ設定のリアクション：不正解は「ポ〜ン…」、正解は「ポン！」
-REACT_WRONG = "ポーン…"
+# キャラ設定のリアクション：正解は「ポン！」（不正解の「ポ〜ン…」は、ポンが多すぎるので使わない。表情だけでしょんぼりする）
+REACT_WRONG = ""
 REACT_RIGHT = "ポン！"
 JA_TTS_PYTHON = os.environ.get("JA_TTS_PYTHON", sys.executable)
 SAY_JA = Path(__file__).resolve().parent / "say_ja.py"
@@ -94,14 +96,14 @@ def ja_say(text, rate, cache_dir, voice=None):
     voice = voice or JA_VOICE
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
-    key = hashlib.sha1(f"kokoro|{voice}|{JA_PITCH}|{JA_TEMPO}|{text}".encode()).hexdigest()[:16]
+    key = hashlib.sha1(f"kokoro|{voice}|rb|{JA_PITCH}|{JA_FORMANT}|{JA_TEMPO}|{text}".encode()).hexdigest()[:16]
     out = cache_dir / f"ja_{key}.wav"
     if not out.exists():
         raw = cache_dir / f"ja_{key}_raw.wav"
         subprocess.run([JA_TTS_PYTHON, str(SAY_JA), voice, str(raw), text], check=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        f = 2 ** (JA_PITCH / 12)
-        voice_fx = f"asetrate=24000*{f:.6f},aresample=24000,atempo={JA_TEMPO / f:.6f},"
+        voice_fx = (f"rubberband=pitch={2 ** (JA_PITCH / 12):.6f}:tempo={JA_TEMPO:.4f}:"
+                    f"formant={JA_FORMANT}:pitchq=quality," if (JA_PITCH or JA_TEMPO != 1.0) else "")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-af", voice_fx + "loudnorm=I=-14:TP=-1.5:LRA=7",
                         "-ac", "1", "-ar", str(rate), "-sample_fmt", "s16", str(out)], check=True)
         raw.unlink(missing_ok=True)
@@ -368,7 +370,7 @@ def build(path, keep_work=False, narration=True, character=True):
     if s.get("literal"):
         p = img(); slide_literal(s, p)
         lit = speaker.say(s["literal"]["es"], a["voice"])
-        if narration:
+        if narration and REACT_WRONG:
             tl.add(show(p, "shonbori", faces), [lit, GAP_JA_ES, ja_say(REACT_WRONG, rate, cache), 1.0])
         else:
             tl.add(show(p, "shonbori", faces), [lit, 2.2])
