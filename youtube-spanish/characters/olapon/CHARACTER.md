@@ -91,3 +91,11 @@
 
 - `body.svg`（下半身）と、上半身（表情）を重ねた全身が `fullbody/`。作り直すときは `python3 characters/make_bodies.py`
 - 表情（とオラポン君の口パク）は、上半身を差し替えるだけで全身でも使える
+
+## ボクシング（トレーニング着）
+![ボクシングのポーズ](boxing/preview.png)
+
+- 仕事はプロボクサーと清掃員、趣味はサッカー（`PERSONA.md`）。ジムの会長はマノロ（`../manolo/CHARACTER.md`）
+- 黄色いタンクトップ（ポンチョと同じしま）、青緑のトランクス、赤いグローブと赤いシューズ。ソンブレロはリングでもかぶったまま
+- `boxing/`：構え・ジャブ・ストレート・ガッツポーズ・ポコッ（`python3 characters/make_boxing.py --preview`）
+- アニメ「ジムでミット打ち」：`python3 anime/gym_training.py` → `output/anime/gym_training.mp4`
