@@ -10,7 +10,8 @@ INK, YELLOW, RED, TEAL, STRAW, CREAM = "#2a1a12", "#f5b700", "#d7263d", "#2a9d8f
 VB = "-40 0 700 420"
 
 
-def wheel(cx, cy, r, hub, flat=False):
+def wheel(cx, cy, r, hub, flat=False, angle=None):
+    """angle を渡すと、ホイールに十字の線を入れて回転が見えるようにする。"""
     if flat:  # パンクしたタイヤ：下がつぶれている
         tire = (f'<path d="M{cx - r} {cy} A{r} {r} 0 0 1 {cx + r} {cy} L{cx + r + 6} {cy + r * 0.62} '
                 f'Q{cx} {cy + r * 0.75} {cx - r - 6} {cy + r * 0.62} Z" fill="{INK}"/>')
@@ -18,15 +19,20 @@ def wheel(cx, cy, r, hub, flat=False):
         tire = f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{INK}"/>'
     return (f'<g stroke="{INK}" stroke-width="6">{tire}'
             f'<circle cx="{cx}" cy="{cy}" r="{r * 0.5}" fill="{hub}"/>'
-            f'<circle cx="{cx}" cy="{cy}" r="{r * 0.15}" fill="{INK}" stroke="none"/></g>')
+            + (f'<g transform="rotate({angle:.1f} {cx} {cy})" stroke-width="5">'
+               f'<path d="M{cx - r * 0.5} {cy} L{cx + r * 0.5} {cy} M{cx} {cy - r * 0.5} L{cx} {cy + r * 0.5}"/></g>'
+               if angle is not None else "")
+            + f'<circle cx="{cx}" cy="{cy}" r="{r * 0.15}" fill="{INK}" stroke="none"/></g>')
 
 
-def car(broken=False):
+def car(broken=False, pushed=False, wheel_turn=None):
+    """pushed=True: 故障して押されている車（顔は×、傾かない、タイヤは回る、けむりや走る線なし）。
+    wheel_turn: タイヤの回転（後ろのタイヤが進んだ距離。前のタイヤは小さいのでその分よく回る）。"""
     s = []
-    tilt = 'transform="rotate(-6 320 330)"' if broken else ""
+    tilt = 'transform="rotate(-6 320 330)"' if broken and not pushed else ""
     s.append(f'<g {tilt}>')
     # 排気ガスのけむり（後ろ）
-    if not broken:
+    if not broken and not pushed:
         for x, y, r in ((44, 300, 18), (20, 280, 24), (2, 252, 30)):
             s.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="#e6e6e6" stroke="{INK}" stroke-width="4"/>')
         s.append(f'<rect x="58" y="300" width="34" height="14" rx="5" fill="#888" stroke="{INK}" stroke-width="4"/>')
@@ -60,7 +66,7 @@ def car(broken=False):
     # トランクをしばったロープ
     s.append(f'<path d="M110 236 Q120 280 104 316 M120 232 Q134 280 120 318" fill="none" stroke="#b5835a" stroke-width="5"/>')
     # 前の顔：ヘッドライトの目と、ヒゲのバンパー
-    if broken:
+    if broken or pushed:
         s.append(f'<g stroke="{INK}" stroke-width="6"><circle cx="536" cy="252" r="22" fill="#fff"/>'
                  f'<path d="M524 240 L548 264 M548 240 L524 264" stroke-width="5"/></g>')
     else:
@@ -78,8 +84,11 @@ def car(broken=False):
              f'<path d="M496 96 Q520 78 530 102 Q512 120 492 100 Z" fill="{RED}" stroke="{INK}" stroke-width="4"/>'
              f'<path d="M496 96 q-6 -8 2 -14" fill="none" stroke="#3f9b57" stroke-width="5"/>')
     # タイヤ（前は小さく、後ろは大きく。ふぞろい）
-    s.append(wheel(176, 320, 52, "#2a9d8f"))
-    s.append(wheel(470, 334, 36, "#d7263d", flat=broken))
+    import math
+    a_back = None if wheel_turn is None else math.degrees(wheel_turn / 52)
+    a_front = None if wheel_turn is None else math.degrees(wheel_turn / 36)
+    s.append(wheel(176, 320, 52, "#2a9d8f", angle=a_back))
+    s.append(wheel(470, 334, 36, "#d7263d", flat=broken and not pushed, angle=a_front))
     # ヒゲのバンパーと、ナンバープレート（タイヤより手前）
     s.append(f'<path d="M520 302 Q548 286 578 300 Q598 312 590 324 Q566 312 548 318 Q528 326 506 318 Q490 310 520 302 Z" '
              f'fill="#3b3536" stroke="{INK}" stroke-width="5"/>')
@@ -87,7 +96,10 @@ def car(broken=False):
              f'<text x="565" y="347" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-size="18" fill="{INK}">OLÉ</text>')
     s.append('</g>')
     # 走っている線 / 故障の湯気
-    if broken:
+    if pushed:
+        for x in (530, 566):
+            s.append(f'<path d="M{x} 220 q-10 -16 0 -32 q10 -16 0 -32" fill="none" stroke="#bbb" stroke-width="7" stroke-linecap="round"/>')
+    elif broken:
         for x in (520, 556, 592):
             s.append(f'<path d="M{x} 210 q-14 -20 0 -40 q14 -20 0 -40" fill="none" stroke="#bbb" stroke-width="8" stroke-linecap="round"/>')
         s.append(f'<path d="M596 46 q9 1 10 -9 M620 46 q-9 1 -10 -9 M596 66 q9 -1 10 9 M620 66 q-9 -1 -10 9" fill="none" stroke="{RED}" stroke-width="6" stroke-linecap="round"/>')

@@ -79,9 +79,23 @@ def head(mouth="normal"):
         "normal": (f'<ellipse cx="210" cy="172" rx="15" ry="11" fill="#e2627a"/>'
                    f'<path d="M198 173 Q211 176 224 171" fill="none" stroke-width="3"/>'
                    f'<ellipse cx="208" cy="166" rx="5" ry="2.2" fill="#fff" stroke="none" opacity=".9"/>'),
+        # がんばる口（くちびるをぎゅっと結ぶ）
+        "strain": (f'<path d="M197 172 Q210 164 223 171 Q211 182 197 172 Z" fill="#e2627a"/>'
+                   f'<path d="M199 172 l5 -2 l5 3 l5 -3 l5 2" fill="none" stroke-width="2.5"/>'),
         "open": (f'<ellipse cx="210" cy="174" rx="14" ry="14" fill="#e2627a"/>'
                  f'<ellipse cx="213" cy="176" rx="7" ry="8" fill="#7a1f2e" stroke="none"/>'),
     }[mouth]
+    if mouth == "strain":
+        # ぎゅっとつぶった目（＞）と、つり上がったまゆ、飛び散る汗
+        eyes = ('<path d="M176 104 L202 114" fill="none" stroke-width="6"/>'
+                '<path d="M182 122 L198 132 L182 142" fill="none" stroke-width="5"/>'
+                '<g fill="#8fd3f4" stroke-width="2.5">'
+                '<path d="M104 96 q-8 10 0 14 q8 -4 0 -14 Z"/><path d="M90 120 q-7 9 0 12 q7 -3 0 -12 Z"/>'
+                '<path d="M214 92 q-7 9 0 12 q7 -3 0 -12 Z"/></g>')
+    else:
+        eyes = ('<path d="M176 108 Q188 102 200 108" fill="none" stroke-width="6"/>'
+                f'<ellipse cx="190" cy="132" rx="10" ry="14" fill="{INK}"/>'
+                '<circle cx="193" cy="126" r="4" fill="#fff" stroke="none"/>')
     return (f'<g {S}>'
             # 後ろ頭の髪（正面の絵の横の髪と同じ色）
             f'<circle cx="150" cy="132" r="70" fill="{SKIN}"/>'
@@ -92,9 +106,7 @@ def head(mouth="normal"):
             f'<ellipse cx="124" cy="138" rx="12" ry="16" fill="{SKIN}"/>'
             f'<path d="M126 130 Q118 138 126 146" fill="none" stroke-width="3"/>'
             # まゆ・目
-            f'<path d="M176 108 Q188 102 200 108" fill="none" stroke-width="6"/>'
-            f'<ellipse cx="190" cy="132" rx="10" ry="14" fill="{INK}"/>'
-            f'<circle cx="193" cy="126" r="4" fill="#fff" stroke="none"/>'
+            f'{eyes}'
             # 鼻（顔の輪郭から少し出る）
             f'<path d="M217 138 Q232 147 219 156" fill="{SKIN}" stroke-width="3.5"/>'
             # ほっぺ・ひげ
