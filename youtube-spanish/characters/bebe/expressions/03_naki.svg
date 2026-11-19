@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="30 28 240 236" width="960" height="944">
+<defs>
+  <g id="base" stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M100 272 Q102 222 150 214 Q198 222 200 272 Z" fill="#fbf6ec"/>
+    <path d="M96 222 Q150 200 204 222 L216 272 Q150 286 84 272 Z" fill="#f5b700"/>
+    <path d="M92 240 Q150 258 208 240" fill="none" stroke="#d7263d" stroke-width="7"/>
+    <path d="M88 258 Q150 276 212 258" fill="none" stroke="#2a9d8f" stroke-width="5"/>
+    <ellipse cx="78" cy="146" rx="11" ry="14" fill="#f6c9a8"/>
+    <ellipse cx="222" cy="146" rx="11" ry="14" fill="#f6c9a8"/>
+    <circle cx="150" cy="142" r="74" fill="#f6c9a8"/>
+    <path d="M150 70 Q132 50 146 38 Q162 30 166 46 Q168 58 154 58 Q146 56 150 50" fill="none" stroke="#2a1a12" stroke-width="7"/>
+    <path d="M128 76 Q138 66 150 70 Q162 66 172 76" fill="none" stroke="#2a1a12" stroke-width="4"/>
+  </g>
+  <g id="cheeks" fill="#f2878a" opacity=".75" stroke="none"><ellipse cx="102" cy="166" rx="17" ry="11"/><ellipse cx="198" cy="166" rx="17" ry="11"/></g>
+</defs>
+<use xlink:href="#base"/><use xlink:href="#cheeks"/>
+<g stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+
+  <path d="M104 112 L132 120 M196 112 L168 120" fill="none" stroke-width="3.5"/>
+  <path d="M106 132 L130 140 L106 148 M194 132 L170 140 L194 148" fill="none" stroke-width="6"/>
+  <path d="M116 150 Q104 176 110 206 M184 150 Q196 176 190 206" fill="none" stroke="#8fd3ff" stroke-width="9"/>
+  <path d="M148 152 Q146 158 152 158" fill="none" stroke-width="2.5"/>
+  <path d="M126 170 Q150 162 174 170 Q174 204 150 206 Q126 204 126 170 Z" fill="#9e2b3a"/>
+  <path d="M136 192 Q150 184 164 192 Q160 203 150 203 Q140 203 136 192 Z" fill="#f2878a" stroke="none"/>
+  <path d="M138 172 L162 172" stroke="#fff" stroke-width="3"/>
+  <path d="M58 110 l-14 -8 M54 130 l-16 0 M58 150 l-14 8 M242 110 l14 -8 M246 130 l16 0 M242 150 l14 8" stroke-width="4"/>
+</g>
+</svg>
