@@ -29,21 +29,31 @@ def fringe(x0, x1, y, n, length, color):
                    for i in range(n))
 
 
-BODIES = {
-    # オラポン君：長いポンチョの下から、短い足とブーツ
-    "olapon": f'''
+# オラポン君の足（左・右）とポンチョ。make_walk.py でも使う
+OLAPON_LEG_L = f'''
   <g {S}>
     <path d="M118 330 L116 392 L142 392 L142 330 Z" fill="#5b6070"/>
-    <path d="M158 330 L158 392 L184 392 L182 330 Z" fill="#5b6070"/>
     <path d="M110 392 Q112 380 128 380 L144 380 L146 404 Q120 410 98 402 Q96 394 110 392 Z" fill="#8b5a2b"/>
+  </g>'''
+OLAPON_LEG_R = f'''
+  <g {S}>
+    <path d="M158 330 L158 392 L184 392 L182 330 Z" fill="#5b6070"/>
     <path d="M156 380 L172 380 Q188 380 190 392 Q204 394 202 402 Q180 410 154 404 Z" fill="#8b5a2b"/>
+  </g>'''
+OLAPON_PONCHO = f'''
+  <g {S}>
     <path d="M74.2 252 L225.8 252 L230.8 264 L244 334 Q150 352 56 334 L69.2 264 Z" fill="#f5b700" stroke="none"/>
     <path d="M74.2 252 L69.2 264 L56 334 Q150 352 244 334 L230.8 264 L225.8 252" fill="none"/>
     <path d="M64 300 Q150 318 236 300" fill="none" stroke="#d7263d" stroke-width="7"/>
     <path d="M60 318 Q150 336 240 318" fill="none" stroke="#2a9d8f" stroke-width="5"/>
   </g>
   {fringe(62, 238, 340, 16, 12, "#d7263d")}
-''',
+'''
+
+
+BODIES = {
+    # オラポン君：長いポンチョの下から、短い足とブーツ（足とポンチョは歩くアニメでも使うので別に定義）
+    "olapon": OLAPON_LEG_L + OLAPON_LEG_R + OLAPON_PONCHO,
     # ドローレス：ぽっちゃりの胴から、何段もの飾りのフラメンコスカート、赤いヒール、腰に手
     "dolores": f'''
   <g {S}>
