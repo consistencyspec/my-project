@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="30 28 240 416" width="960" height="1664">
+
+  <g stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M236 226 Q268 250 262 276 Q258 296 232 300" fill="none" stroke-width="16"/>
+    <path d="M236 226 Q268 250 262 276 Q258 296 232 300" fill="none" stroke="#f6c9a8" stroke-width="9"/>
+    <circle cx="230" cy="300" r="11" fill="#f6c9a8"/>
+    <path d="M120 430 L116 440 L140 440 L142 430 Z M160 430 L158 440 L184 440 L180 430 Z" fill="#d7263d"/>
+    <path d="M62.5 250 L237.5 250 L237.5 264 Q250 300 236 318 Q150 330 64 318 Q50 300 62.5 264 Z" fill="#d7263d" stroke="none"/>
+    <path d="M62.5 264 Q50 300 64 318 Q150 330 236 318 Q250 300 237.5 264" fill="none"/>
+    <path d="M64 316 Q150 330 236 316 L254 364 Q150 380 46 364 Z" fill="#d7263d"/>
+    <path d="M46 364 Q150 380 254 364 L268 404 Q150 422 32 404 Z" fill="#d7263d"/>
+    <path d="M32 404 Q150 422 268 404 L272 424 Q150 444 28 424 Z" fill="#d7263d"/>
+  </g>
+  <g fill="none" stroke="#2a1a12" stroke-width="5">
+    <path d="M46 364 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q8 6 8 0"/>
+    <path d="M32 404 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q6 5 6 0"/>
+    <path d="M28 424 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q10 8 20 0 q4 4 4 0"/>
+  </g>
+  <g fill="#fff" stroke="none">
+    <circle cx="88" cy="262" r="6"/><circle cx="98" cy="262" r="6"/><circle cx="202" cy="262" r="6"/><circle cx="150" cy="264" r="6"/>
+    <circle cx="128" cy="272" r="6"/><circle cx="172" cy="272" r="6"/><circle cx="212" cy="236" r="6"/><circle cx="88" cy="236" r="6"/>
+    <circle cx="96" cy="292" r="6"/><circle cx="150" cy="298" r="6"/><circle cx="204" cy="292" r="6"/>
+    <circle cx="80" cy="344" r="6"/><circle cx="120" cy="350" r="6"/><circle cx="180" cy="350" r="6"/><circle cx="220" cy="344" r="6"/>
+    <circle cx="66" cy="388" r="6"/><circle cx="110" cy="394" r="6"/><circle cx="150" cy="396" r="6"/><circle cx="190" cy="394" r="6"/><circle cx="234" cy="388" r="6"/>
+  </g>
+</svg>
