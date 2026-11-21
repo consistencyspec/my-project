@@ -196,7 +196,8 @@ def study_card(path, year, country, kind, title_lines, facts, picto, before, aft
     # 見出し
     y = 280
     for parts in title_lines:
-        mixed_line(d, 140, y, parts, 92)
+        wid = sum(d.textlength(t, font=font(92)) for t, _ in parts)
+        mixed_line(d, 140, y, parts, int(min(92, 92 * 940 / wid)))
         y += 122
     # ピクトグラム
     picto(d)
@@ -206,7 +207,8 @@ def study_card(path, year, country, kind, title_lines, facts, picto, before, aft
     x = 140
     for label, value in facts:
         text(d, (x, y0), label, 28, SUB, heavy=False)
-        text(d, (x, y0 + 36), value, 48, INK)
+        vs = int(min(48, 48 * 290 / d.textlength(value, font=font(48))))
+        text(d, (x, y0 + 36 + (48 - vs) // 2), value, vs, INK)
         x += 320
     text(d, (140, 1020), source, 24, (170, 176, 192), heavy=False)
     # 右：議席
