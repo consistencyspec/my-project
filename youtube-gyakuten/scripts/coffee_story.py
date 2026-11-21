@@ -1,0 +1,563 @@
+"""コーヒー10年戦争 物語版：主な研究を「なぜ調べた→どうやって→クイズ→結果」の物語にして、長くつなげる。
+
+  python3 scripts/coffee_story.py          -> output/coffee_story/coffee_story_draft.mp4
+  python3 scripts/coffee_story.py --script -> content/coffee_war_story.md(台本)だけ作り直す
+
+場面の長さは、ナレーションの文字数(1秒あたり SPEED 字)から決める。ナレーションはまだ録音していない。
+"""
+import os
+import shutil
+import subprocess
+import sys
+
+from PIL import Image, ImageDraw
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from frames import BAD, GOOD, INK, LW, PANEL, SUB, TRIM, W, H, WHITE, arrow, bean, font, heart, line, meter, mug, panel, stage, text  # noqa: E402
+from motion import Card, blank, out_back, out_cubic, parliament_frame, seg, with_alpha  # noqa: E402
+import coffee_war as cw  # noqa: E402
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "..", "output", "coffee_story")
+SCRIPT_MD = os.path.join(HERE, "..", "content", "coffee_war_story.md")
+FPS = 30
+SPEED = 5.2       # ナレーションの速さ(字/秒)≒ 1分312字
+CREAM = cw.CREAM
+FADED = (205, 208, 216)
+
+
+# ---------- 追加のピクトグラム ----------
+def hospital(d, cx, cy, s):
+    d.rounded_rectangle([cx - s * 0.5, cy - s * 0.4, cx + s * 0.5, cy + s * 0.5], radius=14, fill=WHITE, outline=INK, width=LW)
+    d.rounded_rectangle([cx - s * 0.08, cy - s * 0.28, cx + s * 0.08, cy + s * 0.08], radius=4, fill=(220, 70, 70))
+    d.rounded_rectangle([cx - s * 0.2, cy - s * 0.16, cx + s * 0.2, cy - s * 0.04], radius=4, fill=(220, 70, 70))
+    d.rounded_rectangle([cx - s * 0.12, cy + s * 0.22, cx + s * 0.12, cy + s * 0.5], radius=6, fill=CREAM, outline=INK, width=6)
+
+
+def cigarette(d, cx, cy, s):
+    d.rounded_rectangle([cx - s * 0.5, cy - s * 0.07, cx + s * 0.3, cy + s * 0.07], radius=8, fill=WHITE, outline=INK, width=6)
+    d.rounded_rectangle([cx + s * 0.3, cy - s * 0.07, cx + s * 0.5, cy + s * 0.07], radius=8, fill=(240, 150, 60), outline=INK, width=6)
+    for i in range(2):
+        x = cx + s * 0.42 + i * 22
+        line(d, [(x, cy - s * 0.12), (x + 10, cy - s * 0.22), (x, cy - s * 0.32), (x + 10, cy - s * 0.42)], SUB, 6)
+
+
+def magnifier(d, cx, cy, r):
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(230, 240, 255), outline=INK, width=LW + 2)
+    line(d, [(cx + r * 0.7, cy + r * 0.7), (cx + r * 1.5, cy + r * 1.5)], INK, LW + 8)
+
+
+def dna(d, cx, cy, h):
+    import math
+    pts1, pts2 = [], []
+    for i in range(41):
+        t = i / 40
+        y = cy - h / 2 + t * h
+        x = math.sin(t * math.pi * 3) * h * 0.18
+        pts1.append((cx + x, y))
+        pts2.append((cx - x, y))
+    for i in range(0, 41, 4):
+        d.line([pts1[i], pts2[i]], fill=SUB, width=5)
+    d.line(pts1, fill=GOOD, width=LW, joint="curve")
+    d.line(pts2, fill=BAD, width=LW, joint="curve")
+
+
+def phone(d, cx, cy, h, msg, color=GOOD):
+    w = h * 0.52
+    d.rounded_rectangle([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], radius=w * 0.18, fill=WHITE, outline=INK, width=LW)
+    bw = w * 0.82
+    d.rounded_rectangle([cx - bw / 2, cy - h * 0.18, cx + bw / 2, cy + h * 0.1], radius=18, fill=color)
+    text(d, (cx, cy - h * 0.04), msg, int(h * 0.085), WHITE, anchor="mm")
+
+
+def watch(d, cx, cy, s):
+    d.rounded_rectangle([cx - s * 0.18, cy - s * 0.6, cx + s * 0.18, cy + s * 0.6], radius=12, fill=SUB)
+    d.rounded_rectangle([cx - s * 0.32, cy - s * 0.32, cx + s * 0.32, cy + s * 0.32], radius=20, fill=WHITE, outline=INK, width=LW)
+    text(d, (cx, cy), "歩数", int(s * 0.16), INK, anchor="mm")
+
+
+def patch(d, cx, cy, s):
+    d.rounded_rectangle([cx - s * 0.5, cy - s * 0.22, cx + s * 0.5, cy + s * 0.22], radius=s * 0.2, fill=CREAM, outline=INK, width=LW)
+    cw.ecg(d, cx - s * 0.4, cy, s * 0.8)
+
+
+def sensor(d, cx, cy, r):
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=WHITE, outline=INK, width=LW)
+    d.ellipse([cx - r * 0.45, cy - r * 0.45, cx + r * 0.45, cy + r * 0.45], fill=(220, 70, 70))
+    text(d, (cx, cy + r + 14), "血糖値", 28, INK, heavy=False, anchor="ma")
+
+
+def chip(d, cx, cy, s, color, size=46):
+    tw = d.textlength(s, font=font(size)) + size * 1.2
+    d.rounded_rectangle([cx - tw / 2, cy - size * 0.85, cx + tw / 2, cy + size * 0.85], radius=size * 0.85, fill=color)
+    text(d, (cx, cy), s, size, WHITE, anchor="mm")
+
+
+def words(d, cx, cy, s, size=56, color=INK):
+    text(d, (cx, cy), s, size, color, anchor="mm")
+
+
+def flag_jp(d, cx, cy, s):
+    d.rounded_rectangle([cx - s * 0.6, cy - s * 0.4, cx + s * 0.6, cy + s * 0.4], radius=10, fill=WHITE, outline=INK, width=6)
+    d.ellipse([cx - s * 0.22, cy - s * 0.22, cx + s * 0.22, cy + s * 0.22], fill=(220, 50, 50))
+
+
+def year_tag(d, cx, cy, y, color=INK):
+    chip(d, cx, cy, y, color, 44)
+
+
+# 要素は (描く関数) のリスト。順番にポンと出る。
+E = lambda f: f  # noqa: E731
+
+
+# ---------- 場面 ----------
+# 種類：
+#   ("story", 話数, 見出し, テロップ, [要素], ナレーション)
+#   ("quiz", 話数, 問題, A, B, 正解(0/1), ナレーション)  → 問題の場面と、答えの場面の2つになる
+#   ("card", 研究番号(1〜16), ナレーション)  → 研究カード
+#   ("seats", 研究番号, ナレーション)        → 全画面の開票速報
+#   ("headlines", ナレーション) / ("title", ナレーション) / ("rules", ナレーション) / ("final", ナレーション)
+SCENES = [
+    ("headlines", "朝の一杯のコーヒー。至福の時間ですよね。でもニュースを見るたびに、こう言われてきませんでしたか？「コーヒーで長生き！」「いや、発がん性があるかも」「1日3杯が最強！」「6杯で心臓に負担」……結局どっちなの？"),
+    ("title", "今日はこの戦いに決着をつけます。題して、コーヒー10年戦争。研究が出るたびに「いい派」と「悪い派」の議席がひっくり返った、波乱の歴史をたどります。"),
+    ("final", "先に結果を言ってしまうと、いまの議席はいい派76、悪い派24。いい派の圧勝です。ところが、選挙特番でおなじみの「当選確実」は、まだ出せません。その理由は、この戦いの歴史を見ると分かります。"),
+    ("rules", "ルールはシンプル。研究や発表が出るたびに、勝った側に議席が移ります。WHOや国、裁判所の判断は15議席。たくさんの研究をまとめたものは10議席。数十万人の調査は6議席。条件つきの結果は3議席です。"),
+    ("seats0", "スタートは50対50。それでは、30年以上前から始まった戦いの、第1話です。"),
+
+    # 第1話 1991
+    ("story", 1, "はじまり", "1981年 ハーバード大「膵臓がんの人はコーヒーをよく飲んでいた」",
+     [E(lambda d: year_tag(d, 420, 360, "1981年")), E(lambda d: hospital(d, 420, 600, 260)),
+      E(lambda d: arrow(d, 640, 760, 600)), E(lambda d: mug(d, 840, 500, 190, fill=CREAM)),
+      E(lambda d: words(d, 1340, 520, "膵臓がんと", 64)), E(lambda d: words(d, 1340, 620, "関係あり？", 80, BAD))],
+     "物語は1981年、アメリカのハーバード大学から始まります。膵臓がんの患者さんは、コーヒーをよく飲んでいた、という研究が発表され、世界中で大ニュースになりました。"),
+    ("story", 1, "どうやって？", "病院の患者さんに「どれくらい飲んでいましたか？」と聞いて比べた",
+     [E(lambda d: cw.crowd(d, 230, 400, 3, 2, 120, fill=BAD)), E(lambda d: words(d, 380, 700, "がんの患者さん 369人", 40)),
+      E(lambda d: words(d, 960, 520, "vs", 90, TRIM)),
+      E(lambda d: cw.crowd(d, 1330, 400, 3, 2, 120, fill=FADED)), E(lambda d: words(d, 1480, 700, "ほかの患者さん 644人", 40))],
+     "調べ方は、病院でがんの患者さん369人と、ほかの病気で入院している患者さん644人に、どれくらいコーヒーを飲んでいたかを聞いて、比べるというものでした。"),
+    ("story", 1, "その後", "1986年 同じチームが調べ直すと、関係は見つからなかった",
+     [E(lambda d: year_tag(d, 480, 360, "1986年")), E(lambda d: magnifier(d, 480, 590, 120)),
+      E(lambda d: words(d, 1200, 540, "関係は", 70)), E(lambda d: words(d, 1200, 650, "見つからず", 90, GOOD))],
+     "ところが1986年、同じハーバードのチームが調べ直すと、関係ははっきりしませんでした。自分たちの発見を、自分たちで疑うことになったんです。"),
+    ("story", 1, "それでも", "1991年 WHOの機関は「発がん性があるかもしれない」に分類",
+     [E(lambda d: year_tag(d, 480, 360, "1991年")), E(lambda d: mug(d, 380, 470, 200, fill=CREAM)),
+      E(lambda d: cw.warn(d, 1000, 580, 260)), E(lambda d: words(d, 1420, 520, "グループ2B", 70, BAD)),
+      E(lambda d: words(d, 1420, 630, "可能性がある", 54))],
+     "それでも1991年、WHOの国際がん研究機関は、膀胱がんとの関係を示した研究などをもとに、コーヒーを「発がん性があるかもしれないもの」に分類します。この「疑い」のレッテルは、このあと25年も残ることになります。"),
+    ("card", 1, "悪い派、いきなり15議席の大勝です。"),
+    ("seats", 1, "悪い派65、いい派35。いい派は苦しいスタートです。"),
+
+    # 2015 日本(短く)
+    ("card", 2, "そこに日本から援軍が。2015年、日本人約9万人を追いかけた研究で、コーヒーをよく飲む人ほど死亡リスクが低いと報告されます。いい派、41議席まで回復。"),
+
+    # 第2話 2016
+    ("story", 2, "25年目の見直し", "2016年 WHOの機関が1,000以上の研究を見直した",
+     [E(lambda d: year_tag(d, 480, 360, "2016年")), E(lambda d: cw.papers(d, 360, 480, 230, 5)),
+      E(lambda d: magnifier(d, 760, 600, 100)), E(lambda d: words(d, 1330, 560, "1,000以上の研究", 72))],
+     "そして2016年。WHOの機関は、25年ぶりにコーヒーを見直します。集めた研究は1,000以上。あの「疑い」は本物だったのでしょうか。"),
+    ("quiz", 2, "1991年の「疑い」の正体は？", "コーヒーの成分", "タバコ", 1,
+     "ここでクイズです。1991年の「疑い」の正体は、何だったと思いますか？コーヒーの成分？それとも、タバコ？",
+     "正解はタバコ。昔は、コーヒーをよく飲む人ほど、タバコもよく吸っていました。タバコの影響をきちんと差し引いていない研究が多かったんです。実際、タバコを吸う人が少なかった女性では、関係はほとんど見られませんでした。"),
+    ("story", 2, "新しい火種", "ただし「65℃を超える熱すぎる飲み物」は「おそらく発がん性がある」に",
+     [E(lambda d: cw.thermo(d, 480, 380, 380)), E(lambda d: words(d, 640, 560, "65℃超", 90, BAD)),
+      E(lambda d: words(d, 1320, 500, "南米のマテ茶", 54)), E(lambda d: words(d, 1320, 600, "イラン・中国などの研究", 54)),
+      E(lambda d: words(d, 1320, 720, "→ 食道がん", 64, BAD))],
+     "ただし、このとき新しい火種も生まれました。南米のマテ茶や、イランや中国などの研究から、65℃を超える熱すぎる飲み物は、食道がんの「おそらく原因」と判断されたんです。問題はコーヒーではなく、温度でした。"),
+    ("card", 3, "差し引きで、いい派は12議席を取り戻します。"),
+    ("seats", 3, "いい派53、悪い派47。いい派、ついに過半数。逆転です！"),
+
+    # 第3話 2017 EPIC
+    ("story", 3, "なぜ調べた？", "それまでの研究はアメリカが中心。飲み方の違う国でも同じ？",
+     [E(lambda d: words(d, 520, 420, "エスプレッソ", 60)), E(lambda d: mug(d, 440, 500, 150, fill=(120, 80, 50))),
+      E(lambda d: words(d, 1000, 420, "ドリップ", 60)), E(lambda d: cw.dripper(d, 1000, 500, 200)),
+      E(lambda d: words(d, 1450, 420, "煮出し", 60)), E(lambda d: cw.pot(d, 1450, 520, 200))],
+     "2017年。ヨーロッパの研究チームは、こんな疑問を持ちました。それまでの研究は、アメリカのデータが中心。イタリアのエスプレッソ、北欧のドリップ。飲み方が違う国でも、同じ結果になるのだろうか？"),
+    ("story", 3, "どうやって？", "ヨーロッパ10か国・52万人を、16年あまり追いかけた",
+     [E(lambda d: cw.flags(d, 300, 420, 10, 110)), E(lambda d: arrow(d, 1010, 1120, 560)),
+      E(lambda d: words(d, 1420, 500, "52万人", 100, GOOD)), E(lambda d: words(d, 1420, 630, "16年あまり", 60))],
+     "調べたのは、デンマークからイタリアまで、ヨーロッパ10か国の約52万人。16年あまり、その後の健康を追いかけました。"),
+    ("quiz", 3, "国によって、結果は変わった？", "変わった", "変わらなかった", 1,
+     "クイズです。飲み方も文化も違う10か国。国によって、結果は変わったでしょうか？",
+     "答えは「変わらなかった」。どの国でも、よく飲む人ほど死亡リスクが低かったんです。さらに約1万4千人の血液を調べると、よく飲む人ほど肝臓の数値が良い傾向も見つかりました。"),
+    ("card", 4, "いい派、59議席。"),
+    ("card", 5, "同じ年、イギリスの研究チームが200以上の研究をまとめ、1日3〜4杯がいちばん好結果、と発表。ただし妊娠中だけは悪い結果でした。いい派、66議席。"),
+
+    # 第4話 カリフォルニアの裁判
+    ("story", 4, "訴えた", "2010年 小さな市民団体が、コーヒー会社など約90社を訴えた",
+     [E(lambda d: year_tag(d, 480, 360, "2010年")), E(lambda d: bean(d, 420, 460, 230, fill=BAD)),
+      E(lambda d: words(d, 760, 580, "→", 90)), E(lambda d: cw.crowd(d, 980, 440, 5, 2, 120, fill=FADED)),
+      E(lambda d: words(d, 1250, 760, "約90社", 60, BAD))],
+     "ここで悪い派が、思わぬところから反撃します。舞台はアメリカ、カリフォルニア州。2010年、小さな市民団体が、有名なコーヒーチェーンなど約90社を訴えたんです。"),
+    ("story", 4, "理由は？", "焙煎でできる「アクリルアミド」。ポテトチップスやトーストにも含まれる",
+     [E(lambda d: mug(d, 400, 470, 190, fill=(120, 80, 50))), E(lambda d: words(d, 960, 520, "アクリルアミド", 80, BAD)),
+      E(lambda d: words(d, 960, 640, "焙煎・揚げる・焼くとできる", 48)),
+      E(lambda d: cw.label(d, 1350, 470, 300, 120, "警告表示"))],
+     "理由は、アクリルアミド。コーヒー豆を焙煎するときにできる物質で、ポテトチップスやトーストにも含まれています。カリフォルニア州の法律では、がんの原因になりうる物質を含む商品には、警告表示が必要なんです。"),
+    ("story", 4, "8年後", "2018年 裁判所「会社側は、危険が小さいことを証明できなかった」",
+     [E(lambda d: year_tag(d, 480, 360, "2018年")), E(lambda d: cw.gavel(d, 480, 600, 280)),
+      E(lambda d: words(d, 1250, 540, "危険が小さいと", 64)), E(lambda d: words(d, 1250, 650, "証明できず", 90, BAD))],
+     "裁判は8年続き、2018年、裁判所はこう判断します。「会社側は、危険が小さいことを証明できなかった」。コーヒーに、がんの警告表示が必要だというのです。"),
+    ("card", 6, "悪い派、一気に15議席。"),
+    ("seats", 6, "いい派51、悪い派49。一気に大接戦です。"),
+
+    # 2018.7 英国(短く)
+    ("card", 7, "同じ2018年、イギリスで50万人を調べた研究が出ます。1日8杯以上飲む人でも、死亡リスクは低かった。カフェインを分解するのが遅い体質の人でも、同じでした。いい派、57議席。"),
+
+    # 第5話 2019 南オーストラリア大
+    ("story", 5, "なぜ調べた？", "「8杯でも大丈夫」は本当？ 上限はないの？",
+     [E(lambda d: [mug(d, 300 + (i % 4) * 130, 420 + (i // 4) * 150, 100, steam=False, w=7, fill=CREAM) for i in range(8)]),
+      E(lambda d: words(d, 1150, 520, "8杯でも", 72)), E(lambda d: words(d, 1150, 640, "本当に大丈夫？", 80, BAD))],
+     "でも、本当に「8杯でも大丈夫」なのでしょうか。そう考えたのが、オーストラリアの南オーストラリア大学のチームです。"),
+    ("story", 5, "どうやって？", "カフェインを分解する速さに関わる遺伝子に注目",
+     [E(lambda d: dna(d, 480, 590, 380)), E(lambda d: words(d, 1200, 500, "分解が速い遺伝子", 64)),
+      E(lambda d: words(d, 1200, 620, "なら平気？", 90, GOOD))],
+     "使ったのは、同じイギリスのデータ約35万人。注目したのは、カフェインを分解する速さに関わる遺伝子です。分解が速い人なら、たくさん飲んでも心臓は平気なのでは、と考えたんです。"),
+    ("quiz", 5, "分解が速い人は、6杯以上でも平気だった？", "平気だった", "平気じゃなかった", 1,
+     "クイズです。カフェインの分解が速い遺伝子の人は、1日6杯以上飲んでも、心臓は平気だったでしょうか？",
+     "答えは「平気じゃなかった」。遺伝子に関係なく、1日6杯以上の人は、1〜2杯の人より心臓病のリスクが最大22%高かったんです。チームは、6杯をひとつの上限の目安にしました。"),
+    ("card", 8, "悪い派、6議席を取り返します。"),
+    ("seats8", 8, "いい派51、悪い派49。またも大接戦です。"),
+
+    # 第4話の続き
+    ("story", 4, "裁判の続き", "2019年 州の当局「コーヒーのアクリルアミドで、がんの危険は大きくない」",
+     [E(lambda d: year_tag(d, 480, 360, "2019年")), E(lambda d: cw.label(d, 300, 470, 340, 140, "がん警告")),
+      E(lambda d: line(d, [(290, 640), (650, 450)], BAD, LW + 8)), E(lambda d: words(d, 1250, 540, "警告は", 80)),
+      E(lambda d: words(d, 1250, 660, "不要", 110, GOOD))],
+     "あの裁判には、続きがあります。2019年、カリフォルニア州の当局が、たくさんの研究を見直して「コーヒーに含まれるアクリルアミドで、がんの危険は大きくない」と結論。コーヒーに警告は不要、という決まりを作ったんです。"),
+    ("card", 9, "いい派、15議席の大逆転。"),
+    ("seats", 9, "いい派66、悪い派34。一気に差が開きました。"),
+
+    # 第6話 ノルウェー
+    ("story", 6, "37年前", "1983年 ノルウェーの町で「たくさん飲む人ほどコレステロールが高い」",
+     [E(lambda d: year_tag(d, 480, 360, "1983年")), E(lambda d: cw.crowd(d, 300, 430, 4, 2, 120)),
+      E(lambda d: words(d, 1250, 520, "コレステロールが", 64)), E(lambda d: words(d, 1250, 640, "高い", 110, BAD))],
+     "次の舞台は北欧、ノルウェー。話は1983年にさかのぼります。北の町トロムソで約1万4千人を調べたテレ博士たちが、「コーヒーをたくさん飲む人ほど、コレステロールが高い」と発表しました。"),
+    ("story", 6, "なぜ？", "この町では、鍋で煮出して濾さずに飲むのが普通だった",
+     [E(lambda d: cw.pot(d, 480, 470, 280)), E(lambda d: words(d, 480, 800, "煮出し", 54, BAD)),
+      E(lambda d: words(d, 960, 600, "vs", 90, TRIM)),
+      E(lambda d: cw.dripper(d, 1440, 450, 260)), E(lambda d: words(d, 1440, 800, "ペーパーで濾す", 54, GOOD))],
+     "実はこの町では、フィルターを使わず、鍋で煮出して飲むのが普通でした。その後の実験で、煮出したコーヒーに戻すとコレステロールが上がり、ペーパーで濾したコーヒーでは上がらないことが分かってきます。"),
+    ("quiz", 6, "濾したコーヒーを飲む人の死亡リスクは？", "飲まない人より高い", "飲まない人より低い", 1,
+     "そして37年後の2020年。50万人を調べた研究が出ます。クイズです。ペーパーで濾したコーヒーを飲む人の死亡リスクは、飲まない人と比べて、高かった？低かった？",
+     "答えは「低かった」。一方、煮出したコーヒーは、60歳以上の男性で心臓病による死亡がやや高めでした。この研究チームには、37年前のあのテレ博士の名前もありました。"),
+    ("card", 10, "差し引きで、いい派が3議席。69議席です。"),
+
+    # 2021・2022.5(短く)
+    ("card", 11, "2021年には、オーストラリアのチームが再び登場。1日6杯以上の人は、認知症の可能性が53%高いと発表します。悪い派、37議席まで回復。"),
+    ("card", 12, "すると2022年、中国の研究チームがイギリスのデータで調べると、砂糖入りのコーヒーでも、1日1.5〜3.5杯なら死亡リスクが約3割低い。甘党にはうれしいニュースです。"),
+
+    # 第7話 日本 JACC
+    ("story", 7, "なぜ調べた？", "ここまでは「全体の平均」。血圧が高い人はどうなの？",
+     [E(lambda d: flag_jp(d, 480, 420, 160)), E(lambda d: meter(d, 480, 700, 150, needle=0.88)),
+      E(lambda d: words(d, 1250, 540, "血圧が高い人も", 64)), E(lambda d: words(d, 1250, 660, "大丈夫？", 100, BAD))],
+     "ここまでの研究は、いわば「全体の平均」。では、持病がある人はどうなのか。2022年の年末、日本の研究チームが、血圧に注目した結果を発表します。"),
+    ("story", 7, "どうやって？", "日本の約1万9千人を、血圧の高さでグループに分けて追いかけた",
+     [E(lambda d: cw.crowd(d, 300, 420, 4, 2, 120)), E(lambda d: words(d, 1250, 500, "約1万9千人", 90)),
+      E(lambda d: words(d, 1250, 630, "40〜79歳", 60))],
+     "調べたのは、40歳から79歳の日本人、約1万9千人。血圧の高さでグループに分けて、その後を追いかけました。"),
+    ("quiz", 7, "血圧がかなり高い人が1日2杯以上飲むと？", "変わらない", "死亡リスク約2倍", 1,
+     "クイズです。血圧がかなり高い人が、コーヒーを1日2杯以上飲むと、心臓病などで亡くなるリスクはどうなったでしょう？",
+     "答えは「約2倍」。ところが、同じ人たちでも、緑茶では高くならなかったんです。血圧が高めの方は、ちょっと気にしておきたい結果ですね。"),
+    ("card", 13, "悪い派、3議席を取り返します。"),
+
+    # 第8話 2023 くじ引き実験
+    ("story", 8, "弱点", "それまでの研究は「飲む人」と「飲まない人」を比べただけ",
+     [E(lambda d: bean(d, 520, 420, 280, fill=GOOD)), E(lambda d: mug(d, 680, 500, 120, fill=CREAM)),
+      E(lambda d: words(d, 960, 560, "vs", 90, TRIM)), E(lambda d: bean(d, 1400, 420, 280, fill=FADED)),
+      E(lambda d: words(d, 960, 780, "もともと健康な人が飲んでいるだけかも？", 50, BAD))],
+     "ここで、それまでの研究の弱点を考えてみましょう。どれも、飲む人と飲まない人を比べただけ。もしかすると、もともと健康な人が、コーヒーを飲んでいるだけかもしれません。"),
+    ("story", 8, "どうやって？", "100人が14日間、スマホの指示で「飲む日」「飲まない日」を決めた",
+     [E(lambda d: phone(d, 360, 590, 380, "今日は飲む", GOOD)), E(lambda d: phone(d, 640, 590, 380, "今日は飲まない", BAD)),
+      E(lambda d: patch(d, 1050, 480, 220)), E(lambda d: watch(d, 1380, 560, 220)), E(lambda d: sensor(d, 1640, 520, 70)),
+      E(lambda d: words(d, 1300, 760, "心電図・歩数・血糖値を記録", 46))],
+     "そこで2023年、アメリカのチームが実験をします。健康な100人に、心電図のパッチ、歩数を測る腕時計、血糖値のセンサーをつけてもらい、14日間、毎日スマホに「今日は飲む」「今日は飲まない」と、くじで決めた指示を送ったんです。"),
+    ("quiz", 8, "飲む日、歩数はどうなった？", "増えた", "減った", 0,
+     "クイズです。コーヒーを飲む日、歩数は増えた？減った？",
+     "答えは「増えた」。飲む日は、1日約1,000歩多く歩いていました。でも、心臓の脈が乱れる回数は約1.5倍。睡眠は約36分短くなっていました。血糖値には差がありませんでした。"),
+    ("card", 14, "2対1で、悪い派が3議席。"),
+
+    # 2025(短く)
+    ("card", 15, "2025年。アメリカの研究で、朝だけ飲む人は死亡リスクが16%低い一方、一日中飲む人は飲まない人と差がない、という結果が出ます。"),
+    ("card", 16, "さらに2025年までの研究のまとめで、1日3〜5杯で、死亡や主な病気のリスクが低いと報告されました。"),
+
+    ("final", "最終結果、いい派76議席。それでも当選確実が出せないのは、ほとんどが飲む人と飲まない人を比べただけの研究だからです。くじ引きの実験で歩数が増えていたように、コーヒーを飲む人がもともと活動的なだけ、という可能性も残っています。"),
+    ("summary", "今日のまとめです。1日3〜4杯くらいまでなら、体にいいという研究が多い。飲むなら朝に、濾したコーヒーを、熱すぎない温度で。そして、妊娠中の方と、血圧がかなり高い方は控えめに。心配な方は、お医者さんに相談してくださいね。30年戦っても、まだ決着がつかないコーヒー論争。次の研究で、また議席がひっくり返るかもしれません。"),
+    ("next", "次回の逆転論争は「卵は1日1個まで」。チャンネル登録して、待っていてください！"),
+]
+
+STEP_COLORS = {"どうやって？": BAD, "なぜ調べた？": INK}
+
+
+# ---------- 描画 ----------
+def dur(narr):
+    return max(3.0, len(narr) / SPEED + 0.8)
+
+
+def element_layers(elements):
+    out = []
+    for f in elements:
+        lay = blank()
+        f(ImageDraw.Draw(lay))
+        box = lay.getbbox()
+        if box:
+            out.append((lay.crop(box), box))
+    return out
+
+
+def pop_in(im, layers, t, start=0.5, step=0.28, length=0.45, dy=70):
+    for i, (img, box) in enumerate(layers):
+        k = seg(t, start + i * step, start + i * step + length)
+        if k <= 0:
+            continue
+        sc = 0.55 + 0.45 * out_back(k)
+        w, h = img.size
+        r = img.resize((max(1, int(w * sc)), max(1, int(h * sc))), Image.BICUBIC)
+        cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
+        im.alpha_composite(with_alpha(r, min(1.0, k * 2)), (cx - r.size[0] // 2, cy + dy - r.size[1] // 2))
+
+
+def story_base(chapter, step, slide):
+    base = stage()[0].convert("RGBA")
+    lay = blank()
+    d = ImageDraw.Draw(lay)
+    panel(d, (90, 130, 1830, 1000))
+    chip(d, 230, 205, f"第{chapter}話", INK, 40)
+    tw = d.textlength(step, font=font(40)) + 48
+    d.rounded_rectangle([330, 205 - 34, 330 + tw, 205 + 34], radius=34, fill=STEP_COLORS.get(step, GOOD))
+    text(d, (330 + tw / 2, 205), step, 40, WHITE, anchor="mm")
+    return base, lay
+
+
+def telop(d, s):
+    size = int(min(52, 52 * 1600 / max(1, d.textlength(s, font=font(52)))))
+    d.line([(140, 870), (1780, 870)], fill=(222, 218, 210), width=3)
+    text(d, (960, 930), s, size, INK, anchor="mm")
+
+
+def story_frames(chapter, step, tl, elements, first):
+    base, lay = story_base(chapter, step, first)
+    layers = element_layers(elements)
+    tlay = blank()
+    telop(ImageDraw.Draw(tlay), tl)
+
+    def frame(t):
+        im = base.copy()
+        k = out_cubic(seg(t, 0.0, 0.45)) if first else 1.0
+        im.alpha_composite(lay, (int((1 - k) * -1900), 0))
+        if k >= 1:
+            pop_in(im, layers, t, start=0.2 if not first else 0.5)
+            a = seg(t, 0.3, 0.7)
+            if a > 0:
+                im.alpha_composite(with_alpha(tlay, a), (0, int((1 - a) * 20)))
+        return im.convert("RGB")
+    return frame, 0.5 + len(layers) * 0.28 + 0.6
+
+
+def quiz_frames(chapter, q, a_txt, b_txt, ans, reveal):
+    base, lay = story_base(chapter, "結果はどっち？" if not reveal else "答え", False)
+    d = ImageDraw.Draw(lay)
+    size = int(min(80, 80 * 1600 / d.textlength(q, font=font(80))))
+    text(d, (960, 360), q, size, INK, anchor="mm")
+    boxes = [(200, 510, 900, 790), (1020, 510, 1720, 790)]
+
+    def button(dd, i, sc=1.0, faded=False, correct=False):
+        x0, y0, x1, y1 = boxes[i]
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        w, h = (x1 - x0) * sc / 2, (y1 - y0) * sc / 2
+        col = (GOOD if i == 0 else BAD) if not faded else FADED
+        dd.rounded_rectangle([cx - w, cy - h, cx + w, cy + h], radius=40 * sc, fill=WHITE, outline=col, width=max(3, int(10 * sc)))
+        dd.ellipse([cx - w + 30 * sc, cy - 50 * sc, cx - w + 130 * sc, cy + 50 * sc], fill=col)
+        text(dd, (cx - w + 80 * sc, cy), "AB"[i], int(60 * sc), WHITE, anchor="mm")
+        label = (a_txt, b_txt)[i]
+        ls = int(min(64, 64 * (w * 2 - 200 * sc) / max(1, dd.textlength(label, font=font(64)))) * 1)
+        text(dd, (cx + 50 * sc, cy), label, max(10, int(ls * sc)), INK if not faded else SUB, anchor="mm")
+        if correct:
+            cw.check(dd, cx + w - 20, cy - h + 20, 50 * sc)
+
+    def frame(t):
+        im = base.copy()
+        im.alpha_composite(lay)
+        dd = ImageDraw.Draw(im)
+        if not reveal:
+            for i in range(2):
+                k = seg(t, 0.3 + i * 0.25, 0.75 + i * 0.25)
+                if k > 0:
+                    button(dd, i, 0.6 + 0.4 * out_back(k))
+            # 考える時間のバー
+            k = seg(t, 1.0, 4.0)
+            if k > 0:
+                if k < 1:
+                    dd.rounded_rectangle([560, 870, 560 + 800 * (1 - k) + 1, 896], radius=13, fill=TRIM)
+        else:
+            k = seg(t, 0.3, 0.8)
+            for i in range(2):
+                if i == ans:
+                    button(dd, i, 1.0 + 0.12 * out_back(k) - 0.12 * k + 0.08 * k, correct=k > 0.2)
+                else:
+                    button(dd, i, 1.0 - 0.1 * k, faded=k > 0.1)
+        return im.convert("RGB")
+    return frame, (4.2 if not reveal else 1.2)
+
+
+def headlines_frame(t):
+    im = stage()[0].convert("RGBA")
+    lay = blank()
+    d = ImageDraw.Draw(lay)
+    mug(d, 830, 400, 260, fill=CREAM)
+    im.alpha_composite(lay)
+    d = ImageDraw.Draw(im)
+    items = [("コーヒーで長生き！", GOOD, 420, 300), ("発がん性の疑い？", BAD, 1500, 300),
+             ("1日3杯が最強！", GOOD, 400, 760), ("6杯で心臓に負担", BAD, 1500, 760)]
+    for i, (s, c, x, y) in enumerate(items):
+        k = seg(t, 1.0 + i * 1.6, 1.4 + i * 1.6)
+        if k > 0:
+            chip(d, x, y, s, c, int(54 * (0.5 + 0.5 * out_back(k))))
+    k = seg(t, 8.0, 8.5)
+    if k > 0:
+        text(d, (W / 2, 950), "結局どっちなの？", int(90 * (0.5 + 0.5 * out_back(k))), WHITE, anchor="mm")
+    return im.convert("RGB")
+
+
+def summary_frame(t):
+    im, d = stage()
+    panel(d, (200, 150, 1720, 960))
+    text(d, (960, 230), "まとめ", 76, INK, anchor="mm")
+    items = [("1日3〜4杯くらいまでなら", "体にいいという研究が多い", GOOD), ("飲むなら", "朝に・濾して・熱すぎない温度で", GOOD),
+             ("妊娠中・血圧がかなり高い人は", "控えめに", BAD), ("心配な人は", "お医者さんに相談", INK)]
+    for i, (a, b, c) in enumerate(items):
+        k = seg(t, 0.6 + i * 3.2, 1.0 + i * 3.2)
+        if k > 0:
+            y = 340 + i * 150
+            d.rounded_rectangle([280, y, 1640, y + 120], radius=60, fill=(240, 236, 228))
+            d.ellipse([300, y + 20, 380, y + 100], fill=c)
+            text(d, (340, y + 60), str(i + 1), 48, WHITE, anchor="mm")
+            text(d, (420, y + 60), a, 44, SUB, heavy=False, anchor="lm")
+            text(d, (1610, y + 60), b, 50, c, anchor="rm")
+    return im
+
+
+def next_frame(t):
+    im, d = stage()
+    text(d, (W / 2, 300), "次回の逆転論争", 70, TRIM, anchor="mm")
+    lay = blank()
+    dd = ImageDraw.Draw(lay)
+    dd.ellipse([W / 2 - 110, 400, W / 2 + 110, 690], fill=WHITE, outline=INK, width=LW)
+    k = out_back(seg(t, 0.3, 0.8))
+    if k > 0:
+        im = im.convert("RGBA")
+        w, h = lay.size
+        r = lay.resize((int(w * (0.6 + 0.4 * k)), int(h * (0.6 + 0.4 * k))))
+        im.alpha_composite(r, ((w - r.size[0]) // 2, (h - r.size[1]) // 2))
+        im = im.convert("RGB")
+        d = ImageDraw.Draw(im)
+    text(d, (W / 2, 820), "卵は1日1個まで？", 100, WHITE, anchor="mm")
+    return im
+
+
+# ---------- 組み立て ----------
+def build_plan():
+    """(描く関数, 動く秒数, 合計秒数, 台本の行) のリスト。"""
+    plan = []
+    last_chapter = None
+    for sc in SCENES:
+        kind = sc[0]
+        if kind == "headlines":
+            plan.append((headlines_frame, 9.0, dur(sc[1]), ("オープニング", "", sc[1])))
+        elif kind == "title":
+            img = os.path.join(OUT, "00_title.png")
+            cw.title_card(img)
+            plan.append(((lambda im: lambda t: im)(Image.open(img)), 0, dur(sc[1]), ("タイトル", "", sc[1])))
+        elif kind == "rules":
+            img = os.path.join(OUT, "00_rules.png")
+            cw.rules_card(img)
+            plan.append(((lambda im: lambda t: im)(Image.open(img)), 0, dur(sc[1]), ("ルール", "", sc[1])))
+        elif kind == "seats0":
+            plan.append((lambda t: parliament_frame("開戦前", "最初は50対50", 50, 50, t), 0.6, dur(sc[1]), ("スタート", "", sc[1])))
+        elif kind == "final":
+            plan.append((lambda t: cw.final_frame(cw.EVENTS[-1][7], t), 2.6, dur(sc[1]), ("結果", "", sc[1])))
+        elif kind == "summary":
+            plan.append((summary_frame, 11.0, dur(sc[1]), ("まとめ", "", sc[1])))
+        elif kind == "next":
+            plan.append((next_frame, 1.0, dur(sc[1]), ("次回予告", "", sc[1])))
+        elif kind == "story":
+            _, ch, step, tl, els, narr = sc
+            fn, anim = story_frames(ch, step, tl, els, first=(ch != last_chapter))
+            last_chapter = ch
+            plan.append((fn, anim, dur(narr), (f"第{ch}話「{step}」", tl, narr)))
+        elif kind == "quiz":
+            _, ch, q, a, b, ans, narr_q, narr_a = sc
+            fq, aq = quiz_frames(ch, q, a, b, ans, False)
+            fa, aa = quiz_frames(ch, q, a, b, ans, True)
+            plan.append((fq, aq, max(dur(narr_q), 5.0), (f"第{ch}話 クイズ", f"{q}  A:{a} / B:{b}", narr_q)))
+            plan.append((fa, aa, dur(narr_a), (f"第{ch}話 答え", "AB"[ans] + "：" + (a, b)[ans], narr_a)))
+            last_chapter = ch
+        elif kind == "card":
+            _, idx, narr = sc
+            year, country, kindx, title, facts, picto, before, after, headline, source = cw.EVENTS[idx - 1]
+            rows = [[(s, cw.color_of(c)) for s, c in row] for row in title]
+            diff = after - before
+            delta = f"{'いい派' if diff > 0 else '悪い派'} +{abs(diff)}議席"
+            card = Card(year, country, kindx, rows, facts, picto, before, after, delta, source)
+            plan.append((card.frame, Card.ANIM_END, max(dur(narr), Card.ANIM_END + 1.0),
+                         (f"研究カード {year}", f"{before}→{after}", narr)))
+        elif kind in ("seats", "seats8"):
+            _, idx, narr = sc
+            year, _, _, _, _, _, before, after, headline, _ = cw.EVENTS[idx - 1]
+            plan.append(((lambda y, h, b, a: lambda t: parliament_frame(y, h, b, a, t))(year, headline, before, after),
+                         2.6, max(dur(narr), 3.6), (f"開票速報 {year}", f"{before}→{after}", narr)))
+    return plan
+
+
+def write_script(plan):
+    total = 0.0
+    lines = ["# 台本(物語版):コーヒー10年戦争 〜「いい派」vs「悪い派」議席の行方〜", "",
+             "作成：2026-11-21 / 状態：初稿。`scripts/coffee_story.py` の SCENES から自動で作っています(台本を直すときは SCENES を直す)。", "",
+             f"ナレーション合計：約{sum(len(p[3][2]) for p in plan):,}字。場面の長さは 1秒{SPEED}字で計算。", "",
+             "| 時間 | 場面 | 画面のテロップ・内容 | ナレーション |", "|---|---|---|---|"]
+    for _, _, sec, (name, tl, narr) in plan:
+        m, s = divmod(int(total), 60)
+        lines.append(f"| {m}:{s:02d} | {name} | {tl} | {narr} |")
+        total += sec
+    m, s = divmod(int(total), 60)
+    lines += ["", f"合計：約{m}分{s:02d}秒", "",
+              "## 公開前に原文で確認すること",
+              "- 第1話：1981年の研究(MacMahon ら、NEJM)の人数 369人/644人、1986年の追試の内容",
+              "- 第2話：「タバコを吸う人が少なかった女性では関係がほぼ見られなかった」(IARC 2016 の評価文書)",
+              "- 第3話:EPIC の追跡期間「16年あまり」、血液を調べた人数「約1万4千人」(論文では14,800人)",
+              "- 第4話：訴えたのは 2010年・約90社(報道)。「8年続いた」裁判",
+              "- 第6話:1983年のトロムソの研究は約1万4千人(7,213人+7,368人)。煮出しと濾したコーヒーの比較実験は1985年。2020年の論文の著者にテレ博士(Thelle)が入っていること",
+              "- 第7話：日本の研究の人数 18,609人・40〜79歳",
+              "- 第8話：くじ引き実験の数字(歩数+1,058歩、期外収縮 約1.5倍、睡眠 397分 vs 432分)",
+              "- そのほかは `content/coffee_war.md` の「要確認」と同じ", ""]
+    with open(SCRIPT_MD, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    return total
+
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    plan = build_plan()
+    total = write_script(plan)
+    print(f"台本：{SCRIPT_MD}(約{int(total // 60)}分{int(total % 60):02d}秒、{len(plan)}場面)")
+    if "--script" in sys.argv:
+        return
+    seg_dir = os.path.join(OUT, "_seg")
+    os.makedirs(seg_dir, exist_ok=True)
+    parts = []
+    for i, (fn, anim, sec, (name, _, _)) in enumerate(plan):
+        mp4 = os.path.join(seg_dir, f"{i:03d}.mp4")
+        cw.clip(fn, min(anim, sec), sec, mp4, os.path.join(seg_dir, "_frames"))
+        parts.append(mp4)
+        print(f"{i + 1:3d}/{len(plan)} {name}", flush=True)
+    lst = os.path.join(seg_dir, "list.txt")
+    with open(lst, "w") as f:
+        for p in parts:
+            f.write(f"file '{os.path.abspath(p)}'\n")
+    out = os.path.join(OUT, "coffee_story_draft.mp4")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", out], check=True)
+    shutil.rmtree(seg_dir)
+    print("done:", out)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
