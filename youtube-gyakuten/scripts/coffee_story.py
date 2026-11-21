@@ -67,7 +67,8 @@ def phone(d, cx, cy, h, msg, color=GOOD):
     d.rounded_rectangle([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], radius=w * 0.18, fill=WHITE, outline=INK, width=LW)
     bw = w * 0.82
     d.rounded_rectangle([cx - bw / 2, cy - h * 0.18, cx + bw / 2, cy + h * 0.1], radius=18, fill=color)
-    text(d, (cx, cy - h * 0.04), msg, int(h * 0.085), WHITE, anchor="mm")
+    fs = int(min(h * 0.085, h * 0.085 * (bw - 20) / max(1, d.textlength(msg, font=font(int(h * 0.085))))))
+    text(d, (cx, cy - h * 0.04), msg, fs, WHITE, anchor="mm")
 
 
 def watch(d, cx, cy, s):
