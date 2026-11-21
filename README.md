@@ -33,6 +33,7 @@ Threads とは別に、検索から人が来るサイトを自動で更新する
 **投稿は、すべてあなたの手で行います。** ツールが作るのは「下書きファイル」だけです。内容を確認して、自分で Threads に投稿してください。
 
 > 別プロジェクト：YouTube 用の「スペイン語 中級リスニング」動画づくりは [`youtube-spanish/`](youtube-spanish/README.md) にあります。
+> 別プロジェクト：YouTube「逆転劇場」(スカッと系オリジナル短編ドラマ)の企画書は [`youtube-gyakuten/`](youtube-gyakuten/README.md) にあります。
 
 ## フォルダの中身
 
