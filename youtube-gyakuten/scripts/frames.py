@@ -1,100 +1,140 @@
-"""逆転劇場：研究まとめカードと議席グラフの画面を作る(試作)。
+"""逆転劇場：研究まとめカードと議席グラフの画面を作る(試作 v2)。
 
-見た目の方針(参考：方眼紙の背景、太い明朝の黒文字、赤の強調、黒のピクトグラム)
-  python3 scripts/frames.py            -> output/frames/*.png と seats.mp4
+見た目の方針(チャンネル名の「劇場」に合わせる)
+- 背景：紺の舞台＋上に赤い幕＋スポットライト
+- カード：白い角丸のパネル。文字は太いゴシック
+- ピクトグラム：丸みのある線画(線の太さをそろえ、1色だけ塗る)
+- 色：いい派=オレンジ、悪い派=青
+
+  python3 scripts/frames.py            -> output/frames/*.png と seats_2018.mp4
 """
 import math
 import os
 import subprocess
 import sys
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = 1920, 1080
-BG = (243, 240, 232)
-GRID = (226, 222, 212)
-INK = (24, 24, 24)
-RED = (200, 32, 30)
-NAVY = (52, 62, 74)
-GOLD = (201, 162, 39)
-GRAY = (130, 130, 130)
-GOOD, BAD = RED, NAVY  # いい派=赤、悪い派=紺
+STAGE = (27, 36, 58)        # 舞台の紺
+STAGE_LIGHT = (58, 72, 108)  # スポットライトの色
+CURTAIN = (176, 38, 48)
+CURTAIN_DARK = (128, 24, 34)
+TRIM = (232, 190, 92)
+PANEL = (250, 248, 244)
+INK = (30, 36, 52)
+SUB = (120, 126, 140)
+GOOD = (240, 128, 40)   # いい派=オレンジ
+BAD = (62, 120, 220)    # 悪い派=青
+WHITE = (255, 255, 255)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "output", "frames")
-SERIF = "/usr/share/fonts/opentype/noto/NotoSerifCJK-Black.ttc"
-SANS = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
+BLACK = "/usr/share/fonts/opentype/noto/NotoSansCJK-Black.ttc"
+BOLD = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 
 
-def font(size, serif=True):
-    return ImageFont.truetype(SERIF if serif else SANS, size, index=0)
+def font(size, heavy=True):
+    return ImageFont.truetype(BLACK if heavy else BOLD, size, index=0)
 
 
-def canvas():
-    im = Image.new("RGB", (W, H), BG)
-    d = ImageDraw.Draw(im)
-    for x in range(0, W, 40):
-        d.line([(x, 0), (x, H)], fill=GRID, width=1)
-    for y in range(0, H, 40):
-        d.line([(0, y), (W, y)], fill=GRID, width=1)
-    return im, d
-
-
-# ---------- ピクトグラム ----------
-def person(d, cx, top, h, color=INK, dress=None):
-    """トイレの案内表示のような人のピクトグラム。dress を渡すとスカート型(色つき)。"""
-    u = h / 10
-    d.ellipse([cx - 1.1 * u, top, cx + 1.1 * u, top + 2.2 * u], fill=color)
-    bt = top + 2.6 * u
-    if dress:
-        d.polygon([(cx - 1.4 * u, bt), (cx + 1.4 * u, bt), (cx + 2.2 * u, bt + 4.4 * u),
-                   (cx - 2.2 * u, bt + 4.4 * u)], fill=dress, outline=color, width=max(2, int(u / 4)))
-        legs_top = bt + 4.4 * u
-    else:
-        d.rounded_rectangle([cx - 1.5 * u, bt, cx + 1.5 * u, bt + 4 * u], radius=u * 0.6, fill=color)
-        legs_top = bt + 3.6 * u
-    # 腕
-    d.rounded_rectangle([cx - 2.3 * u, bt + 0.1 * u, cx - 1.7 * u, bt + 3.6 * u], radius=u * 0.3, fill=color)
-    d.rounded_rectangle([cx + 1.7 * u, bt + 0.1 * u, cx + 2.3 * u, bt + 3.6 * u], radius=u * 0.3, fill=color)
-    # 脚
-    d.rounded_rectangle([cx - 1.2 * u, legs_top, cx - 0.2 * u, top + h], radius=u * 0.4, fill=color)
-    d.rounded_rectangle([cx + 0.2 * u, legs_top, cx + 1.2 * u, top + h], radius=u * 0.4, fill=color)
-
-
-def cup(d, x, y, s, color=INK, steam=True):
-    """コーヒーカップ。(x, y)=左上、s=幅。"""
-    d.rounded_rectangle([x, y + 0.35 * s, x + 0.8 * s, y + 1.05 * s], radius=s * 0.12, fill=color)
-    w = max(3, int(s * 0.09))
-    d.arc([x + 0.6 * s, y + 0.48 * s, x + 1.02 * s, y + 0.86 * s], -90, 90, fill=color, width=w)
-    d.rounded_rectangle([x - 0.1 * s, y + 1.08 * s, x + 0.95 * s, y + 1.16 * s], radius=s * 0.04, fill=color)
-    if steam:
-        for i in range(3):
-            sx = x + 0.18 * s + i * 0.22 * s
-            d.arc([sx - 0.06 * s, y, sx + 0.08 * s, y + 0.15 * s], 90, 270, fill=color, width=max(2, w // 2))
-            d.arc([sx - 0.06 * s, y + 0.13 * s, sx + 0.08 * s, y + 0.28 * s], 270, 90, fill=color, width=max(2, w // 2))
-
-
-def gauge(d, cx, cy, r, color=INK, needle=0.85):
-    """血圧計(メーター)。needle=0〜1。"""
-    w = max(4, int(r * 0.12))
-    d.arc([cx - r, cy - r, cx + r, cy + r], 180, 360, fill=color, width=w)
-    d.arc([cx - r, cy - r, cx + r, cy + r], 180 + 180 * 0.7, 360, fill=RED, width=w)
-    a = math.pi * (1 - needle)
-    d.line([(cx, cy), (cx + 0.85 * r * math.cos(a), cy - 0.85 * r * math.sin(a))], fill=color, width=w)
-    d.ellipse([cx - w, cy - w, cx + w, cy + w], fill=color)
-
-
-def text(d, xy, s, size, fill=INK, serif=True, anchor="la"):
-    d.text(xy, s, font=font(size, serif), fill=fill, anchor=anchor)
+def text(d, xy, s, size, fill=INK, heavy=True, anchor="la"):
+    d.text(xy, s, font=font(size, heavy), fill=fill, anchor=anchor)
 
 
 def mixed_line(d, x, y, parts, size):
-    """[(文字, 色), ...] を1行に並べる。"""
     f = font(size)
     for s, c in parts:
         d.text((x, y), s, font=f, fill=c)
         x += d.textlength(s, font=f)
     return x
+
+
+# ---------- 背景 ----------
+def stage():
+    im = Image.new("RGB", (W, H), STAGE)
+    light = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(light).ellipse([W * 0.15, H * 0.05, W * 0.85, H * 1.25], fill=255)
+    light = light.filter(ImageFilter.GaussianBlur(160))
+    im = Image.composite(Image.new("RGB", (W, H), STAGE_LIGHT), im, light)
+    d = ImageDraw.Draw(im)
+    # 床のライン
+    d.rectangle([0, H - 40, W, H], fill=(20, 27, 44))
+    # 上の幕(ひだ+波形のすそ)
+    d.rectangle([0, 0, W, 46], fill=CURTAIN)
+    for x in range(0, W, 80):
+        d.rectangle([x + 50, 0, x + 62, 46], fill=CURTAIN_DARK)
+    for x in range(0, W + 80, 80):
+        d.pieslice([x - 40, 6, x + 40, 86], 0, 180, fill=CURTAIN)
+    for x in range(0, W + 80, 80):
+        d.arc([x - 40, 6, x + 40, 86], 0, 180, fill=TRIM, width=4)
+    # 左右の幕
+    for side in (0, 1):
+        x0 = 0 if side == 0 else W - 36
+        d.rectangle([x0, 0, x0 + 36, H], fill=CURTAIN_DARK)
+    return im, d
+
+
+def panel(d, box, r=36):
+    x0, y0, x1, y1 = box
+    d.rounded_rectangle([x0 + 8, y0 + 12, x1 + 8, y1 + 12], radius=r, fill=(14, 19, 32))  # 影
+    d.rounded_rectangle(box, radius=r, fill=PANEL)
+
+
+# ---------- ピクトグラム(線画) ----------
+LW = 9  # 線の太さ
+
+
+def line(d, pts, color=INK, w=LW):
+    d.line(pts, fill=color, width=w, joint="curve")
+    for x, y in (pts[0], pts[-1]):
+        d.ellipse([x - w / 2, y - w / 2, x + w / 2, y + w / 2], fill=color)
+
+
+def bean(d, cx, top, h, fill=None, color=INK, w=LW):
+    """丸い頭+まるっとした胴体の人(手足なし)。fill で胴体を塗る。"""
+    hr = h * 0.17
+    d.ellipse([cx - hr, top, cx + hr, top + 2 * hr], outline=color, width=w, fill=PANEL)
+    bw = h * 0.36
+    bt = top + 2 * hr + h * 0.06
+    d.rounded_rectangle([cx - bw, bt, cx + bw, top + h], radius=bw * 0.9, outline=color, width=w,
+                        fill=fill or PANEL)
+    # 地面のライン
+    line(d, [(cx - bw * 1.3, top + h + 12), (cx + bw * 1.3, top + h + 12)], color, max(4, w // 2))
+
+
+def mug(d, x, y, s, color=INK, fill=None, steam=True, w=LW):
+    """マグカップの線画。(x, y)=左上、s=幅。"""
+    d.rounded_rectangle([x, y + 0.3 * s, x + 0.78 * s, y + 1.05 * s], radius=s * 0.16, outline=color,
+                        width=w, fill=fill or PANEL)
+    d.arc([x + 0.58 * s, y + 0.45 * s, x + 1.0 * s, y + 0.85 * s], -90, 90, fill=color, width=w)
+    if steam:
+        for i in range(2):
+            sx = x + 0.26 * s + i * 0.26 * s
+            line(d, [(sx, y + 0.2 * s), (sx + 0.06 * s, y + 0.12 * s), (sx, y + 0.04 * s),
+                     (sx + 0.06 * s, y - 0.04 * s)], color, max(4, w - 3))
+
+
+def meter(d, cx, cy, r, needle=0.85, color=INK, w=LW):
+    d.arc([cx - r, cy - r, cx + r, cy + r], 180, 360, fill=color, width=w)
+    d.arc([cx - r + w * 1.6, cy - r + w * 1.6, cx + r - w * 1.6, cy + r - w * 1.6], 180 + 180 * 0.68, 360,
+          fill=BAD, width=w + 2)
+    a = math.pi * (1 - needle)
+    line(d, [(cx, cy), (cx + 0.78 * r * math.cos(a), cy - 0.78 * r * math.sin(a))], color, w)
+    d.ellipse([cx - w * 1.3, cy - w * 1.3, cx + w * 1.3, cy + w * 1.3], fill=color)
+    line(d, [(cx - r - 10, cy + 14), (cx + r + 10, cy + 14)], color, max(4, w // 2))
+
+
+def heart(d, cx, cy, s, fill=GOOD, color=INK, w=LW):
+    r = s * 0.28
+    d.ellipse([cx - 2 * r, cy - r, cx, cy + r], fill=fill)
+    d.ellipse([cx, cy - r, cx + 2 * r, cy + r], fill=fill)
+    d.polygon([(cx - 1.93 * r, cy + 0.35 * r), (cx + 1.93 * r, cy + 0.35 * r), (cx, cy + 2.3 * r)], fill=fill)
+
+
+def arrow(d, x0, x1, y, color=INK, w=LW):
+    line(d, [(x0, y), (x1, y)], color, w)
+    line(d, [(x1 - 26, y - 22), (x1, y), (x1 - 26, y + 22)], color, w)
 
 
 # ---------- 議席グラフ ----------
@@ -116,12 +156,11 @@ SEATS = seat_positions()
 
 
 def hemicycle(d, cx, cy, R, good, flip_to=None, progress=1.0):
-    """good=いい派の議席数。flip_to と progress で、席が順に色を変えるアニメーション。"""
-    dot = R * 0.055
+    """good=いい派の議席数。flip_to と progress で、席が順に色を変える。"""
+    s = R * 0.05
     target = good if flip_to is None else flip_to
     lo, hi = sorted((good, target))
-    changing = list(range(lo, hi))
-    done = int(len(changing) * progress)
+    done = int((hi - lo) * progress)
     for i, (a, r) in enumerate(SEATS):
         x, y = cx + R * r * math.cos(a), cy - R * r * math.sin(a)
         if i < lo:
@@ -130,110 +169,110 @@ def hemicycle(d, cx, cy, R, good, flip_to=None, progress=1.0):
             c = BAD
         else:
             j = i - lo if target > good else hi - 1 - i
-            flipped = j < done
-            c = (GOOD if target > good else BAD) if flipped else (BAD if target > good else GOOD)
-        d.ellipse([x - dot, y - dot, x + dot, y + dot], fill=c)
-    # 過半数ライン
-    d.line([(cx, cy - R * 1.08), (cx, cy - R * 0.36)], fill=GOLD, width=4)
-    text(d, (cx, cy - R * 0.33), "過半数", int(R * 0.08), GOLD, serif=False, anchor="ma")
+            to = GOOD if target > good else BAD
+            c = to if j < done else (BAD if to == GOOD else GOOD)
+        d.rounded_rectangle([x - s, y - s, x + s, y + s], radius=s * 0.45, fill=c)  # 角丸の四角い席
+    d.line([(cx, cy - R * 1.08), (cx, cy - R * 0.36)], fill=TRIM, width=4)
+    text(d, (cx, cy - R * 0.33), "過半数", int(R * 0.08), TRIM, heavy=False, anchor="ma")
 
 
 def seat_numbers(d, cx, cy, R, good):
-    text(d, (cx - R * 0.72, cy + R * 0.06), "いい派", int(R * 0.12), GOOD, anchor="ma")
-    text(d, (cx - R * 0.72, cy + R * 0.2), f"{good}", int(R * 0.3), GOOD, anchor="ma")
-    text(d, (cx + R * 0.72, cy + R * 0.06), "悪い派", int(R * 0.12), BAD, anchor="ma")
-    text(d, (cx + R * 0.72, cy + R * 0.2), f"{100 - good}", int(R * 0.3), BAD, anchor="ma")
+    for x, label, n, c in ((cx - R * 0.72, "いい派", good, GOOD), (cx + R * 0.72, "悪い派", 100 - good, BAD)):
+        text(d, (x, cy + R * 0.06), label, int(R * 0.12), c, anchor="ma")
+        text(d, (x, cy + R * 0.2), str(n), int(R * 0.3), WHITE, anchor="ma")
 
 
 # ---------- 画面 ----------
 def study_card(path, year, country, kind, title_lines, facts, picto, before, after, delta_label, source):
-    im, d = canvas()
-    # 上の帯：年・国・研究の種類
-    d.rectangle([80, 70, 80 + 230, 150], fill=INK)
-    text(d, (195, 110), year, 64, BG, anchor="mm")
-    text(d, (340, 110), country, 52, INK, anchor="lm")
-    tag_w = d.textlength(kind, font=font(36, False)) + 40
-    d.rounded_rectangle([80, 175, 80 + tag_w, 230], radius=10, outline=INK, width=3)
-    text(d, (100, 202), kind, 36, INK, serif=False, anchor="lm")
+    im, d = stage()
+    panel(d, (90, 130, 1130, 1000))
+    # 年・国・種類(チップ)
+    d.rounded_rectangle([140, 175, 330, 245], radius=35, fill=INK)
+    text(d, (235, 210), year, 46, WHITE, anchor="mm")
+    text(d, (355, 210), country, 46, INK, anchor="lm")
+    kw = d.textlength(kind, font=font(32, False)) + 48
+    d.rounded_rectangle([1080 - kw, 180, 1080, 240], radius=30, outline=SUB, width=3)
+    text(d, (1080 - kw / 2, 210), kind, 32, SUB, heavy=False, anchor="mm")
     # 見出し
-    y = 270
+    y = 280
     for parts in title_lines:
-        mixed_line(d, 80, y, parts, 110)
-        y += 140
+        mixed_line(d, 140, y, parts, 92)
+        y += 122
     # ピクトグラム
     picto(d)
     # 研究データ
-    y0 = 860
-    d.line([(80, y0 - 20), (1100, y0 - 20)], fill=INK, width=3)
-    x = 80
+    y0 = 840
+    d.line([(140, y0 - 18), (1080, y0 - 18)], fill=(222, 218, 210), width=3)
+    x = 140
     for label, value in facts:
-        text(d, (x, y0), label, 32, GRAY, serif=False)
-        text(d, (x, y0 + 40), value, 56, INK)
-        x += 340
-    text(d, (80, 1030), source, 24, GRAY, serif=False)
+        text(d, (x, y0), label, 28, SUB, heavy=False)
+        text(d, (x, y0 + 36), value, 48, INK)
+        x += 320
+    text(d, (140, 1020), source, 24, (170, 176, 192), heavy=False)
     # 右：議席
-    cx, cy, R = 1520, 690, 330
+    cx, cy, R = 1530, 700, 320
     hemicycle(d, cx, cy, R, after)
     seat_numbers(d, cx, cy, R, after)
     color = GOOD if after > before else BAD
-    bw = d.textlength(delta_label, font=font(54)) + 60
-    d.rounded_rectangle([cx - bw / 2, 220, cx + bw / 2, 300], radius=40, fill=color)
-    text(d, (cx, 260), delta_label, 54, BG, anchor="mm")
+    bw = d.textlength(delta_label, font=font(50)) + 70
+    d.rounded_rectangle([cx - bw / 2, 230, cx + bw / 2, 310], radius=40, fill=color)
+    text(d, (cx, 268), delta_label, 50, WHITE, anchor="mm")
     im.save(path)
 
 
-def parliament(path, year, headline, good, flip_to=None, progress=1.0, show_numbers=True):
-    im, d = canvas()
-    d.rectangle([0, 0, W, 120], fill=INK)
-    text(d, (80, 60), "速報", 64, RED, anchor="lm")
-    text(d, (280, 60), f"{year}  {headline}", 56, BG, anchor="lm")
-    cx, cy, R = W / 2, 800, 600
+def parliament(path, year, headline, good, flip_to=None, progress=1.0):
+    im, d = stage()
+    tag = "開票速報"
+    tw = d.textlength(tag, font=font(48)) + 60
+    d.rounded_rectangle([90, 120, 90 + tw, 196], radius=38, fill=GOOD)
+    text(d, (90 + tw / 2, 158), tag, 48, WHITE, anchor="mm")
+    text(d, (120 + tw, 158), f"{year}  {headline}", 52, WHITE, anchor="lm")
+    cx, cy, R = W / 2, 790, 550
     hemicycle(d, cx, cy, R, good, flip_to, progress)
     shown = good if flip_to is None else round(good + (flip_to - good) * progress)
-    if show_numbers:
-        for x, label, n, c in ((cx - R * 0.7, "いい派", shown, GOOD), (cx + R * 0.7, "悪い派", 100 - shown, BAD)):
-            text(d, (x, cy + 40), label, 56, c, anchor="ma")
-            text(d, (x, cy + 100), str(n), 120, c, anchor="ma")
+    for x, label, n, c in ((cx - R * 0.72, "いい派", shown, GOOD), (cx + R * 0.72, "悪い派", 100 - shown, BAD)):
+        text(d, (x, cy + 30), label, 52, c, anchor="ma")
+        text(d, (x, cy + 86), str(n), 112, WHITE, anchor="ma")
     im.save(path)
 
 
 def picto_uk(d):
-    # 8杯のカップ → 人(金色)
     for i in range(8):
-        cup(d, 90 + (i % 4) * 120, 600 + (i // 4) * 120, 90, steam=False)
-    text(d, (590, 700), "→", 90, INK, anchor="mm")
-    person(d, 760, 570, 250, dress=GOLD, color=INK)
-    text(d, (880, 700), "長生き", 72, RED, anchor="lm")
+        mug(d, 150 + (i % 4) * 112, 585 + (i // 4) * 118, 82, steam=False, w=7, fill=(255, 236, 214))
+    arrow(d, 610, 690, 690)
+    bean(d, 790, 575, 215, fill=GOOD)
+    heart(d, 975, 610, 80)
+    text(d, (975, 700), "長生き", 54, GOOD, anchor="ma")
 
 
 def picto_japan(d):
-    gauge(d, 200, 740, 120, needle=0.88)
-    text(d, (200, 760), "160/100以上", 32, INK, serif=False, anchor="ma")
-    text(d, (365, 700), "+", 90, INK, anchor="mm")
-    cup(d, 420, 610, 90, steam=False)
-    cup(d, 535, 610, 90, steam=False)
-    text(d, (705, 700), "→", 90, INK, anchor="mm")
-    person(d, 820, 580, 230, color=NAVY)
-    text(d, (890, 640), "×2", 110, RED, anchor="la")
+    meter(d, 250, 740, 105, needle=0.88)
+    text(d, (250, 770), "160/100以上", 28, INK, heavy=False, anchor="ma")
+    text(d, (410, 700), "+", 80, INK, anchor="mm")
+    mug(d, 460, 615, 92, fill=(255, 236, 214))
+    mug(d, 580, 615, 92, fill=(255, 236, 214))
+    arrow(d, 730, 810, 690)
+    bean(d, 880, 585, 205, fill=BAD)
+    text(d, (955, 655), "×2", 84, BAD, anchor="la")
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     study_card(
         os.path.join(OUT, "card_2018_uk.png"), "2018", "イギリス", "約50万人の追跡調査",
-        [[("1日", INK), ("8杯以上", RED), ("でも", INK)], [("死亡リスクは", INK), ("低い", RED)]],
+        [[("1日", INK), ("8杯以上", GOOD), ("でも", INK)], [("死亡リスクは", INK), ("低い", GOOD)]],
         [("対象", "約50万人"), ("期間", "10年"), ("種類", "観察研究")],
         picto_uk, 51, 57, "いい派 +6議席",
         "出典：Loftfield et al., JAMA Internal Medicine 2018(UK Biobank)")
     study_card(
         os.path.join(OUT, "card_2022_japan.png"), "2022", "日本", "約1.9万人の追跡調査",
-        [[("血圧が高い人は", INK)], [("1日2杯", RED), ("で死亡", INK), ("2倍", RED)]],
+        [[("血圧が高い人は", INK)], [("1日2杯", BAD), ("で死亡", INK), ("2倍", BAD)]],
         [("対象", "約1.9万人"), ("年齢", "40〜79歳"), ("緑茶", "差なし")],
         picto_japan, 69, 66, "悪い派 +3議席",
         "出典：Teramoto et al., Journal of the American Heart Association 2022(JACC研究)")
     parliament(os.path.join(OUT, "parliament_2018.png"), "2018.3", "裁判所「がんの警告表示が必要」", 51)
 
-    # 議席がパタパタ変わる短い動画(2018.3 の 66→51)
+    # 議席が順に変わる短い動画(2018.3 の 66→51)
     tmp = os.path.join(OUT, "_anim")
     os.makedirs(tmp, exist_ok=True)
     fps, n = 30, 45
