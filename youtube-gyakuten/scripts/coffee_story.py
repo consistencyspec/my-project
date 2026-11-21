@@ -578,7 +578,7 @@ def main():
     wav = os.path.join(OUT, "narration.wav")
     sf.write(wav, np.concatenate(audio), RATE)
     out = os.path.join(OUT, "coffee_story_draft.mp4")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-i", wav, "-c:v", "copy", "-c:a", "aac", "-b:a", "160k",
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-i", wav, "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "48000", "-c:a", "aac", "-b:a", "160k",
                     "-shortest", out], check=True)
     shutil.rmtree(seg_dir)
     print("done:", out)
