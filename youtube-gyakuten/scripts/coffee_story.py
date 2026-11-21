@@ -1,9 +1,9 @@
 """コーヒー10年戦争 物語版：主な研究を「なぜ調べた→どうやって→クイズ→結果」の物語にして、長くつなげる。
 
-  python3 scripts/coffee_story.py          -> output/coffee_story/coffee_story_draft.mp4
+  .venv/bin/python scripts/coffee_story.py   -> output/coffee_story/coffee_story_draft.mp4(ナレーションつき)
   python3 scripts/coffee_story.py --script -> content/coffee_war_story.md(台本)だけ作り直す
 
-場面の長さは、ナレーションの文字数(1秒あたり SPEED 字)から決める。ナレーションはまだ録音していない。
+場面の長さは、合成したナレーション(Kokoro)の長さから決める。
 """
 import os
 import shutil
@@ -120,7 +120,7 @@ E = lambda f: f  # noqa: E731
 #   ("headlines", ナレーション) / ("title", ナレーション) / ("rules", ナレーション) / ("final", ナレーション)
 SCENES = [
     ("headlines", "朝の一杯のコーヒー。至福の時間ですよね。でもニュースを見るたびに、こう言われてきませんでしたか？「コーヒーで長生き！」「いや、発がん性があるかも」「1日3杯が最強！」「6杯で心臓に負担」……結局どっちなの？"),
-    ("title", "今日はこの戦いに決着をつけます。題して、コーヒー10年戦争。研究が出るたびに「いい派」と「悪い派」の議席がひっくり返った、波乱の歴史をたどります。"),
+    ("title", "新常識クロニクル。今日はこの戦いに決着をつけます。題して、コーヒー10年戦争。研究が出るたびに「いい派」と「悪い派」の議席がひっくり返った、波乱の歴史をたどります。"),
     ("final", "先に結果を言ってしまうと、いまの議席はいい派76、悪い派24。いい派の圧勝です。ところが、選挙特番でおなじみの「当選確実」は、まだ出せません。その理由は、この戦いの歴史を見ると分かります。"),
     ("rules", "ルールはシンプル。研究や発表が出るたびに、勝った側に議席が移ります。WHOや国、裁判所の判断は15議席。たくさんの研究をまとめたものは10議席。数十万人の調査は6議席。条件つきの結果は3議席です。"),
     ("seats0", "スタートは50対50。それでは、30年以上前から始まった戦いの、第1話です。"),
@@ -167,34 +167,22 @@ SCENES = [
     ("card", 3, "差し引きで、いい派は12議席を取り戻します。"),
     ("seats", 3, "いい派53、悪い派47。いい派、ついに過半数。逆転です！"),
 
-    # 第3話 2017 EPIC
-    ("story", 3, "なぜ調べた？", "それまでの研究はアメリカが中心。飲み方の違う国でも同じ？",
-     [E(lambda d: words(d, 520, 420, "エスプレッソ", 60)), E(lambda d: mug(d, 440, 500, 150, fill=(120, 80, 50))),
-      E(lambda d: words(d, 1000, 420, "ドリップ", 60)), E(lambda d: cw.dripper(d, 1000, 500, 200)),
-      E(lambda d: words(d, 1450, 420, "煮出し", 60)), E(lambda d: cw.pot(d, 1450, 520, 200))],
-     "2017年。ヨーロッパの研究チームは、こんな疑問を持ちました。それまでの研究は、アメリカのデータが中心。イタリアのエスプレッソ、北欧のドリップ。飲み方が違う国でも、同じ結果になるのだろうか？"),
-    ("story", 3, "どうやって？", "ヨーロッパ10か国・52万人を、16年あまり追いかけた",
-     [E(lambda d: cw.flags(d, 300, 420, 10, 110)), E(lambda d: arrow(d, 1010, 1120, 560)),
-      E(lambda d: words(d, 1420, 500, "52万人", 100, GOOD)), E(lambda d: words(d, 1420, 630, "16年あまり", 60))],
-     "調べたのは、デンマークからイタリアまで、ヨーロッパ10か国の約52万人。16年あまり、その後の健康を追いかけました。"),
-    ("quiz", 3, "国によって、結果は変わった？", "変わった", "変わらなかった", 1,
-     "クイズです。飲み方も文化も違う10か国。国によって、結果は変わったでしょうか？",
-     "答えは「変わらなかった」。どの国でも、よく飲む人ほど死亡リスクが低かったんです。さらに約1万4千人の血液を調べると、よく飲む人ほど肝臓の数値が良い傾向も見つかりました。"),
-    ("card", 4, "いい派、59議席。"),
+    # 2017 EPIC(カードだけ)
+    ("card", 4, "2017年。ヨーロッパの研究チームは、飲み方の違う国でも同じ結果になるのかを確かめました。イタリアのエスプレッソ、北欧のドリップ。デンマークからイタリアまで10か国、約52万人を16年あまり追いかけると、どの国でも、よく飲む人ほど死亡リスクが低かったんです。いい派、59議席。"),
     ("card", 5, "同じ年、イギリスの研究チームが200以上の研究をまとめ、1日3〜4杯がいちばん好結果、と発表。ただし妊娠中だけは悪い結果でした。いい派、66議席。"),
 
-    # 第4話 カリフォルニアの裁判
-    ("story", 4, "訴えた", "2010年 小さな市民団体が、コーヒー会社など約90社を訴えた",
+    # 第3話 カリフォルニアの裁判
+    ("story", 3, "訴えた", "2010年 小さな市民団体が、コーヒー会社など約90社を訴えた",
      [E(lambda d: year_tag(d, 480, 360, "2010年")), E(lambda d: bean(d, 420, 460, 230, fill=BAD)),
       E(lambda d: words(d, 760, 580, "→", 90)), E(lambda d: cw.crowd(d, 980, 440, 5, 2, 120, fill=FADED)),
       E(lambda d: words(d, 1250, 760, "約90社", 60, BAD))],
      "ここで悪い派が、思わぬところから反撃します。舞台はアメリカ、カリフォルニア州。2010年、小さな市民団体が、有名なコーヒーチェーンなど約90社を訴えたんです。"),
-    ("story", 4, "理由は？", "焙煎でできる「アクリルアミド」。ポテトチップスやトーストにも含まれる",
+    ("story", 3, "理由は？", "焙煎でできる「アクリルアミド」。ポテトチップスやトーストにも含まれる",
      [E(lambda d: mug(d, 400, 470, 190, fill=(120, 80, 50))), E(lambda d: words(d, 960, 520, "アクリルアミド", 80, BAD)),
       E(lambda d: words(d, 960, 640, "焙煎・揚げる・焼くとできる", 48)),
       E(lambda d: cw.label(d, 1350, 470, 300, 120, "警告表示"))],
      "理由は、アクリルアミド。コーヒー豆を焙煎するときにできる物質で、ポテトチップスやトーストにも含まれています。カリフォルニア州の法律では、がんの原因になりうる物質を含む商品には、警告表示が必要なんです。"),
-    ("story", 4, "8年後", "2018年 裁判所「会社側は、危険が小さいことを証明できなかった」",
+    ("story", 3, "8年後", "2018年 裁判所「会社側は、危険が小さいことを証明できなかった」",
      [E(lambda d: year_tag(d, 480, 360, "2018年")), E(lambda d: cw.gavel(d, 480, 600, 280)),
       E(lambda d: words(d, 1250, 540, "危険が小さいと", 64)), E(lambda d: words(d, 1250, 650, "証明できず", 90, BAD))],
      "裁判は8年続き、2018年、裁判所はこう判断します。「会社側は、危険が小さいことを証明できなかった」。コーヒーに、がんの警告表示が必要だというのです。"),
@@ -204,23 +192,12 @@ SCENES = [
     # 2018.7 英国(短く)
     ("card", 7, "同じ2018年、イギリスで50万人を調べた研究が出ます。1日8杯以上飲む人でも、死亡リスクは低かった。カフェインを分解するのが遅い体質の人でも、同じでした。いい派、57議席。"),
 
-    # 第5話 2019 南オーストラリア大
-    ("story", 5, "なぜ調べた？", "「8杯でも大丈夫」は本当？ 上限はないの？",
-     [E(lambda d: [mug(d, 300 + (i % 4) * 130, 420 + (i // 4) * 150, 100, steam=False, w=7, fill=CREAM) for i in range(8)]),
-      E(lambda d: words(d, 1150, 520, "8杯でも", 72)), E(lambda d: words(d, 1150, 640, "本当に大丈夫？", 80, BAD))],
-     "でも、本当に「8杯でも大丈夫」なのでしょうか。そう考えたのが、オーストラリアの南オーストラリア大学のチームです。"),
-    ("story", 5, "どうやって？", "カフェインを分解する速さに関わる遺伝子に注目",
-     [E(lambda d: dna(d, 480, 590, 380)), E(lambda d: words(d, 1200, 500, "分解が速い遺伝子", 64)),
-      E(lambda d: words(d, 1200, 620, "なら平気？", 90, GOOD))],
-     "使ったのは、同じイギリスのデータ約35万人。注目したのは、カフェインを分解する速さに関わる遺伝子です。分解が速い人なら、たくさん飲んでも心臓は平気なのでは、と考えたんです。"),
-    ("quiz", 5, "分解が速い人は、6杯以上でも平気だった？", "平気だった", "平気じゃなかった", 1,
-     "クイズです。カフェインの分解が速い遺伝子の人は、1日6杯以上飲んでも、心臓は平気だったでしょうか？",
-     "答えは「平気じゃなかった」。遺伝子に関係なく、1日6杯以上の人は、1〜2杯の人より心臓病のリスクが最大22%高かったんです。チームは、6杯をひとつの上限の目安にしました。"),
-    ("card", 8, "悪い派、6議席を取り返します。"),
+    # 2019 南オーストラリア大(カードだけ)
+    ("card", 8, "でも、本当に8杯でも大丈夫なのでしょうか。2019年、オーストラリアの南オーストラリア大学のチームは、カフェインを分解するのが速い遺伝子の人なら平気なのでは、と調べました。結果は、遺伝子に関係なく、1日6杯以上の人は、1〜2杯の人より心臓病のリスクが最大22%高い。悪い派、6議席を取り返します。"),
     ("seats8", 8, "いい派51、悪い派49。またも大接戦です。"),
 
-    # 第4話の続き
-    ("story", 4, "裁判の続き", "2019年 州の当局「コーヒーのアクリルアミドで、がんの危険は大きくない」",
+    # 第3話の続き
+    ("story", 3, "裁判の続き", "2019年 州の当局「コーヒーのアクリルアミドで、がんの危険は大きくない」",
      [E(lambda d: year_tag(d, 480, 360, "2019年")), E(lambda d: cw.label(d, 300, 470, 340, 140, "がん警告")),
       E(lambda d: line(d, [(290, 640), (650, 450)], BAD, LW + 8)), E(lambda d: words(d, 1250, 540, "警告は", 80)),
       E(lambda d: words(d, 1250, 660, "不要", 110, GOOD))],
@@ -228,17 +205,17 @@ SCENES = [
     ("card", 9, "いい派、15議席の大逆転。"),
     ("seats", 9, "いい派66、悪い派34。一気に差が開きました。"),
 
-    # 第6話 ノルウェー
-    ("story", 6, "37年前", "1983年 ノルウェーの町で「たくさん飲む人ほどコレステロールが高い」",
+    # 第4話 ノルウェー
+    ("story", 4, "37年前", "1983年 ノルウェーの町で「たくさん飲む人ほどコレステロールが高い」",
      [E(lambda d: year_tag(d, 480, 360, "1983年")), E(lambda d: cw.crowd(d, 300, 430, 4, 2, 120)),
       E(lambda d: words(d, 1250, 520, "コレステロールが", 64)), E(lambda d: words(d, 1250, 640, "高い", 110, BAD))],
      "次の舞台は北欧、ノルウェー。話は1983年にさかのぼります。北の町トロムソで約1万4千人を調べたテレ博士たちが、「コーヒーをたくさん飲む人ほど、コレステロールが高い」と発表しました。"),
-    ("story", 6, "なぜ？", "この町では、鍋で煮出して濾さずに飲むのが普通だった",
+    ("story", 4, "なぜ？", "この町では、鍋で煮出して濾さずに飲むのが普通だった",
      [E(lambda d: cw.pot(d, 480, 470, 280)), E(lambda d: words(d, 480, 800, "煮出し", 54, BAD)),
       E(lambda d: words(d, 960, 600, "vs", 90, TRIM)),
       E(lambda d: cw.dripper(d, 1440, 450, 260)), E(lambda d: words(d, 1440, 800, "ペーパーで濾す", 54, GOOD))],
      "実はこの町では、フィルターを使わず、鍋で煮出して飲むのが普通でした。その後の実験で、煮出したコーヒーに戻すとコレステロールが上がり、ペーパーで濾したコーヒーでは上がらないことが分かってきます。"),
-    ("quiz", 6, "濾したコーヒーを飲む人の死亡リスクは？", "飲まない人より高い", "飲まない人より低い", 1,
+    ("quiz", 4, "濾したコーヒーを飲む人の死亡リスクは？", "飲まない人より高い", "飲まない人より低い", 1,
      "そして37年後の2020年。50万人を調べた研究が出ます。クイズです。ペーパーで濾したコーヒーを飲む人の死亡リスクは、飲まない人と比べて、高かった？低かった？",
      "答えは「低かった」。一方、煮出したコーヒーは、60歳以上の男性で心臓病による死亡がやや高めでした。この研究チームには、37年前のあのテレ博士の名前もありました。"),
     ("card", 10, "差し引きで、いい派が3議席。69議席です。"),
@@ -247,32 +224,32 @@ SCENES = [
     ("card", 11, "2021年には、オーストラリアのチームが再び登場。1日6杯以上の人は、認知症の可能性が53%高いと発表します。悪い派、37議席まで回復。"),
     ("card", 12, "すると2022年、中国の研究チームがイギリスのデータで調べると、砂糖入りのコーヒーでも、1日1.5〜3.5杯なら死亡リスクが約3割低い。甘党にはうれしいニュースです。"),
 
-    # 第7話 日本 JACC
-    ("story", 7, "なぜ調べた？", "ここまでは「全体の平均」。血圧が高い人はどうなの？",
+    # 第5話 日本 JACC
+    ("story", 5, "なぜ調べた？", "ここまでは「全体の平均」。血圧が高い人はどうなの？",
      [E(lambda d: flag_jp(d, 480, 420, 160)), E(lambda d: meter(d, 480, 700, 150, needle=0.88)),
       E(lambda d: words(d, 1250, 540, "血圧が高い人も", 64)), E(lambda d: words(d, 1250, 660, "大丈夫？", 100, BAD))],
      "ここまでの研究は、いわば「全体の平均」。では、持病がある人はどうなのか。2022年の年末、日本の研究チームが、血圧に注目した結果を発表します。"),
-    ("story", 7, "どうやって？", "日本の約1万9千人を、血圧の高さでグループに分けて追いかけた",
+    ("story", 5, "どうやって？", "日本の約1万9千人を、血圧の高さでグループに分けて追いかけた",
      [E(lambda d: cw.crowd(d, 300, 420, 4, 2, 120)), E(lambda d: words(d, 1250, 500, "約1万9千人", 90)),
       E(lambda d: words(d, 1250, 630, "40〜79歳", 60))],
      "調べたのは、40歳から79歳の日本人、約1万9千人。血圧の高さでグループに分けて、その後を追いかけました。"),
-    ("quiz", 7, "血圧がかなり高い人が1日2杯以上飲むと？", "変わらない", "死亡リスク約2倍", 1,
+    ("quiz", 5, "血圧がかなり高い人が1日2杯以上飲むと？", "変わらない", "死亡リスク約2倍", 1,
      "クイズです。血圧がかなり高い人が、コーヒーを1日2杯以上飲むと、心臓病などで亡くなるリスクはどうなったでしょう？",
      "答えは「約2倍」。ところが、同じ人たちでも、緑茶では高くならなかったんです。血圧が高めの方は、ちょっと気にしておきたい結果ですね。"),
     ("card", 13, "悪い派、3議席を取り返します。"),
 
-    # 第8話 2023 くじ引き実験
-    ("story", 8, "弱点", "それまでの研究は「飲む人」と「飲まない人」を比べただけ",
+    # 第6話 2023 くじ引き実験
+    ("story", 6, "弱点", "それまでの研究は「飲む人」と「飲まない人」を比べただけ",
      [E(lambda d: bean(d, 520, 420, 280, fill=GOOD)), E(lambda d: mug(d, 680, 500, 120, fill=CREAM)),
       E(lambda d: words(d, 960, 560, "vs", 90, TRIM)), E(lambda d: bean(d, 1400, 420, 280, fill=FADED)),
       E(lambda d: words(d, 960, 780, "もともと健康な人が飲んでいるだけかも？", 50, BAD))],
      "ここで、それまでの研究の弱点を考えてみましょう。どれも、飲む人と飲まない人を比べただけ。もしかすると、もともと健康な人が、コーヒーを飲んでいるだけかもしれません。"),
-    ("story", 8, "どうやって？", "100人が14日間、スマホの指示で「飲む日」「飲まない日」を決めた",
+    ("story", 6, "どうやって？", "100人が14日間、スマホの指示で「飲む日」「飲まない日」を決めた",
      [E(lambda d: phone(d, 360, 590, 380, "今日は飲む", GOOD)), E(lambda d: phone(d, 640, 590, 380, "今日は飲まない", BAD)),
       E(lambda d: patch(d, 1050, 480, 220)), E(lambda d: watch(d, 1380, 560, 220)), E(lambda d: sensor(d, 1640, 520, 70)),
       E(lambda d: words(d, 1300, 760, "心電図・歩数・血糖値を記録", 46))],
      "そこで2023年、アメリカのチームが実験をします。健康な100人に、心電図のパッチ、歩数を測る腕時計、血糖値のセンサーをつけてもらい、14日間、毎日スマホに「今日は飲む」「今日は飲まない」と、くじで決めた指示を送ったんです。"),
-    ("quiz", 8, "飲む日、歩数はどうなった？", "増えた", "減った", 0,
+    ("quiz", 6, "飲む日、歩数はどうなった？", "増えた", "減った", 0,
      "クイズです。コーヒーを飲む日、歩数は増えた？減った？",
      "答えは「増えた」。飲む日は、1日約1,000歩多く歩いていました。でも、心臓の脈が乱れる回数は約1.5倍。睡眠は約36分短くなっていました。血糖値には差がありませんでした。"),
     ("card", 14, "2対1で、悪い派が3議席。"),
@@ -493,6 +470,7 @@ def build_plan():
             plan.append((fa, aa, dur(narr_a), (f"第{ch}話 答え", "AB"[ans] + "：" + (a, b)[ans], narr_a)))
             last_chapter = ch
         elif kind == "card":
+            last_chapter = None
             _, idx, narr = sc
             year, country, kindx, title, facts, picto, before, after, headline, source = cw.EVENTS[idx - 1]
             rows = [[(s, cw.color_of(c)) for s, c in row] for row in title]
@@ -535,27 +513,73 @@ def write_script(plan):
     return total
 
 
+def voice_for(i, narr, cache):
+    """場面のナレーション音声(キャッシュあり)。"""
+    import hashlib
+    import numpy as np
+    import soundfile as sf
+    from narrate import RATE, synth
+    os.makedirs(cache, exist_ok=True)
+    key = hashlib.md5(narr.encode()).hexdigest()[:12]
+    path = os.path.join(cache, f"{key}.wav")
+    if not os.path.exists(path):
+        sf.write(path, synth(narr), RATE)
+    a, _ = sf.read(path, dtype="float32")
+    return np.asarray(a)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     plan = build_plan()
+    if "--script" in sys.argv:
+        total = write_script(plan)
+        print(f"台本：{SCRIPT_MD}(約{int(total // 60)}分{int(total % 60):02d}秒、{len(plan)}場面)")
+        return
+    import numpy as np
+    import soundfile as sf
+    from narrate import RATE
+    LEAD, TAIL = 0.35, 0.55
+    voices = []
+    new_plan = []
+    for i, (fn, anim, sec, meta) in enumerate(plan):
+        v = voice_for(i, meta[2], os.path.join(OUT, "voice"))
+        extra = 2.0 if "クイズ" in meta[0] else 0.0   # クイズは考える時間
+        sec = max(anim + 0.3 if anim else 2.0, LEAD + len(v) / RATE + TAIL + extra)
+        if "研究カード" in meta[0]:
+            sec = max(sec, Card.ANIM_END + 0.8)
+        voices.append(v)
+        new_plan.append((fn, anim, sec, meta))
+        print(f"声 {i + 1:3d}/{len(plan)} {len(v) / RATE:5.1f}秒 {meta[0]}", flush=True)
+    plan = new_plan
     total = write_script(plan)
     print(f"台本：{SCRIPT_MD}(約{int(total // 60)}分{int(total % 60):02d}秒、{len(plan)}場面)")
-    if "--script" in sys.argv:
-        return
+
     seg_dir = os.path.join(OUT, "_seg")
     os.makedirs(seg_dir, exist_ok=True)
-    parts = []
+    parts, audio = [], []
     for i, (fn, anim, sec, (name, _, _)) in enumerate(plan):
         mp4 = os.path.join(seg_dir, f"{i:03d}.mp4")
         cw.clip(fn, min(anim, sec), sec, mp4, os.path.join(seg_dir, "_frames"))
         parts.append(mp4)
+        real = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", mp4],
+                                    capture_output=True, text=True).stdout)
+        n = int(round(real * RATE))
+        a = np.zeros(n, dtype="float32")
+        v = voices[i][: max(0, n - int(LEAD * RATE))]
+        a[int(LEAD * RATE): int(LEAD * RATE) + len(v)] = v
+        audio.append(a)
         print(f"{i + 1:3d}/{len(plan)} {name}", flush=True)
     lst = os.path.join(seg_dir, "list.txt")
     with open(lst, "w") as f:
         for p in parts:
             f.write(f"file '{os.path.abspath(p)}'\n")
+    silent = os.path.join(seg_dir, "video.mp4")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", silent], check=True)
+    wav = os.path.join(OUT, "narration.wav")
+    sf.write(wav, np.concatenate(audio), RATE)
     out = os.path.join(OUT, "coffee_story_draft.mp4")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", out], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-i", wav, "-c:v", "copy", "-c:a", "aac", "-b:a", "160k",
+                    "-shortest", out], check=True)
     shutil.rmtree(seg_dir)
     print("done:", out)
 

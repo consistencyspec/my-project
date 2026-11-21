@@ -1,0 +1,5 @@
+kokoro>=0.9
+misaki[ja]
+soundfile
+Pillow>=10
+# torch は CPU 版: pip install --index-url https://download.pytorch.org/whl/cpu torch

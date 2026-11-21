@@ -103,16 +103,38 @@ def bean(d, cx, top, h, fill=None, color=INK, w=LW):
     line(d, [(cx - bw * 1.3, top + h + 12), (cx + bw * 1.3, top + h + 12)], color, max(4, w // 2))
 
 
-def mug(d, x, y, s, color=INK, fill=None, steam=True, w=LW):
-    """マグカップの線画。(x, y)=左上、s=幅。"""
-    d.rounded_rectangle([x, y + 0.3 * s, x + 0.78 * s, y + 1.05 * s], radius=s * 0.16, outline=color,
-                        width=w, fill=fill or PANEL)
-    d.arc([x + 0.58 * s, y + 0.45 * s, x + 1.0 * s, y + 0.85 * s], -90, 90, fill=color, width=w)
+CUP_LINE = (107, 58, 34)     # こげ茶の太いふち
+CUP_BODY = (241, 231, 211)
+CUP_SHADE = (226, 210, 182)
+CUP_RIM = (250, 245, 234)
+COFFEE = (104, 44, 22)
+COFFEE_EDGE = (178, 112, 66)
+SAUCER = (236, 208, 172)
+
+
+def mug(d, x, y, s, color=None, fill=None, steam=True, w=None):
+    """ソーサーつきのコーヒーカップ(こげ茶の太いふち・クリーム色・上から見たコーヒー)。(x, y)=左上、s=幅。"""
+    lw = max(3, int(s * 0.055)) if w is None else max(3, int(min(w, s * 0.07)))
+    # ソーサー
+    d.ellipse([x - 0.1 * s, y + 0.88 * s, x + 0.98 * s, y + 1.12 * s], fill=SAUCER, outline=CUP_LINE, width=lw)
+    # 取っ手
+    d.ellipse([x + 0.6 * s, y + 0.44 * s, x + 1.0 * s, y + 0.8 * s], outline=CUP_LINE, width=int(lw * 2.6))
+    d.ellipse([x + 0.6 * s + lw * 0.9, y + 0.44 * s + lw * 0.9, x + 1.0 * s - lw * 0.9, y + 0.8 * s - lw * 0.9],
+              outline=CUP_BODY, width=max(2, int(lw * 0.8)))
+    # 本体(楕円の下半分)と影
+    d.chord([x, y - 0.1 * s, x + 0.82 * s, y + 0.98 * s], 0, 180, fill=CUP_BODY, outline=CUP_LINE, width=lw)
+    d.chord([x + 0.36 * s, y + 0.06 * s, x + 0.82 * s - lw, y + 0.98 * s - lw], 0, 90, fill=CUP_SHADE)
+    # 飲み口とコーヒー
+    d.ellipse([x, y + 0.32 * s, x + 0.82 * s, y + 0.56 * s], fill=CUP_RIM, outline=CUP_LINE, width=lw)
+    d.ellipse([x + 0.07 * s, y + 0.36 * s, x + 0.75 * s, y + 0.52 * s], fill=COFFEE_EDGE)
+    d.ellipse([x + 0.08 * s, y + 0.365 * s, x + 0.74 * s, y + 0.53 * s], fill=COFFEE)
+    d.rounded_rectangle([x + 0.5 * s, y + 0.39 * s, x + 0.6 * s, y + 0.415 * s], radius=s * 0.012, fill=(250, 240, 230))
+    d.rounded_rectangle([x + 0.63 * s, y + 0.395 * s, x + 0.67 * s, y + 0.42 * s], radius=s * 0.012, fill=(250, 240, 230))
     if steam:
         for i in range(2):
-            sx = x + 0.26 * s + i * 0.26 * s
-            line(d, [(sx, y + 0.2 * s), (sx + 0.06 * s, y + 0.12 * s), (sx, y + 0.04 * s),
-                     (sx + 0.06 * s, y - 0.04 * s)], color, max(4, w - 3))
+            sx = x + 0.3 * s + i * 0.22 * s
+            line(d, [(sx, y + 0.27 * s), (sx + 0.05 * s, y + 0.18 * s), (sx, y + 0.1 * s),
+                     (sx + 0.05 * s, y + 0.02 * s)], CUP_LINE, max(3, lw - 1))
 
 
 def meter(d, cx, cy, r, needle=0.85, color=INK, w=LW):
