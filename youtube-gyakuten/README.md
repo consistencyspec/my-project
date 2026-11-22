@@ -17,7 +17,7 @@
 - **動き**:カードはパーツが順に出る(パネルが左から入る→見出し→ピクトグラムがポンと出る→データ)。その後、右の議席が端から順にひっくり返り(席が弾む)、真ん中の**天秤がばねのように揺れて傾く**。過半数が入れ替わると「逆転！」のスタンプ。公的機関の判断など大きな動きは、全画面の「開票速報」でもう一度見せる
 - **通し動画(ナレーションなし)**:`python3 scripts/coffee_war.py` → `output/coffee_war/coffee_war_draft.mp4`(約2分20秒。16研究ぶんのカード画像も同じフォルダにできる)
 - **物語版(長い版・ナレーションつき)**:`.venv/bin/python scripts/coffee_story.py` → `output/coffee_story/coffee_story_draft.mp4`。主な6つの研究を「なぜ調べた→どうやって→クイズ→答え→研究カード→議席」の物語にしてつなぐ。ナレーションは Kokoro(Apache-2.0、声 `jf_alpha`、速さ1.43)で合成し、場面の長さは声の長さで自動で決まる。読み間違えやすい数字・記号は `scripts/narrate.py` の読み方表で直してから合成する。台本は `content/coffee_war_story.md`(同じスクリプトから自動で作る。`--script` で台本だけ作り直せる)
-- **サムネイル(3案)**:`python3 scripts/thumbnail.py` → `output/thumbnails/thumb_A〜C.png`(1280x720)。A=「体にいい？悪い？」、B=議席と「逆転！」、C=「発がん性の正体はタバコだった？」。YouTube の「テストと比較」で3案を比べる
+- **サムネイル**:タイトル画面と同じ形で全回統一(上に「新常識クロニクル」、大きな題名、副題、2つの派のラベル)。`python3 scripts/thumbnail.py` → `output/thumbnails/<回>.png`(1280x720)。新しい回は `thumbnail.py` の EPISODES に題名と副題を足す
 - 作り方:`python3 scripts/frames.py` → `output/frames/` に画像と議席アニメ(mp4)ができる(GitHub には上げない)。日本語フォントは Noto CJK(Linux なら `fonts-noto-cjk-extra`)
 
 ## 動画の型

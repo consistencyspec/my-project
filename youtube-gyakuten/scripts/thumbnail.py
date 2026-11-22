@@ -1,82 +1,50 @@
-"""コーヒー10年戦争のサムネイル(3案)。1920x1080 で描いて 1280x720 に縮める。
+"""新常識クロニクル：タイトル画面とサムネイルの共通テンプレート(全回この形で統一)。
 
-  python3 scripts/thumbnail.py   -> output/thumbnails/thumb_A.png 〜 thumb_C.png
+形：舞台の背景/上に「新常識クロニクル」(金)/大きな題名(白)/副題(白)/2つの派のラベル(オレンジ vs 青)
+動画のタイトル画面(1920x1080)とサムネイル(1280x720)は、同じ series_card() から作る。
+
+  python3 scripts/thumbnail.py   -> output/thumbnails/coffee_war.png
 """
 import os
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from frames import BAD, GOOD, TRIM, WHITE, font, mug, stage  # noqa: E402
-from motion import reverse_stamp, seats_motion  # noqa: E402
+from frames import BAD, GOOD, TRIM, W, WHITE, font, stage, text  # noqa: E402
 
+SERIES = "新常識クロニクル"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "thumbnails")
-DARK = (20, 26, 44)
 
 
-def big(d, xy, s, size, fill, anchor="la", stroke=14):
-    d.text(xy, s, font=font(size), fill=fill, anchor=anchor, stroke_width=stroke, stroke_fill=DARK)
+def series_card(title, subtitle, left="いい派", right="悪い派"):
+    """1920x1080 のタイトル画面。題名・副題が長いときは自動で文字を小さくする。"""
+    im, d = stage()
+    text(d, (W / 2, 300), SERIES, 72, TRIM, anchor="mm")
+    ts = int(min(170, 170 * 1640 / d.textlength(title, font=font(170))))
+    text(d, (W / 2, 470), title, ts, WHITE, anchor="mm")
+    ss = int(min(72, 72 * 1640 / d.textlength(subtitle, font=font(72))))
+    text(d, (W / 2, 630), subtitle, ss, WHITE, anchor="mm")
+    for cx, label, color in ((W / 2 - 230, left, GOOD), (W / 2 + 230, right, BAD)):
+        lw = max(300, d.textlength(label, font=font(60)) + 80)
+        d.rounded_rectangle([cx - lw / 2, 730, cx + lw / 2, 830], radius=50, fill=color)
+        text(d, (cx, 780), label, 60, WHITE, anchor="mm")
+    text(d, (W / 2, 780), "vs", 56, TRIM, anchor="mm")
+    return im
 
 
-def mixed(d, x, y, parts, size, anchor_center=False, stroke=14):
-    f = font(size)
-    total = sum(d.textlength(s, font=f) for s, _ in parts)
-    if anchor_center:
-        x -= total / 2
-    for s, c in parts:
-        d.text((x, y), s, font=f, fill=c, stroke_width=stroke, stroke_fill=DARK)
-        x += d.textlength(s, font=f)
-
-
-def band(d, y, h, s, color, size=64):
-    d.rectangle([0, y, 1920, y + h], fill=color)
-    d.text((960, y + h / 2), s, font=font(size), fill=WHITE, anchor="mm")
-
-
-def save(im, name):
+def thumbnail(name, title, subtitle, left="いい派", right="悪い派"):
     os.makedirs(OUT, exist_ok=True)
-    path = os.path.join(OUT, name)
-    im.resize((1280, 720), Image.LANCZOS).save(path)
+    path = os.path.join(OUT, f"{name}.png")
+    series_card(title, subtitle, left, right).resize((1280, 720), Image.LANCZOS).save(path)
     return path
 
 
-def thumb_a():
-    """コーヒー、体にいい？悪い？(カップ+天秤つき議席)"""
-    im, d = stage()
-    mug(d, 110, 300, 700)
-    big(d, (960, 170), "コーヒーは", 150, WHITE)
-    mixed(d, 960, 360, [("体に", WHITE), ("いい", GOOD), ("？", WHITE)], 170)
-    mixed(d, 960, 580, [("悪い", BAD), ("？", WHITE)], 190)
-    band(d, 900, 140, "研究30年の「逆転劇」を議席で見る", (176, 38, 48), 70)
-    return save(im, "thumb_A.png")
-
-
-def thumb_b():
-    """議席と「逆転！」が主役"""
-    im, d = stage()
-    seats_motion(d, 960, 860, 640, 53, 53, 1.0)
-    reverse_stamp(d, 960, 470, 190, 1.0)
-    big(d, (960, 190), "コーヒー10年戦争", 130, WHITE, anchor="mm")
-    mug(d, 80, 620, 330, steam=False)
-    mug(d, 1510, 620, 330, steam=False)
-    big(d, (230, 560), "いい派", 90, GOOD, anchor="mm")
-    big(d, (1690, 560), "悪い派", 90, BAD, anchor="mm")
-    return save(im, "thumb_B.png")
-
-
-def thumb_c():
-    """「発がん性」の正体はタバコだった?(意外性)"""
-    im, d = stage()
-    mug(d, 1330, 330, 520)
-    d.rounded_rectangle([90, 150, 760, 290], radius=70, fill=BAD)
-    d.text((425, 220), "WHOの「発がん性」", font=font(70), fill=WHITE, anchor="mm")
-    big(d, (90, 340), "正体は", 160, WHITE)
-    mixed(d, 90, 530, [("タバコ", GOOD), ("だった？", WHITE)], 180)
-    band(d, 900, 140, "コーヒー論争30年 ── 新常識クロニクル", DARK, 64)
-    return save(im, "thumb_C.png")
-
+# 回ごとの設定(新しい回はここに足す)
+EPISODES = {
+    "coffee_war": ("コーヒー10年戦争", "「いい派」vs「悪い派」論争の行方"),
+}
 
 if __name__ == "__main__":
-    for f in (thumb_a, thumb_b, thumb_c):
-        print(f())
+    for name, args in EPISODES.items():
+        print(thumbnail(name, *args))

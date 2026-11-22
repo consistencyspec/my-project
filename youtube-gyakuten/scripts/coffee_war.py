@@ -370,16 +370,9 @@ def color_of(c):
 
 
 def title_card(path):
-    im, d = stage()
-    text(d, (W / 2, 300), "新常識クロニクル", 72, TRIM, anchor="mm")
-    text(d, (W / 2, 470), "コーヒー10年戦争", 170, WHITE, anchor="mm")
-    text(d, (W / 2, 630), "「いい派」vs「悪い派」議席の行方", 72, WHITE, anchor="mm")
-    d.rounded_rectangle([W / 2 - 380, 730, W / 2 - 80, 830], radius=50, fill=GOOD)
-    text(d, (W / 2 - 230, 780), "いい派", 60, WHITE, anchor="mm")
-    text(d, (W / 2, 780), "vs", 56, TRIM, anchor="mm")
-    d.rounded_rectangle([W / 2 + 80, 730, W / 2 + 380, 830], radius=50, fill=BAD)
-    text(d, (W / 2 + 230, 780), "悪い派", 60, WHITE, anchor="mm")
-    im.save(path)
+    """タイトル画面(サムネイルと同じテンプレート)。"""
+    from thumbnail import EPISODES, series_card
+    series_card(*EPISODES["coffee_war"]).save(path)
 
 
 def rules_card(path):
