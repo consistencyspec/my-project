@@ -592,7 +592,23 @@ def write_script(plan):
               "- そのほかは `content/coffee_war.md` の「要確認」と同じ", ""]
     with open(SCRIPT_MD, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+    write_narration_txt(plan)
     return total
+
+
+def write_narration_txt(plan):
+    """外部のナレーション生成サービスに渡すテキスト(場面の見出しつき/本文だけ)。"""
+    base = os.path.splitext(SCRIPT_MD)[0].replace("_story", "")
+    t, marked, plain = 0.0, [], []
+    for i, (_, _, sec, (name, _, narr)) in enumerate(plan, 1):
+        m, s_ = divmod(int(t), 60)
+        marked.append(f"【{i:02d}】{m}:{s_:02d} {name}\n{narr}\n")
+        plain.append(narr + "\n")
+        t += sec
+    with open(base + "_narration.txt", "w", encoding="utf-8") as f:
+        f.write("\n".join(marked))
+    with open(base + "_narration_plain.txt", "w", encoding="utf-8") as f:
+        f.write("\n".join(plain))
 
 
 def voice_for(i, narr, cache):
