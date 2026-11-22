@@ -13,7 +13,7 @@ MM_MODEL = "speech-2.8-hd"
 MM_VOICE = "Japanese_IntellectualSenior"   # 知的で落ち着いた男性の声
 MM_SPEED = 1.2
 # 読み間違えやすい語(元の文字/読み方)。MiniMax の pronunciation_dict に渡す
-MM_DICT = ["1日/いちにち", "悪い派/わるいは", "いい派/いいは", "濾した/こした", "濾す/こす", "膵臓/すいぞう", "8杯/はっぱい", "6杯/ろっぱい",
+MM_DICT = ["コーヒー/こーひー", "1日/いちにち", "悪い派/わるいは", "いい派/いいは", "濾した/こした", "濾す/こす", "膵臓/すいぞう", "8杯/はっぱい", "6杯/ろっぱい",
            "1杯/いっぱい", "10杯/じゅっぱい", "14日間/じゅうよっかかん", "644人/ろっぴゃくよんじゅうよにん"]
 
 # Kokoro
@@ -68,7 +68,41 @@ _pipe = None
 
 
 def voice_key():
-    return f"minimax|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
+    return f"minimax2|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
+
+
+def big_kana(n):
+    """0〜99,999,999 の数をかなに(万まで)。"""
+    man, rest = divmod(n, 10000)
+    out = (kana(man) + "まん") if man else ""
+    return out + (kana(rest) if rest else "")
+
+
+def jp_number(s):
+    """「52万」「1万9千」「1,000」「100」→ 数。読めなければ None。"""
+    s = s.replace(",", "")
+    m = re.fullmatch(r"(?:(\d+)万)?(?:(\d+)千)?(\d+)?", s)
+    if not m or not any(m.groups()):
+        return None
+    man, sen, rest = (int(g) if g else 0 for g in m.groups())
+    return man * 10000 + sen * 1000 + rest
+
+
+def auto_dict(text):
+    """文章の中の「年号」と「数+人」の読み方を、自動で辞書にする。"""
+    out = []
+    for y in sorted(set(re.findall(r"(\d{4})年", text))):
+        n = int(y)
+        out.append(f"{y}年/{('にせん' if n // 1000 == 2 else 'せん') + kana(n % 1000)}ねん")
+    for num in sorted(set(re.findall(r"([\d,]+万?(?:\d+千)?|\d+万\d+千)人", text)), key=len, reverse=True):
+        n = jp_number(num)
+        if n is None:
+            continue
+        small = {1: "ひとり", 2: "ふたり", 4: "よにん"}
+        out.append(f"{num}人/{small.get(n, big_kana(n) + 'にん')}")
+    if "数十万人" in text:
+        out.append("数十万人/すうじゅうまんにん")
+    return out
 
 
 def synth_minimax(text):
@@ -79,7 +113,7 @@ def synth_minimax(text):
     import soundfile as sf
     body = {"model": MM_MODEL, "text": text.replace("……", "、"), "stream": False, "language_boost": "Japanese",
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
-            "pronunciation_dict": {"tone": MM_DICT},
+            "pronunciation_dict": {"tone": MM_DICT + auto_dict(text)},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
