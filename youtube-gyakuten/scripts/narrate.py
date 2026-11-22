@@ -1,4 +1,4 @@
-"""ナレーションの音声を Kokoro(Apache-2.0)で作る。
+"""ナレーションの音声を作る。ENGINE で MiniMax(有料 API)か Kokoro(Apache-2.0、無料)を選ぶ。
 
 読み間違えやすい数字・記号を、読み方(かな)に直してから合成する。
   .venv/bin/python scripts/narrate.py "<文章>" out.wav     # 1つだけ作る(確認用)
@@ -6,6 +6,17 @@
 import re
 import sys
 
+ENGINE = "minimax"   # "minimax" か "kokoro"
+
+# MiniMax(api.minimax.io。API キーは環境のネットワーク設定でプロキシが付ける)
+MM_MODEL = "speech-2.8-hd"
+MM_VOICE = "Japanese_IntellectualSenior"   # 知的で落ち着いた男性の声
+MM_SPEED = 1.2
+# 読み間違えやすい語(元の文字/読み方)。MiniMax の pronunciation_dict に渡す
+MM_DICT = ["悪い派/わるいは", "いい派/いいは", "濾した/こした", "濾す/こす", "膵臓/すいぞう", "8杯/はっぱい", "6杯/ろっぱい",
+           "1杯/いっぱい", "10杯/じゅっぱい", "14日間/じゅうよっかかん", "644人/ろっぴゃくよんじゅうよにん"]
+
+# Kokoro
 VOICE = "jf_alpha"   # 落ち着いた女性の声
 SPEED = 1.43         # 0.95 の1.5倍(テンポよく)
 RATE = 24000
@@ -56,8 +67,39 @@ def reading(text):
 _pipe = None
 
 
+def voice_key():
+    return f"minimax|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
+
+
+def synth_minimax(text):
+    import io
+    import json
+    import time
+    import urllib.request
+    import soundfile as sf
+    body = {"model": MM_MODEL, "text": text.replace("……", "、"), "stream": False, "language_boost": "Japanese",
+            "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
+            "pronunciation_dict": {"tone": MM_DICT},
+            "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
+    for attempt in range(4):
+        req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
+                                     headers={"Authorization": "Bearer proxy-injected", "Content-Type": "application/json"})
+        j = json.load(urllib.request.urlopen(req, timeout=180))
+        code = j["base_resp"]["status_code"]
+        if code == 0:
+            a, sr = sf.read(io.BytesIO(bytes.fromhex(j["data"]["audio"])), dtype="float32")
+            return a if a.ndim == 1 else a.mean(axis=1)
+        if code in (1002, 1039, 1001):  # 混雑・時間切れは待って再試行
+            time.sleep(5 * (attempt + 1))
+            continue
+        raise RuntimeError(f"MiniMax error {code}: {j['base_resp']['status_msg']}")
+    raise RuntimeError("MiniMax: retries exhausted")
+
+
 def synth(text):
     """文章 → 音声(numpy, 24kHz)。"""
+    if ENGINE == "minimax":
+        return synth_minimax(text)
     global _pipe
     import numpy as np
     if _pipe is None:

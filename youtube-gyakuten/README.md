@@ -16,7 +16,7 @@
 - **議会の画面**:「開票速報」のラベルと100議席の半円。研究が出るたびに席が順に色を変える
 - **動き**:カードはパーツが順に出る(パネルが左から入る→見出し→ピクトグラムがポンと出る→データ)。その後、右の議席が端から順にひっくり返り(席が弾む)、真ん中の**天秤がばねのように揺れて傾く**。過半数が入れ替わると「逆転！」のスタンプ。公的機関の判断など大きな動きは、全画面の「開票速報」でもう一度見せる
 - **通し動画(ナレーションなし)**:`python3 scripts/coffee_war.py` → `output/coffee_war/coffee_war_draft.mp4`(約2分20秒。16研究ぶんのカード画像も同じフォルダにできる)
-- **物語版(長い版・ナレーションつき)**:`.venv/bin/python scripts/coffee_story.py` → `output/coffee_story/coffee_story_draft.mp4`。主な6つの研究を「なぜ調べた→どうやって→クイズ→答え→研究カード→議席」の物語にしてつなぐ。ナレーションは Kokoro(Apache-2.0、声 `jf_alpha`、速さ1.43)で合成し、場面の長さは声の長さで自動で決まる。読み間違えやすい数字・記号は `scripts/narrate.py` の読み方表で直してから合成する。台本は `content/coffee_war_story.md`(同じスクリプトから自動で作る。`--script` で台本だけ作り直せる)
+- **物語版(長い版・ナレーションつき)**:`.venv/bin/python scripts/coffee_story.py` → `output/coffee_story/coffee_story_draft.mp4`。主な6つの研究を「なぜ調べた→どうやって→クイズ→答え→研究カード→議席」の物語にしてつなぐ。ナレーションは MiniMax(有料 API、モデル speech-2.8-hd、声 `Japanese_IntellectualSenior`、速さ1.2)で合成し(`scripts/narrate.py` の ENGINE を "kokoro" にすると無料の Kokoro に戻せる)、場面の長さは声の長さで自動で決まる。読み間違えやすい数字・記号は `scripts/narrate.py` の読み方表で直してから合成する。台本は `content/coffee_war_story.md`(同じスクリプトから自動で作る。`--script` で台本だけ作り直せる)
 - **サムネイル**:タイトル画面と同じ形で全回統一(上に「新常識クロニクル」、大きな題名、副題、2つの派のラベル)。`python3 scripts/thumbnail.py` → `output/thumbnails/<回>.png`(1280x720)。新しい回は `thumbnail.py` の EPISODES に題名と副題を足す
 - 作り方:`python3 scripts/frames.py` → `output/frames/` に画像と議席アニメ(mp4)ができる(GitHub には上げない)。日本語フォントは Noto CJK(Linux なら `fonts-noto-cjk-extra`)
 
@@ -86,3 +86,9 @@ python3.12 -m venv .venv
 .venv/bin/python -m unidic download
 ```
 Python 3.13 では Kokoro が入らないので 3.12 を使う。日本語フォントは Noto CJK(`fonts-noto-cjk-extra`)。
+
+## MiniMax のナレーション
+- API キーは、このクラウド環境のネットワーク設定(api.minimax.io)に保存してあり、通信のときに自動で付く。コードやファイルにキーは書かない
+- 料金は前払いの残高から文字数ぶん引かれる(HD モデルで100万字あたり約100ドル。1本約4,000字で約0.4ドル)
+- 読み間違えやすい語は `scripts/narrate.py` の `MM_DICT` に「元の文字/読み方」で足す
+- 一度作った声は `output/coffee_story/voice/` に保存され、同じ文章なら作り直さない(費用がかからない)

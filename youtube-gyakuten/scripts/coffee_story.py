@@ -119,8 +119,14 @@ E = lambda f: f  # noqa: E731
 #   ("seats", 研究番号, ナレーション)        → 全画面の開票速報
 #   ("headlines", ナレーション) / ("title", ナレーション) / ("rules", ナレーション) / ("final", ナレーション)
 SCENES = [
+    # 番組紹介(新常識クロニクルとは)
+    ("intro_myths", "「卵は1日1個まで」「1日1万歩歩きなさい」「朝ごはんは絶対に食べなさい」。当たり前だと思っていたその常識、本当に、いまも正しいんでしょうか？",
+     ["卵は1日1個まで", "1日1万歩", "朝ごはんは絶対"]),
+    ("intro_flip", "研究の世界では、一度「決着した」はずの話が、何年かたつと、あっさりひっくり返ることがよくあります。"),
+    ("intro_logo", "新常識クロニクルは、そんな健康や暮らしの論争の歴史を、年表でたどり、いま、どちらが優勢なのかを、データで判定する番組です。"),
+
     ("headlines", "朝の一杯のコーヒー。至福の時間ですよね。でもニュースを見るたびに、こう言われてきませんでしたか？「コーヒーで長生き！」「いや、発がん性があるかも」「1日3杯が最強！」「6杯で心臓に負担」……結局どっちなの？"),
-    ("title", "新常識クロニクル。今日はこの戦いに決着をつけます。題して、コーヒー10年戦争。研究が出るたびに「いい派」と「悪い派」の議席がひっくり返った、波乱の歴史をたどります。"),
+    ("title", "今日はこの戦いに決着をつけます。題して、コーヒー10年戦争。研究が出るたびに「いい派」と「悪い派」の議席がひっくり返った、波乱の歴史をたどります。"),
     # ルール説明(約1分15秒)
     ("rules_intro", "この番組では、研究の歴史を選挙に見立てて見ていきます。議会の議席は全部で100。オレンジが「いい派」、青が「悪い派」です。スタートは50対50の互角。真ん中の天秤は、いまどちらが優勢かを表しています。"),
     ("rules", "新しい研究や発表が出るたびに、勝った側に議席が移ります。動く議席の数は、その研究の重みで決まります。WHOや国、裁判所などの公的な判断は15議席。たくさんの研究をまとめた分析は10議席。数十万人を何年も追いかけた調査は6議席。対象や条件が限られた結果は3議席です。",
@@ -265,7 +271,8 @@ SCENES = [
 
     ("final", "最終結果、いい派76議席。それでも当選確実が出せないのは、ほとんどが飲む人と飲まない人を比べただけの研究だからです。くじ引きの実験で歩数が増えていたように、コーヒーを飲む人がもともと活動的なだけ、という可能性も残っています。"),
     ("summary", "今日のまとめです。1日3〜4杯くらいまでなら、体にいいという研究が多い。飲むなら朝に、濾したコーヒーを、熱すぎない温度で。そして、妊娠中の方と、血圧がかなり高い方は控えめに。心配な方は、お医者さんに相談してくださいね。30年戦っても、まだ決着がつかないコーヒー論争。次の研究で、また議席がひっくり返るかもしれません。"),
-    ("next", "次回の逆転論争は「卵は1日1個まで」。チャンネル登録して、待っていてください！"),
+    ("next", "次回のテーマは「卵は1日1個まで」。こちらも、優勢が大きく揺れ動きます。"),
+    ("outro", "新常識クロニクルでは、これからも、健康や暮らしの「いい派」と「悪い派」の論争を、どんどん分析していきます。次に取り上げてほしい論争があれば、ぜひコメントで教えてください。チャンネル登録と高評価も、よろしくお願いします！"),
 ]
 
 STEP_COLORS = {"どうやって？": BAD, "なぜ調べた？": INK}
@@ -489,6 +496,111 @@ def summary_frame(t):
     return im
 
 
+def intro_myths_maker(narr, keys):
+    """「常識」のチップが言葉に合わせて出て、最後に全部に「？」がつく。"""
+    def make(alen, lead):
+        times = [lead + narr.index(k) / len(narr) * alen - 0.1 for k in keys]
+        q_t = lead + narr.index("本当") / len(narr) * alen
+        spots = [(560, 330), (1360, 470), (700, 650)]
+
+        def frame(t):
+            im, d = stage()
+            text(d, (W / 2, 160), "その常識、", 64, TRIM, anchor="mm")
+            for i, (k, (x, y)) in enumerate(zip(keys, spots)):
+                kk = seg(t, times[i], times[i] + 0.35)
+                if kk <= 0:
+                    continue
+                size = int(64 * (0.5 + 0.5 * out_back(kk)))
+                tw = d.textlength(k, font=font(size)) + size * 1.4
+                d.rounded_rectangle([x - tw / 2, y - size, x + tw / 2, y + size], radius=size * 0.4, fill=WHITE,
+                                    outline=INK, width=6)
+                text(d, (x, y), k, size, INK, anchor="mm")
+                qk = seg(t, q_t + i * 0.25, q_t + i * 0.25 + 0.35)
+                if qk > 0:
+                    r = 52 * out_back(qk)
+                    d.ellipse([x + tw / 2 - r, y - size - r * 0.6, x + tw / 2 + r, y - size + r * 1.4], fill=(220, 60, 60))
+                    text(d, (x + tw / 2, y - size + r * 0.4), "？", int(70 * min(1, qk * 1.5)), WHITE, anchor="mm")
+            k2 = seg(t, q_t + 0.9, q_t + 1.3)
+            if k2 > 0:
+                text(d, (W / 2, 900), "本当に、いまも正しい？", int(84 * (0.6 + 0.4 * out_back(k2))), WHITE, anchor="mm")
+            return im
+        return frame, q_t + 1.6
+    return WithAudio(make)
+
+
+def intro_flip_frame(t):
+    """「常識」のカードがくるっと裏返って「新常識」になる。"""
+    import math as m
+    im, d = stage()
+    k = seg(t, 1.0, 2.2)
+    ang = m.pi * (1 - (1 - k) ** 2)
+    w = abs(m.cos(ang))
+    front = ang < m.pi / 2
+    cx, cy, cw_, ch = W / 2, 520, 560, 300
+    col, label, tc = (WHITE, "常識", INK) if front else (GOOD, "新常識", WHITE)
+    if w > 0.02:
+        d.rounded_rectangle([cx - cw_ * w, cy - ch, cx + cw_ * w, cy + ch], radius=40, fill=col, outline=INK, width=8)
+        if w > 0.3:
+            text(d, (cx, cy), label, int(170 * w), tc, anchor="mm")
+    a = seg(t, 2.3, 2.7)
+    if a > 0:
+        text(d, (W / 2, 920), "決着したはずの話が、ひっくり返る", int(60 * (0.7 + 0.3 * out_back(a))), WHITE, anchor="mm")
+    return im
+
+
+def intro_logo_frame(t):
+    im, d = stage()
+    k = out_back(seg(t, 0.2, 0.8))
+    if k > 0:
+        text(d, (W / 2, 420), "新常識クロニクル", int(190 * (0.5 + 0.5 * k)), WHITE, anchor="mm")
+    a = seg(t, 0.9, 1.3)
+    if a > 0:
+        text(d, (W / 2, 600), "論争の歴史を、データで判定する", 70, tuple(int(TRIM[j] * a + 30 * (1 - a)) for j in range(3)), anchor="mm")
+    for i, (lab, c, x) in enumerate((("いい派", GOOD, W / 2 - 230), ("悪い派", BAD, W / 2 + 230))):
+        kk = seg(t, 1.5 + i * 0.25, 1.9 + i * 0.25)
+        if kk > 0:
+            sc = 0.6 + 0.4 * out_back(kk)
+            d.rounded_rectangle([x - 150 * sc, 780 - 50 * sc, x + 150 * sc, 780 + 50 * sc], radius=50 * sc, fill=c)
+            text(d, (x, 780), lab, int(60 * sc), WHITE, anchor="mm")
+    if t > 1.9:
+        text(d, (W / 2, 780), "vs", 56, TRIM, anchor="mm")
+    return im
+
+
+def outro_frame(t):
+    im, d = stage()
+    k = out_back(seg(t, 0.2, 0.7))
+    if k > 0:
+        text(d, (W / 2, 230), "新常識クロニクル", int(120 * (0.5 + 0.5 * k)), WHITE, anchor="mm")
+    a = seg(t, 0.6, 1.0)
+    if a > 0:
+        text(d, (W / 2, 350), "これからも、論争をどんどん分析します", 56, tuple(int(TRIM[j] * a + 30 * (1 - a)) for j in range(3)), anchor="mm")
+    topics = ["卵は1日1個まで？", "お酒は少しなら体にいい？", "1日1万歩は必要？", "サウナは長生きのもと？", "朝ごはんは食べるべき？", "塩は減らすほどいい？"]
+    for i, tp in enumerate(topics):
+        kk = seg(t, 1.2 + i * 0.35, 1.55 + i * 0.35)
+        if kk <= 0:
+            continue
+        x, y = (560 if i % 2 == 0 else 1360), 480 + (i // 2) * 110
+        sc = 0.6 + 0.4 * out_back(kk)
+        tw = d.textlength(tp, font=font(int(46 * sc))) + 60 * sc
+        d.rounded_rectangle([x - tw / 2, y - 42 * sc, x + tw / 2, y + 42 * sc], radius=42 * sc, fill=(46, 58, 92))
+        text(d, (x, y), tp, int(46 * sc), WHITE, anchor="mm")
+    b = seg(t, 3.6, 4.1)
+    if b > 0:
+        sc = 0.6 + 0.4 * out_back(b)
+        cx, cy = W / 2, 850
+        bw, bh = 330 * sc, 62 * sc
+        d.rounded_rectangle([cx - bw, cy - bh, cx + bw, cy + bh], radius=bh, fill=(220, 40, 40))
+        text(d, (cx, cy), "チャンネル登録", int(64 * sc), WHITE, anchor="mm")
+        # ベル
+        bx = cx + bw + 70 * sc
+        d.pieslice([bx - 36 * sc, cy - 44 * sc, bx + 36 * sc, cy + 28 * sc], 180, 360, fill=TRIM)
+        d.rectangle([bx - 36 * sc, cy - 8 * sc, bx + 36 * sc, cy + 20 * sc], fill=TRIM)
+        d.ellipse([bx - 10 * sc, cy + 18 * sc, bx + 10 * sc, cy + 38 * sc], fill=TRIM)
+        text(d, (cx, cy + bh + 40 * sc), "高評価・コメントもよろしくお願いします", int(36 * sc), WHITE, heavy=False, anchor="mm")
+    return im
+
+
 def next_frame(t):
     im, d = stage()
     text(d, (W / 2, 300), "次回の逆転論争", 70, TRIM, anchor="mm")
@@ -537,6 +649,14 @@ def build_plan():
             plan.append((lambda t: cw.final_frame(cw.EVENTS[-1][7], t), 2.6, dur(sc[1]), ("結果", "", sc[1])))
         elif kind == "summary":
             plan.append((summary_frame, 11.0, dur(sc[1]), ("まとめ", "", sc[1])))
+        elif kind == "intro_myths":
+            plan.append((intro_myths_maker(sc[1], sc[2]), 0, dur(sc[1]), ("番組紹介", "その常識、本当に正しい？", sc[1])))
+        elif kind == "intro_flip":
+            plan.append((intro_flip_frame, 2.8, dur(sc[1]), ("番組紹介", "常識 → 新常識", sc[1])))
+        elif kind == "intro_logo":
+            plan.append((intro_logo_frame, 2.2, dur(sc[1]), ("番組紹介", "新常識クロニクル:論争の歴史を、データで判定する", sc[1])))
+        elif kind == "outro":
+            plan.append((outro_frame, 4.2, dur(sc[1]), ("エンディング", "チャンネル登録・今後の論争", sc[1])))
         elif kind == "next":
             plan.append((next_frame, 1.0, dur(sc[1]), ("次回予告", "", sc[1])))
         elif kind == "story":
@@ -618,8 +738,8 @@ def voice_for(i, narr, cache):
     import soundfile as sf
     from narrate import RATE, synth
     os.makedirs(cache, exist_ok=True)
-    from narrate import SPEED as VSPEED, VOICE
-    key = hashlib.md5(f"{VOICE}|{VSPEED}|{narr}".encode()).hexdigest()[:12]
+    from narrate import voice_key
+    key = hashlib.md5(f"{voice_key()}|{narr}".encode()).hexdigest()[:12]
     path = os.path.join(cache, f"{key}.wav")
     if not os.path.exists(path):
         sf.write(path, synth(narr), RATE)
