@@ -573,7 +573,7 @@ def write_script(plan):
     total = 0.0
     lines = ["# 台本(物語版):コーヒー10年戦争 〜「いい派」vs「悪い派」論争の行方〜", "",
              "作成：2026-11-21 / 状態：初稿。`scripts/coffee_story.py` の SCENES から自動で作っています(台本を直すときは SCENES を直す)。", "",
-             f"ナレーション合計：約{sum(len(p[3][2]) for p in plan):,}字。場面の長さは 1秒{SPEED}字で計算。", "",
+             f"ナレーション合計：約{sum(len(p[3][2]) for p in plan):,}字。場面の長さは合成したナレーション(1.5倍の速さ)の長さで決まる。", "",
              "| 時間 | 場面 | 画面のテロップ・内容 | ナレーション |", "|---|---|---|---|"]
     for _, _, sec, (name, tl, narr) in plan:
         m, s = divmod(int(total), 60)
