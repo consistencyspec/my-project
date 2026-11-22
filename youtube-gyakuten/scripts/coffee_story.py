@@ -21,7 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "output", "coffee_story")
 SCRIPT_MD = os.path.join(HERE, "..", "content", "coffee_war_story.md")
 FPS = 30
-SPEED = 5.2       # ナレーションの速さ(字/秒)≒ 1分312字
+SPEED = 8.0       # ナレーションの速さの目安(字/秒)。実際の長さは合成した声で決まる
 CREAM = cw.CREAM
 FADED = (205, 208, 216)
 
@@ -121,9 +121,14 @@ E = lambda f: f  # noqa: E731
 SCENES = [
     ("headlines", "朝の一杯のコーヒー。至福の時間ですよね。でもニュースを見るたびに、こう言われてきませんでしたか？「コーヒーで長生き！」「いや、発がん性があるかも」「1日3杯が最強！」「6杯で心臓に負担」……結局どっちなの？"),
     ("title", "新常識クロニクル。今日はこの戦いに決着をつけます。題して、コーヒー10年戦争。研究が出るたびに「いい派」と「悪い派」の議席がひっくり返った、波乱の歴史をたどります。"),
-    ("final", "先に結果を言ってしまうと、いまの議席はいい派76、悪い派24。いい派の圧勝です。ところが、選挙特番でおなじみの「当選確実」は、まだ出せません。その理由は、この戦いの歴史を見ると分かります。"),
-    ("rules", "ルールはシンプル。研究や発表が出るたびに、勝った側に議席が移ります。WHOや国、裁判所の判断は15議席。たくさんの研究をまとめたものは10議席。数十万人の調査は6議席。条件つきの結果は3議席です。"),
-    ("seats0", "スタートは50対50。それでは、30年以上前から始まった戦いの、第1話です。"),
+    # ルール説明(約1分15秒)
+    ("rules_intro", "この番組では、研究の歴史を選挙に見立てて見ていきます。議会の議席は全部で100。オレンジが「いい派」、青が「悪い派」です。スタートは50対50の互角。真ん中の天秤は、いまどちらが優勢かを表しています。"),
+    ("rules", "新しい研究や発表が出るたびに、勝った側に議席が移ります。動く議席の数は、その研究の重みで決まります。WHOや国、裁判所などの公的な判断は15議席。たくさんの研究をまとめた分析は10議席。数十万人を何年も追いかけた調査は6議席。対象や条件が限られた結果は3議席です。",
+     ["公的な判断", "まとめた分析", "数十万人", "条件が限られた"]),
+    ("demo", "たとえば、数十万人の調査で「コーヒーは体にいい」という結果が出たら、6議席がいい派に移って、56対44。天秤も、いい派の側にぐっと傾きます。", 50, 56, "数十万人の調査で「体にいい」"),
+    ("demo", "そして、負けていた側が逆転して過半数を取ると……「逆転！」です。この30年で、何回逆転が起きるのか。注目してください。", 47, 53, "負けていた側が過半数を取ると"),
+    ("quiz_preview", "途中にはクイズも出します。研究の結果がどっちだったか、一緒に予想しながら見てくださいね。ただし、議席はあくまで分かりやすくするための目安。最後に、本当に決着がついたのかどうかも、お話しします。"),
+    ("chapter_start", "それでは、行ってみましょう！第1話。すべての始まりは、1981年のアメリカです。", "第1話", "すべての始まり"),
 
     # 第1話 1991
     ("story", 1, "はじまり", "1981年 ハーバード大「膵臓がんの人はコーヒーをよく飲んでいた」",
@@ -377,6 +382,76 @@ def quiz_frames(chapter, q, a_txt, b_txt, ans, reveal):
     return frame, (4.2 if not reveal else 1.2)
 
 
+class WithAudio:
+    """声の長さが分かってから描き方を決める場面。"""
+    def __init__(self, make):
+        self.make = make
+
+
+def rules_frame_maker(narr, keys):
+    def make(alen, lead):
+        times = [lead + narr.index(k) / len(narr) * alen - 0.2 for k in keys]
+        img_rows = [("公的機関・裁判所の判断", "15議席"), ("たくさんの研究のまとめ", "10議席"),
+                    ("数十万人の追跡調査", "6議席"), ("条件つきの結果", "3議席")]
+
+        def frame(t):
+            im, d = stage()
+            panel(d, (300, 150, 1620, 960))
+            text(d, (W / 2, 230), "議席を動かすルール", 80, INK, anchor="mm")
+            now = max([i for i, tt in enumerate(times) if t >= tt], default=-1)
+            for i, (k, v) in enumerate(img_rows):
+                kk = seg(t, times[i], times[i] + 0.4)
+                if kk <= 0:
+                    continue
+                sc = 0.7 + 0.3 * out_back(kk)
+                y = 360 + i * 120
+                cx, cy = W / 2, y + 48
+                hw, hh = 580 * sc, 48 * sc
+                fill = (255, 232, 205) if i == now else (240, 236, 228)
+                d.rounded_rectangle([cx - hw, cy - hh, cx + hw, cy + hh], radius=hh, fill=fill)
+                text(d, (cx - hw + 50 * sc, cy), k, int(52 * sc), INK, anchor="lm")
+                text(d, (cx + hw - 50 * sc, cy), v, int(60 * sc), GOOD, anchor="rm")
+            text(d, (W / 2, 880), "※ 議席は演出のための目安です", 36, SUB, heavy=False, anchor="mm")
+            return im
+        return frame, times[-1] + 0.6
+    return WithAudio(make)
+
+
+def quiz_preview_frame(t):
+    im, d = stage()
+    panel(d, (300, 160, 1620, 960))
+    k = out_back(seg(t, 0.2, 0.6))
+    text(d, (W / 2, 290), "途中でクイズ！", int(90 * (0.6 + 0.4 * k)), INK, anchor="mm")
+    for i, (lab, c) in enumerate((("いい結果", GOOD), ("悪い結果", BAD))):
+        kk = seg(t, 0.6 + i * 0.3, 1.0 + i * 0.3)
+        if kk <= 0:
+            continue
+        sc = 0.6 + 0.4 * out_back(kk)
+        cx, cy = 690 + i * 540, 560
+        w, h = 230 * sc, 110 * sc
+        d.rounded_rectangle([cx - w, cy - h, cx + w, cy + h], radius=36 * sc, fill=WHITE, outline=c, width=max(3, int(10 * sc)))
+        d.ellipse([cx - w + 24 * sc, cy - 40 * sc, cx - w + 104 * sc, cy + 40 * sc], fill=c)
+        text(d, (cx - w + 64 * sc, cy), "AB"[i], int(48 * sc), WHITE, anchor="mm")
+        text(d, (cx + 40 * sc, cy), lab, int(54 * sc), INK, anchor="mm")
+    a = seg(t, 1.6, 2.0)
+    if a > 0:
+        text(d, (W / 2, 800), "予想しながら見てね", 56, tuple(int(INK[j] * a + PANEL[j] * (1 - a)) for j in range(3)), anchor="mm")
+    return im
+
+
+def chapter_start_frame(no, sub):
+    def frame(t):
+        im, d = stage()
+        k = out_back(seg(t, 0.2, 0.7))
+        if k > 0:
+            text(d, (W / 2, 470), no, int(220 * (0.5 + 0.5 * k)), WHITE, anchor="mm")
+        a = seg(t, 0.7, 1.1)
+        if a > 0:
+            text(d, (W / 2, 690), sub, 90, tuple(int(TRIM[j] * a + 30 * (1 - a)) for j in range(3)), anchor="mm")
+        return im
+    return frame
+
+
 def headlines_frame(t):
     im = stage()[0].convert("RGBA")
     lay = blank()
@@ -387,10 +462,10 @@ def headlines_frame(t):
     items = [("コーヒーで長生き！", GOOD, 420, 300), ("発がん性の疑い？", BAD, 1500, 300),
              ("1日3杯が最強！", GOOD, 400, 760), ("6杯で心臓に負担", BAD, 1500, 760)]
     for i, (s, c, x, y) in enumerate(items):
-        k = seg(t, 1.0 + i * 1.6, 1.4 + i * 1.6)
+        k = seg(t, 0.8 + i * 0.95, 1.2 + i * 0.95)
         if k > 0:
             chip(d, x, y, s, c, int(54 * (0.5 + 0.5 * out_back(k))))
-    k = seg(t, 8.0, 8.5)
+    k = seg(t, 4.6, 5.1)
     if k > 0:
         text(d, (W / 2, 950), "結局どっちなの？", int(90 * (0.5 + 0.5 * out_back(k))), WHITE, anchor="mm")
     return im.convert("RGB")
@@ -440,17 +515,24 @@ def build_plan():
     for sc in SCENES:
         kind = sc[0]
         if kind == "headlines":
-            plan.append((headlines_frame, 9.0, dur(sc[1]), ("オープニング", "", sc[1])))
+            plan.append((headlines_frame, 5.2, dur(sc[1]), ("オープニング", "", sc[1])))
         elif kind == "title":
             img = os.path.join(OUT, "00_title.png")
             cw.title_card(img)
             plan.append(((lambda im: lambda t: im)(Image.open(img)), 0, dur(sc[1]), ("タイトル", "", sc[1])))
         elif kind == "rules":
-            img = os.path.join(OUT, "00_rules.png")
-            cw.rules_card(img)
-            plan.append(((lambda im: lambda t: im)(Image.open(img)), 0, dur(sc[1]), ("ルール", "", sc[1])))
-        elif kind == "seats0":
-            plan.append((lambda t: parliament_frame("開戦前", "最初は50対50", 50, 50, t), 0.6, dur(sc[1]), ("スタート", "", sc[1])))
+            plan.append((rules_frame_maker(sc[1], sc[2]), 0, dur(sc[1]), ("ルール説明", "議席を動かすルール", sc[1])))
+        elif kind == "rules_intro":
+            plan.append((lambda t: parliament_frame("", "研究の歴史を選挙に見立てる", 50, 50, t, tag="ルール"), 0.6, dur(sc[1]),
+                         ("ルール説明", "100議席・スタートは50対50", sc[1])))
+        elif kind == "demo":
+            _, narr, b, a, h = sc
+            plan.append(((lambda b, a, h: lambda t: parliament_frame("", h, b, a, t, flip=(1.2, 2.3), settle=3.2, tag="たとえば"))(b, a, h),
+                         3.4, dur(narr), ("ルール説明", f"たとえば {b}→{a}", narr)))
+        elif kind == "quiz_preview":
+            plan.append((quiz_preview_frame, 2.1, dur(sc[1]), ("ルール説明", "途中でクイズ", sc[1])))
+        elif kind == "chapter_start":
+            plan.append((chapter_start_frame(sc[2], sc[3]), 1.2, dur(sc[1]), (sc[2], sc[3], sc[1])))
         elif kind == "final":
             plan.append((lambda t: cw.final_frame(cw.EVENTS[-1][7], t), 2.6, dur(sc[1]), ("結果", "", sc[1])))
         elif kind == "summary":
@@ -520,7 +602,8 @@ def voice_for(i, narr, cache):
     import soundfile as sf
     from narrate import RATE, synth
     os.makedirs(cache, exist_ok=True)
-    key = hashlib.md5(narr.encode()).hexdigest()[:12]
+    from narrate import SPEED as VSPEED, VOICE
+    key = hashlib.md5(f"{VOICE}|{VSPEED}|{narr}".encode()).hexdigest()[:12]
     path = os.path.join(cache, f"{key}.wav")
     if not os.path.exists(path):
         sf.write(path, synth(narr), RATE)
@@ -547,6 +630,9 @@ def main():
         sec = max(anim + 0.3 if anim else 2.0, LEAD + len(v) / RATE + TAIL + extra)
         if "研究カード" in meta[0]:
             sec = max(sec, Card.ANIM_END + 0.8)
+        if isinstance(fn, WithAudio):
+            fn, anim = fn.make(len(v) / RATE, LEAD)
+            sec = max(sec, anim + 0.3)
         voices.append(v)
         new_plan.append((fn, anim, sec, meta))
         print(f"声 {i + 1:3d}/{len(plan)} {len(v) / RATE:5.1f}秒 {meta[0]}", flush=True)

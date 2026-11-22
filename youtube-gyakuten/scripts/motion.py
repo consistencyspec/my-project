@@ -116,7 +116,8 @@ def numbers(d, cx, cy, R, good, big=None, pop=0.0):
 
 
 def reversed_majority(before, after):
-    return (before > 50) != (after > 50)
+    """負けていた側が過半数を取ったとき(50対50からの変化は逆転に数えない)。"""
+    return (before < 50 < after) or (after < 50 < before)
 
 
 def reverse_stamp(d, cx, cy, size, k):
@@ -235,7 +236,7 @@ def parliament_frame(year, headline, before, after, t, flip=(0.5, 1.6), settle=2
     if k > 0.3:
         text(d, (90 + tw / 2, 158), tag, int(48 * min(1, k)), WHITE, anchor="mm")
     a = out_cubic(seg(t, 0.15, 0.5))
-    text(d, (120 + tw - (1 - a) * 60, 158), f"{year}  {headline}", 52,
+    text(d, (120 + tw - (1 - a) * 60, 158), f"{year}  {headline}".strip(), 52,
          tuple(int(v * a + s * (1 - a)) for v, s in zip(WHITE, (27, 36, 58))), anchor="lm")
     cx, cy, R = W / 2, 790, 550
     p = out_cubic(seg(t, *flip))
