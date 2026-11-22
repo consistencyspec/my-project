@@ -77,7 +77,10 @@
 - 医療・健康の回は「心配なら医師へ」を入れる
 - 合成音声を使う場合は、YouTube の「改変または合成されたコンテンツ」を確認する
 
-## 準備(ナレーションを作る場合)
+## 新しい回を作るとき
+[`NEW_EPISODE.md`](NEW_EPISODE.md) を読む(新しいセッションで「NEW_EPISODE.md を読んで、新しい回〇〇を作って」と頼む)。準備は `bash youtube-gyakuten/scripts/setup.sh`。
+
+## 準備(ナレーションを作る場合・詳細)
 ```bash
 cd youtube-gyakuten
 python3.12 -m venv .venv
