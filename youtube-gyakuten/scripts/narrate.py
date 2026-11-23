@@ -73,7 +73,7 @@ _pipe = None
 
 
 def voice_key():
-    return f"minimax2|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
+    return f"minimax3|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
 
 
 def big_kana(n):
@@ -110,7 +110,44 @@ def auto_dict(text):
     return out
 
 
+# 間(ま)の長さ(秒)。MiniMax は文中の <#秒#> で間をあける
+PAUSE_HA = 0.15     # 「いい派」と助詞「は(わ)」の間
+PAUSE_NUM = 0.2     # 「いい派」と議席の数字の間
+PAUSE_SHORT = 0.1   # 「約」「1日」と数字の間
+KOSU = {1: "いっこ", 2: "にこ", 3: "さんこ", 4: "よんこ", 5: "ごこ", 6: "ろっこ", 7: "ななこ", 8: "はっこ", 9: "きゅうこ", 10: "じゅっこ"}
+HA_YOMI = {"いい": "いい", "悪い": "わるい"}
+
+
+def tts_text(t):
+    """合成の前に、読み方と間を文章に書き込む(全回共通のルール)。
+
+    - 「いい派は」→「いいは・わ」(派と助詞の間に少し間)/「いい派、15議席」→「いいは・じゅうごぎせき」
+    - 「約3万人」→「やく・さんまんにん」/「1日200mg」→「いちにち・にひゃくミリグラム」(約・1日のあとに少し間)
+    - 「11%」→「じゅういちパーセント」、「750mg未満」→「ななひゃくごじゅうミリグラムみまん」、「半個」→「はんこ」
+    """
+    p = lambda sec: f"<#{sec}#>"  # noqa: E731
+    t = re.sub(r"(\d),(\d{3})", r"\1\2", t)
+    t = re.sub(r"(いい|悪い)派は", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_HA) + "わ", t)
+    t = re.sub(r"(いい|悪い)派、?(?=\d)", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_NUM), t)
+    t = re.sub(r"(いい|悪い)派", lambda m: HA_YOMI[m.group(1)] + "は", t)
+    t = re.sub(r"約(?=\d)", "やく" + p(PAUSE_SHORT), t)
+    t = re.sub(r"1日(?=[\d半])", "いちにち" + p(PAUSE_SHORT), t)
+    t = re.sub(r"(\d+)mg", lambda m: kana(int(m.group(1))) + "ミリグラム", t)
+    t = t.replace("未満", "みまん")
+    t = re.sub(r"(\d+)%", lambda m: kana(int(m.group(1))) + "パーセント", t)
+    t = re.sub(r"(\d+)議席", lambda m: kana(int(m.group(1))) + "ぎせき", t)
+    t = t.replace("半個", "はんこ").replace("2個目", "にこめ")
+    t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
+
+    def people(m):
+        n = jp_number(m.group(1))
+        return ({1: "ひとり", 2: "ふたり", 4: "よにん"}.get(n) or big_kana(n) + "にん") if n else m.group(0)
+    t = re.sub(r"(\d+万\d+千|\d+万|\d+)人", people, t)
+    return t
+
+
 def synth_minimax(text):
+    text = tts_text(text)
     import io
     import json
     import time
