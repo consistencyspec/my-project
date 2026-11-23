@@ -77,7 +77,7 @@ _pipe = None
 
 
 def voice_key():
-    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
+    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
     return (f"minimax4|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
             else f"{VOICE}|{SPEED}")
 
@@ -177,6 +177,16 @@ def tts_text(t):
     return t
 
 
+# 回ごとに、文字を直接読み方に置きかえる語(例 ("飲む国", "のむくに"))。その回のスクリプトで narrate.TEXT_READ += する
+TEXT_READ = []
+
+
+def too_long(text, sec):
+    """合成した声が、文字数に比べて長すぎる(笑い声・うなり声などの壊れた音声)か。"""
+    plain = re.sub(r"<#[\d.]+#>", "", text)
+    pauses = sum(float(x) for x in re.findall(r"<#([\d.]+)#>", text))
+    return sec > len(plain) / 5.0 + pauses + 3.0
+
 # ---- 全回共通の読み方の流れ:pre_text(決まった言い回し)→ tts_text(派・約・1日の間など)→ post_text(残りの数字をかなに)
 # 決まった言い回し(数字ごと、かなに直す)。tts_text より前に使う
 MM_FIXED = [
@@ -213,7 +223,10 @@ def num_kana(s):
 
 
 def pre_text(text):
-    t = text.replace("……", "、").replace("「", "").replace("」", "、")
+    t = add_pauses(text)   # 「1日」のあとの間は、数字をかなに直す前に入れる(あとだと「1日3〜5杯」が見つからない)
+    for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)。決まった言い回しより先に使う
+        t = t.replace(a, b)
+    t = t.replace("……", "、").replace("「", "").replace("」", "、")
     for a, b in MM_FIXED:
         t = t.replace(a, b)
     return t
@@ -265,7 +278,11 @@ def synth_minimax(text):
         code = j["base_resp"]["status_code"]
         if code == 0:
             a, sr = sf.read(io.BytesIO(bytes.fromhex(j["data"]["audio"])), dtype="float32")
-            return a if a.ndim == 1 else a.mean(axis=1)
+            a = a if a.ndim == 1 else a.mean(axis=1)
+            if too_long(body["text"], len(a) / sr):   # 壊れた音声(笑い声など)は使わず作り直す
+                print(f"  ! 声が長すぎるので作り直し({len(a) / sr:.1f}秒): {text[:30]}…", flush=True)
+                continue
+            return a
         if code in (1002, 1039, 1001):  # 混雑・時間切れは待って再試行
             time.sleep(5 * (attempt + 1))
             continue
