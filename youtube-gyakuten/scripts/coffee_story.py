@@ -736,9 +736,15 @@ def write_narration_txt(plan):
         f.write("\n".join(plain))
 
 
+# 場面ごとの「声だけ」の読み替え(台本の文字はそのまま)。文字起こしで確認した読み方
+VOICE_FIX = [("物語の始まりは1981年。", "物語の始まりは、センキュウヒャクハチジュウイチネン。")]
+
+
 def voice_for(i, narr, cache, emotion=None, fresh=False):
     """場面のナレーション音声(キャッシュあり)。fresh=True で作り直す。"""
     narrate.MM_EMOTION = emotion
+    for x, y in VOICE_FIX:
+        narr = narr.replace(x, y)
     import hashlib
     import numpy as np
     import soundfile as sf
