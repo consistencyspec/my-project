@@ -76,12 +76,14 @@ def reading(text):
 _pipe = None
 
 
-MM_EMOTION = None   # 声の感情(None=自動。"happy" "calm" など)。場面ごとに回のスクリプトから切りかえてよい
+MM_EMOTION = None   # 声の感情(None=自動。"calm" など)。場面ごとに回のスクリプトから切りかえてよい
+# 笑い声・笑っているような声・はしゃいだ雰囲気は今後一切使わない(2026-11-23 決定)。これらの感情は指定しても使わない
+BANNED_EMOTIONS = {"happy", "surprised", "fluent"}
 
 
 def voice_key():
     rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
-    rules += f"|emo{MM_EMOTION}" if MM_EMOTION else ""
+    rules += f"|emo{MM_EMOTION}" if MM_EMOTION and MM_EMOTION not in BANNED_EMOTIONS else ""
     return (f"minimax4|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
             else f"{VOICE}|{SPEED}")
 
@@ -319,7 +321,7 @@ def synth_minimax(text):
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
             "pronunciation_dict": {"tone": mm_tone(text)},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
-    if MM_EMOTION:
+    if MM_EMOTION and MM_EMOTION not in BANNED_EMOTIONS:   # 笑い・はしゃいだ声になる感情は使わない
         body["voice_setting"]["emotion"] = MM_EMOTION
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
