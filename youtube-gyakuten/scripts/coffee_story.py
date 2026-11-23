@@ -736,9 +736,26 @@ def write_narration_txt(plan):
         f.write("\n".join(plain))
 
 
+# 場面ごとの「声だけ」の読み替え(台本の文字はそのまま)。文字起こしで確認した読み方
+def kata_year(y):
+    """1986 → センキュウヒャク、ハチジュウロクネン(候補D:カタカナで、千の位のあとに読点)。"""
+    import narrate as nr
+    head = ("にせん" if y // 1000 == 2 else "せんきゅうひゃく") if y // 100 in (19, 20) else nr.kana(y // 100 * 100)
+    rest = nr.kana(y % 100) if y // 100 == 19 else nr.kana(y % 1000)
+    kata = lambda t: "".join(chr(ord(c) + 0x60) if "ぁ" <= c <= "ゖ" else c for c in t)  # noqa: E731
+    return kata(head) + "、" + kata(rest + "ねん")
+
+
+# 場面ごとの「声だけ」の読み替え(台本の文字はそのまま)。
+# 「8」を含む年号は漢数字だと「ばち〜」「やそ〜」と崩れるので、候補D(カタカナ+読点)で送る(2026-11-23 確認)
+VOICE_FIX = [(f"{y}年", kata_year(y)) for y in (1981, 1983, 1986, 2018)]
+
+
 def voice_for(i, narr, cache, emotion=None, fresh=False):
     """場面のナレーション音声(キャッシュあり)。fresh=True で作り直す。"""
     narrate.MM_EMOTION = emotion
+    for x, y in VOICE_FIX:
+        narr = narr.replace(x, y)
     import hashlib
     import numpy as np
     import soundfile as sf
