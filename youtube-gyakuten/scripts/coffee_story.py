@@ -19,6 +19,7 @@ import coffee_war as cw  # noqa: E402
 import narrate  # noqa: E402
 
 narrate.ICHINICHI_PAUSE = 0   # この回は「1日」のあとに間を置かない(2026-11-23 指示)
+narrate.PAUSE_SHORT = 0.1     # この回は「約2倍」「約90社」の約のあとに少し間(2倍・90社を立たせる。2026-11-23 指示)
 INTRO_EMOTION = "happy"       # 冒頭(番組紹介〜タイトル)は爽やかに
 INTRO_SCENES = ("番組紹介", "オープニング", "タイトル")
 
