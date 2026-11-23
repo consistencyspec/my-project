@@ -738,7 +738,8 @@ def voice_for(i, narr, cache):
     from narrate import RATE, synth
     os.makedirs(cache, exist_ok=True)
     from narrate import voice_key
-    key = hashlib.md5(f"{voice_key()}|{narr}".encode()).hexdigest()[:12]
+    from narrate import mm_text
+    key = hashlib.md5(f"{voice_key()}|{mm_text(narr)}".encode()).hexdigest()[:12]   # 送る文章が同じなら作り直さない
     path = os.path.join(cache, f"{key}.wav")
     if not os.path.exists(path):
         sf.write(path, synth(narr), RATE)

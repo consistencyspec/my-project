@@ -194,6 +194,19 @@ COUNTER = {"杯": {1: "いっぱい", 2: "にはい", 3: "さんばい", 4: "よ
            "歩": {1000: "せんぽ", 10000: "いちまんぽ", 3000: "さんぜんぽ", 8000: "はっせんぽ"}}
 
 
+KAN = "〇一二三四五六七八九"
+
+
+def kanji_num(n):
+    """1986 → 千九百八十六(年号用)。"""
+    out = ""
+    for unit, name in ((1000, "千"), (100, "百"), (10, "十")):
+        q, n = divmod(n, unit)
+        if q:
+            out += ("" if q == 1 else KAN[q]) + name
+    return out + (KAN[n] if n else "")
+
+
 def num_kana(s):
     n = jp_number(s)
     return None if n is None else (big_kana(n) if n else "ぜろ")
@@ -212,7 +225,7 @@ def post_text(t):
     t = re.sub(r"<#[\d.]+#>", lambda m: marks.append(m.group(0)) or f"\x00{chr(65 + len(marks) - 1)}\x00", t)
     t = t.replace("1日", "いちにち")
     t = re.sub(r"第(\d+)話", lambda m: f"だい{num_kana(m.group(1))}わ", t)
-    t = re.sub(r"(\d{4})年", lambda m: (lambda y: ("にせん" if y // 1000 == 2 else "せん") + kana(y % 1000))(int(m.group(1))) + "ねん", t)
+    t = re.sub(r"(\d{4})年", lambda m: "\x01" + kanji_num(int(m.group(1))) + "年", t)   # 年号は漢数字で(ひらがなだと読み崩れる)
     for unit, yomi in (("杯", "はい"), ("歳", "さい"), ("社", "しゃ"), ("歩", "ほ")):
         t = re.sub(r"([\d,]+万?)" + unit, lambda m, u=unit, y=yomi: COUNTER[u].get(jp_number(m.group(1)) or -1, (num_kana(m.group(1)) or "") + y), t)
     t = re.sub(r"(\d+)対(\d+)", lambda m: f"{num_kana(m.group(1))}たい{num_kana(m.group(2))}", t)
@@ -222,7 +235,8 @@ def post_text(t):
     t = re.sub(r"(\d+)以上", lambda m: num_kana(m.group(1)) + "いじょう", t)
     t = re.sub(r"(\d+\.\d+)", lambda m: decimal_kana(m.group(1)), t)
     t = re.sub(r"(\d+万?)", lambda m: num_kana(m.group(1)) or m.group(1), t)   # 残りの数字
-    t = t.replace("ねん後", "ねんご").replace("ねん前", "ねんまえ")
+    t = re.sub(r"(^|[、。！？\s])\x01", r"\1", t).replace("\x01", "<#0.15#>")   # 文の頭・句読点のあとは間を入れない
+    t = t.replace("ねん後", "ねんご").replace("ねん前", "ねんまえ").replace("年後", "年ご").replace("年前", "年まえ")
     t = t.replace("いいは", "いいハ").replace("わるいは", "わるいハ")   # 派の「は」を助詞の「わ」と読ませない
     return re.sub(r"\x00([A-Z])\x00", lambda m: marks[ord(m.group(1)) - 65], t)
 
