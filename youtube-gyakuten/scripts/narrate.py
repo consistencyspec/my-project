@@ -180,10 +180,7 @@ def tts_text(t):
     if NUM_STYLE != "dict":
         t = re.sub(r"(\d+)議席", lambda m: kana(int(m.group(1))) + "ぎせき", t)
     t = t.replace("半個", "ハンコ").replace("2個目", "二個目")   # ひらがなだと「はんご」「にご」と濁る
-    if NUM_STYLE == "dict":
-        t = t.replace("2個", "二個")   # ほかの「1個」「3個」は普通に読めるので、そのまま
-    else:
-        t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
+    t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
 
     def people(m):
         n = jp_number(m.group(1))
@@ -253,8 +250,7 @@ def post_text(t):
     """tts_text のあとに残った数字を、すべてかなに直す(<#秒#> の間の記号はそのまま)。"""
     marks = []
     t = re.sub(r"<#[\d.]+#>", lambda m: marks.append(m.group(0)) or f"\x00{chr(65 + len(marks) - 1)}\x00", t)
-    if NUM_STYLE != "dict":   # dict のときは「1日」も普通の文字のまま
-        t = t.replace("1日", "いちにち")
+    t = t.replace("1日", "いちにち")   # 数字のままだと「ついたち」と読まれる(2026-11-23)
     t = re.sub(r"第(\d+)話", lambda m: f"だい{num_kana(m.group(1))}わ", t)
     if NUM_STYLE == "dict":   # 残りの数字は数字のまま(読み方は mm_tone の辞書で指定)
         return re.sub(r"\x00([A-Z])\x00", lambda m: marks[ord(m.group(1)) - 65], t)

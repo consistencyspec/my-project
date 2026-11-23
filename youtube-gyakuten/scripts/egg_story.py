@@ -482,7 +482,19 @@ def main():
     plan = new_plan
     total = write_script(plan)
     print(f"台本：{SCRIPT_MD}(約{int(total // 60)}分{int(total % 60):02d}秒、{len(plan)}場面)")
-    if "--voice" in sys.argv:   # 声と台本だけ(映像は作らない)
+    if "--voice" in sys.argv:   # 声と台本だけ(映像は作らない)。動画と同じ間隔でつないだ音声も書き出す
+        parts = []
+        for v, (_, _, sec, _) in zip(voices, plan):
+            a = np.zeros(int(round(sec * RATE)), dtype="float32")
+            vv = v[: max(0, len(a) - int(LEAD * RATE))]
+            a[int(LEAD * RATE): int(LEAD * RATE) + len(vv)] = vv
+            parts.append(a)
+        wav = os.path.join(OUT, "narration.wav")
+        sf.write(wav, np.concatenate(parts), RATE)
+        mp3 = os.path.join(OUT, "egg_narration.mp3")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",
+                        "-ar", "48000", "-b:a", "192k", mp3], check=True)
+        print("音声:", mp3)
         return
 
     seg_dir = os.path.join(OUT, "_seg")
