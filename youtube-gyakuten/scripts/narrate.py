@@ -13,13 +13,11 @@ MM_MODEL = "speech-2.8-hd"
 MM_VOICE = "Japanese_IntellectualSenior"   # 知的で落ち着いた男性の声
 MM_SPEED = 1.2
 # 読み間違えやすい語(元の文字/読み方)。MiniMax の pronunciation_dict に渡す
-MM_DICT = ["コーヒー/こーひー", "1日/いちにち", "今日/きょう", "熱すぎ/あつすぎ", "一日中/いちにちじゅう",
-           "何年か/なんねんか", "高めの方/たかめのかた", "心配な方/しんぱいなかた", "高い方/たかいかた",
-           "37年前/さんじゅうななねんまえ", "37年後/さんじゅうななねんご", "25年/にじゅうごねん", "大勝/たいしょう",
-           "火種/ひだね", "1日1個/いちにちいっこ", "甘党/あまとう", "一方/いっぽう", "主な/おもな", "天秤/てんびん",
-           "互角/ごかく", "優勢/ゆうせい", "煮出/にだ", "南米/なんべい", "行ってみましょう/いってみましょう",
-           "研究者/けんきゅうしゃ", "数値/すうち", "高評価/こうひょうか", "悪い派/わるいは", "いい派/いいは", "濾した/こした", "濾す/こす", "膵臓/すいぞう", "8杯/はっぱい", "6杯/ろっぱい",
-           "1杯/いっぱい", "10杯/じゅっぱい", "14日間/じゅうよっかかん", "644人/ろっぴゃくよんじゅうよにん"]
+MM_DICT = ["コーヒー/こおひい", "熱すぎ/あつすぎ", "何年か/なんねんか", "高めの方/たかめのかた", "心配な方/しんぱいなかた",
+           "高い方/たかいかた", "大勝/たいしょう", "火種/ひだね", "甘党/あまとう", "一方/いっぽう", "主な/おもな",
+           "天秤/てんびん", "互角/ごかく", "優勢/ゆうせい", "煮出/にだ", "南米/なんべい", "行ってみましょう/いってみましょう",
+           "研究者/けんきゅうしゃ", "数値/すうち", "高評価/こうひょうか", "濾した/こした", "濾す/こす", "膵臓/すいぞう",
+           "14日間/じゅうよっかかん", "年前/ねんまえ", "年後/ねんご"]
 
 # Kokoro
 VOICE = "jf_alpha"   # 落ち着いた女性の声
@@ -73,7 +71,7 @@ _pipe = None
 
 
 def voice_key():
-    return f"minimax2|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
+    return f"minimax3|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
 
 
 def big_kana(n):
@@ -110,15 +108,60 @@ def auto_dict(text):
     return out
 
 
+# 読み方を指定どおりにするため、MiniMax に送る前に数字・記号・「派」などを、かなに書き換える
+P = "§"   # 少しの間(最後に MiniMax の間の記号 <#0.2#> に置き換える)
+MM_FIXED = [
+    ("1.5〜3.5杯", "いちてんごはいからさんてんごはいまで"),
+    ("3〜4杯", "さんよんはい"), ("3から4杯", "さんからよんはい"), ("3〜5杯", "さんからごはい"), ("1〜2杯", "いちからにはい"),
+    ("40〜79歳", "よんじっさいからななじゅうきゅうさいまで"),
+    ("1日2杯以上", f"いちにち{P}にはいいじょう"),
+    ("約2倍", f"やく{P}にばい"), ("約90社", f"やく{P}きゅうじゅっしゃ"),
+    ("1日約1,000歩", "いちにちやくせんぽ"), ("1日1万歩", "いちにちいちまんぽ"), ("1日1個", "いちにちいっこ"),
+    ("約1.5倍", "やくいってんごばい"), ("36分", "さんじゅうろっぷん"),
+    ("10か国", "じっかこく"), ("今日は飲む", "きょうわのむ"), ("今日は飲まない", "きょうわのまない"),
+    ("今日", "きょう"), ("一日中", "いちにちじゅう"), ("1日", "いちにち"),
+    ("いい派", "イイハ"), ("悪い派", "ワルイハ"), ("コーヒー", "コーヒー"),
+    ("WHO", "ダブリューエイチオー"), ("65℃", "ろくじゅうごど"), ("℃", "ど"),
+]
+COUNTER = {"杯": {1: "いっぱい", 2: "にはい", 3: "さんばい", 4: "よんはい", 5: "ごはい", 6: "ろっぱい", 8: "はっぱい", 10: "じゅっぱい"},
+           "歳": {60: "ろくじゅっさい", 40: "よんじっさい"}}
+
+
+def num_kana(s):
+    n = jp_number(s)
+    return None if n is None else (big_kana(n) if n else "ぜろ")
+
+
+def mm_text(text):
+    """MiniMax に送る文。数字はすべて読み方に直す。"""
+    t = text.replace("……", "、").replace("「", "").replace("」", "、")
+    for a, b in MM_FIXED:
+        t = t.replace(a, b)
+    t = re.sub(r"第(\d+)話", lambda m: f"だい{num_kana(m.group(1))}わ", t)
+    t = re.sub(r"(\d{4})年", lambda m: (lambda y: ("にせん" if y // 1000 == 2 else "せん") + kana(y % 1000))(int(m.group(1))) + "ねん", t)
+    t = re.sub(r"(\d+)杯", lambda m: COUNTER["杯"].get(int(m.group(1)), num_kana(m.group(1)) + "はい"), t)
+    t = re.sub(r"(\d+)歳", lambda m: COUNTER["歳"].get(int(m.group(1)), num_kana(m.group(1)) + "さい"), t)
+    t = re.sub(r"([\d,]+(?:万)?(?:\d+千)?)人", lambda m: (num_kana(m.group(1)) or m.group(1)) + "にん", t)
+    t = re.sub(r"(\d+(?:\.\d+)?)%", lambda m: (num_kana(m.group(1)) if "." not in m.group(1) else m.group(1)) + "パーセント", t)
+    t = re.sub(r"(\d+)対(\d+)", lambda m: f"{num_kana(m.group(1))}たい{num_kana(m.group(2))}", t)
+    t = re.sub(r"(\d+)年", lambda m: num_kana(m.group(1)) + "ねん", t)
+    t = re.sub(r"(\d+)割", lambda m: num_kana(m.group(1)) + "わり", t)
+    t = re.sub(r"(\d+)倍", lambda m: num_kana(m.group(1)) + "ばい", t)
+    t = re.sub(r"([\d,]+)以上", lambda m: num_kana(m.group(1)) + "いじょう", t)
+    t = re.sub(r"(\d[\d,]*万?)", lambda m: num_kana(m.group(1)) or m.group(1), t)   # 残りの数字(議席など)
+    t = t.replace("ねん後", "ねんご").replace("ねん前", "ねんまえ").replace("ねんぶり", "ねんぶり")
+    return t.replace(P, "<#0.2#>")
+
+
 def synth_minimax(text):
     import io
     import json
     import time
     import urllib.request
     import soundfile as sf
-    body = {"model": MM_MODEL, "text": text.replace("……", "、"), "stream": False, "language_boost": "Japanese",
+    body = {"model": MM_MODEL, "text": mm_text(text), "stream": False, "language_boost": "Japanese",
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
-            "pronunciation_dict": {"tone": MM_DICT + auto_dict(text)},
+            "pronunciation_dict": {"tone": MM_DICT},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),

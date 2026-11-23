@@ -47,7 +47,7 @@ def warn(d, cx, cy, s, fill=(255, 214, 102)):
     d.ellipse([cx - 6, cy + s * 0.24, cx + 6, cy + s * 0.36], fill=INK)
 
 
-def thermo(d, cx, top, h, level=0.8, color=BAD):
+def thermo(d, cx, top, h, level=0.8, color=(220, 50, 50)):
     w = h * 0.16
     d.rounded_rectangle([cx - w / 2, top, cx + w / 2, top + h * 0.78], radius=w / 2, outline=INK, width=LW, fill=PANEL)
     d.rounded_rectangle([cx - w / 4, top + h * 0.78 * (1 - level), cx + w / 4, top + h * 0.8], radius=w / 4, fill=color)
@@ -84,9 +84,18 @@ def u_chart(d, x0, y0, w, h):
 
 
 def gavel(d, cx, cy, s):
-    d.rounded_rectangle([cx - s * 0.5, cy - s * 0.5, cx + s * 0.15, cy - s * 0.15], radius=10, fill=CREAM, outline=INK, width=LW)
-    line(d, [(cx - s * 0.17, cy - s * 0.15), (cx + s * 0.35, cy + s * 0.35)], INK, LW + 4)
-    line(d, [(cx - s * 0.6, cy + s * 0.55), (cx + s * 0.1, cy + s * 0.55)], INK, LW)
+    """裁判所の建物(柱とひさし、階段)に「カリフォルニア州」の札。"""
+    col = (236, 230, 216)
+    w = s * 0.62
+    d.polygon([(cx - w, cy - s * 0.18), (cx, cy - s * 0.52), (cx + w, cy - s * 0.18)], fill=col, outline=INK, width=LW)
+    d.rectangle([cx - w, cy - s * 0.18, cx + w, cy - s * 0.08], fill=col, outline=INK, width=6)
+    for i in range(5):
+        x = cx - w * 0.8 + i * w * 0.4
+        d.rectangle([x - s * 0.04, cy - s * 0.08, x + s * 0.04, cy + s * 0.32], fill=WHITE, outline=INK, width=5)
+    d.rectangle([cx - w * 1.05, cy + s * 0.32, cx + w * 1.05, cy + s * 0.4], fill=col, outline=INK, width=6)
+    d.rectangle([cx - w * 1.15, cy + s * 0.4, cx + w * 1.15, cy + s * 0.48], fill=col, outline=INK, width=6)
+    text(d, (cx, cy - s * 0.27), "COURT", int(s * 0.08), INK, anchor="mm")
+    text(d, (cx, cy + s * 0.6), "カリフォルニア州の裁判所", int(s * 0.1), INK, heavy=False, anchor="mm")
 
 
 def label(d, x, y, w, h, title, color=(255, 214, 102)):
@@ -192,7 +201,7 @@ def p03(d):
     text(d, (290, 780), "コーヒー", 34, INK, heavy=False, anchor="ma")
     line(d, [(520, 590), (520, 800)], (222, 218, 210), 4)
     thermo(d, 680, 585, 200)
-    big(d, (760, 650), "65℃超", BAD, 56, "lm")
+    big(d, (760, 650), "65℃超", (220, 50, 50), 56, "lm")
     cross(d, 980, 720, 40)
 
 
