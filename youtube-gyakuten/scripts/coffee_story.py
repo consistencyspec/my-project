@@ -745,7 +745,8 @@ def voice_for(i, narr, cache, emotion=None, fresh=False):
     os.makedirs(cache, exist_ok=True)
     from narrate import voice_key
     from narrate import mm_text
-    key = hashlib.md5(f"{voice_key()}|{mm_text(narr)}".encode()).hexdigest()[:12]   # 送る文章が同じなら作り直さない
+    tone = "|" + "/".join(narrate.mm_tone(narr)) if narrate.NUM_STYLE == "dict" else ""   # 辞書で読ませる回は辞書も鍵に入れる
+    key = hashlib.md5(f"{voice_key()}|{mm_text(narr)}{tone}".encode()).hexdigest()[:12]   # 送る文章が同じなら作り直さない
     path = os.path.join(cache, f"{key}.wav")
     if fresh or not os.path.exists(path):
         sf.write(path, synth(narr), RATE)
