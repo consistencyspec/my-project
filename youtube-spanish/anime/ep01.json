@@ -1,0 +1,57 @@
+{
+  "id": "ep01",
+  "number": 1,
+  "title": "おはようの、まちがい",
+  "start": {"dolores": "normal", "bebe": "normal", "pero": "normal"},
+  "scenes": [
+    {
+      "name": "朝の家の前",
+      "bg": "house",
+      "events": [
+        {"who": "sfx", "parts": [{"sfx": "rooster"}], "text": "（ニワトリ）キキリキー！"},
+        {"who": "pero", "face": "happy", "parts": [{"sfx": "bark"}], "text": "グアウ！"},
+        {"who": "olapon", "face": "talk", "show": ["olapon"], "parts": [{"es": "¡Buenas días!"}, {"ja": "ポン！"}], "text": "¡Buenas días〜ポン！"},
+        {"who": "dolores", "face": "ijiwaru", "parts": [{"ja": "オホホ。あなた、また間違えてるわよ。"}]},
+        {"who": "olapon", "face": "odoroki", "parts": [{"ja": "えっ!?"}]}
+      ]
+    },
+    {
+      "name": "ドローレスの小さなレッスン",
+      "bg": "house",
+      "events": [
+        {"who": "dolores", "face": "normal", "parts": [{"es": "Día"}, {"ja": "は、アで終わるけど、男性名詞なの。だから、"}, {"es": "Buenos días."}, {"ja": "でしょ。"}], "text": "Día は a で終わるけど男性名詞。だから Buenos días でしょ"},
+        {"who": "olapon", "face": "shonbori", "parts": [{"ja": "ポーン…"}]},
+        {"who": "bebe", "face": "naki", "set": {"pero": "buruburu"}, "parts": [{"sfx": "baby_cry"}], "text": "ふぇ〜ん"},
+        {"who": "olapon", "face": "kimegao", "parts": [{"es": "¡Buenos días!"}, {"pause": 0.4}, {"ja": "ポン！"}], "text": "¡Buenos días! ……ポン！"},
+        {"who": "bebe", "face": "warai", "set": {"pero": "happy"}, "parts": [{"pause": 0.8}], "text": "（ベベ、にっこり）"},
+        {"who": "pero", "face": "happy", "parts": [{"sfx": "bark"}], "text": "グアウ！"},
+        {"who": "dolores", "face": "normal", "parts": [{"ja": "やればできるじゃない。"}]}
+      ]
+    },
+    {
+      "name": "お出かけ",
+      "bg": "house",
+      "events": [
+        {"who": "olapon", "face": "doya", "parts": [{"ja": "よし、みんなでドライブだポン。"}, {"es": "¡Vamos!"}], "text": "よし、みんなでドライブだポン。¡Vamos!"},
+        {"who": "sfx", "action": "car_drive", "hide": ["olapon", "dolores", "bebe", "pero"], "parts": [{"sfx": "engine"}], "text": "ブロロロ…"},
+        {"who": "sfx", "action": "car_break", "parts": [{"sfx": "pusun"}, {"pause": 0.3}, {"sfx": "boom"}], "text": "プスン……ボンッ！"},
+        {"who": "olapon", "face": "namida", "show": ["olapon", "dolores"], "set": {"dolores": "okori"}, "parts": [{"es": "¡Ay, no!"}]},
+        {"who": "dolores", "face": "okori", "parts": [{"ja": "だから、新しい車にしようって言ったでしょ！"}]}
+      ]
+    },
+    {
+      "name": "オチ",
+      "bg": "house",
+      "events": [
+        {"who": "bebe", "face": "nemuri", "show": ["bebe", "pero"], "set": {"pero": "normal"}, "parts": [{"pause": 1.4}], "text": "（さわぎの中でも、ベベはすやすや）"},
+        {"who": "pero", "face": "happy", "parts": [{"sfx": "bark"}, {"pause": 0.15}, {"sfx": "bark"}], "text": "グアウ！グアウ！（歩いてお出かけできて、うれしい）"}
+      ]
+    }
+  ],
+  "phrases": [
+    {"es": "Buenos días", "ja": "おはよう", "note": "día は男性名詞なので buenos"},
+    {"es": "¡Vamos!", "ja": "さあ、行こう", "note": ""},
+    {"es": "¡Ay, no!", "ja": "ああ、もう！", "note": "がっかりしたとき"}
+  ],
+  "next": {"title": "修理屋のパコさん", "line": "次回、車の修理代は、いくらだポン!?"}
+}
