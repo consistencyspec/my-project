@@ -43,6 +43,8 @@ def thumbnail(name, title, subtitle, left="いい派", right="悪い派"):
 # 回ごとの設定(新しい回はここに足す)
 EPISODES = {
     "coffee_war": ("コーヒー10年戦争", "「いい派」vs「悪い派」論争の行方"),
+    "egg_war": ("卵は1日1個まで？", "「いい派」vs「悪い派」論争の行方"),
+    "wine_war": ("赤ワインは体にいい？", "「いい派」vs「悪い派」論争の行方"),
 }
 
 if __name__ == "__main__":
