@@ -79,7 +79,7 @@ _pipe = None
 
 
 def voice_key():
-    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
+    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|v3|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
     return (f"minimax3|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
             else f"{VOICE}|{SPEED}")
 
@@ -159,6 +159,12 @@ def tts_text(t):
     """
     p = lambda sec: f"<#{sec}#>"  # noqa: E731
     t = re.sub(r"(\d),(\d{3})", r"\1\2", t)
+    for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)
+        t = t.replace(a, b)
+    # 年号と「第1話」は、途中で切れないよう、かなで書き込む(辞書だけだと「せんきゅうひゃく・ななじゅうきゅうねん」と切れる)
+    t = re.sub(r"(\d{4})年", lambda m: (lambda y: ("にせん" if y // 1000 == 2 else "せん") + kana(y % 1000))(int(m.group(1))) + "ねん", t)
+    t = re.sub(r"第(\d+)話", lambda m: "だい" + kana(int(m.group(1))) + "わ", t)
+    t = t.replace("WHO", "ダブリューエイチオー")
     t = re.sub(r"(いい|悪い)派は", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_HA) + "わ", t)
     t = re.sub(r"(いい|悪い)派、?(?=\d)", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_NUM), t)
     t = re.sub(r"(いい|悪い)派", lambda m: HA_YOMI[m.group(1)] + "は", t)
@@ -176,7 +182,21 @@ def tts_text(t):
         n = jp_number(m.group(1))
         return ({1: "ひとり", 2: "ふたり", 4: "よにん"}.get(n) or big_kana(n) + "にん") if n else m.group(0)
     t = re.sub(r"(\d+万\d+千|\d+万|\d+)人", people, t)
+    # 数え方がつかない数字(「52対48」「いい派78、」「87のうち」「13でした」)も、かなで書き込む
+    t = re.sub(r"(\d+)対(\d+)", lambda m: kana(int(m.group(1))) + "たい" + kana(int(m.group(2))), t)
+    t = re.sub(r"(?<![\d.〜])(\d+)(?=[、。！？]|の|でした|$)", lambda m: kana(int(m.group(1))) if len(m.group(1)) <= 4 else m.group(1), t)
     return t
+
+
+# 回ごとに、文字を直接読み方に置きかえる語(例 ("飲む国", "のむくに"))。その回のスクリプトで narrate.TEXT_READ += する
+TEXT_READ = []
+
+
+def too_long(text, sec):
+    """合成した声が、文字数に比べて長すぎる(笑い声・うなり声などの壊れた音声)か。"""
+    plain = re.sub(r"<#[\d.]+#>", "", text)
+    pauses = sum(float(x) for x in re.findall(r"<#([\d.]+)#>", text))
+    return sec > len(plain) / 5.0 + pauses + 3.0
 
 
 def synth_minimax(text):
@@ -197,7 +217,11 @@ def synth_minimax(text):
         code = j["base_resp"]["status_code"]
         if code == 0:
             a, sr = sf.read(io.BytesIO(bytes.fromhex(j["data"]["audio"])), dtype="float32")
-            return a if a.ndim == 1 else a.mean(axis=1)
+            a = a if a.ndim == 1 else a.mean(axis=1)
+            if too_long(body["text"], len(a) / sr):   # 壊れた音声(笑い声など)は使わず作り直す
+                print(f"  ! 声が長すぎるので作り直し({len(a) / sr:.1f}秒): {text[:30]}…", flush=True)
+                continue
+            return a
         if code in (1002, 1039, 1001):  # 混雑・時間切れは待って再試行
             time.sleep(5 * (attempt + 1))
             continue
