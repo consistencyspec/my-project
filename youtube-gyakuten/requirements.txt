@@ -1,0 +1,4 @@
+Pillow>=10
+soundfile
+numpy
+# 無料の Kokoro の声を使う場合は scripts/setup.sh を KOKORO=1 で実行する(torch・kokoro・misaki[ja] を入れる)

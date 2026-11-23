@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="30 28 240 236" width="960" height="944">
+<defs>
+  <g id="base" stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M92 272 Q80 206 112 186 Q150 170 188 186 Q220 206 208 272 Z" fill="#f5b700"/>
+    <path d="M96 236 Q150 254 204 236" fill="none" stroke="#d7263d" stroke-width="7"/>
+    <path d="M92 254 Q150 272 208 254" fill="none" stroke="#2a9d8f" stroke-width="5"/>
+    <path d="M118 196 Q160 214 196 252" fill="none" stroke-width="3"/>
+    <ellipse cx="150" cy="140" rx="66" ry="64" fill="#f5b700"/>
+    <path d="M90 118 Q150 64 210 118" fill="none" stroke="#d7263d" stroke-width="6"/>
+    <path d="M86 132 Q150 74 214 132" fill="none" stroke="#2a9d8f" stroke-width="4"/>
+    <ellipse cx="150" cy="148" rx="52" ry="50" fill="#fbf6ec"/>
+    <circle cx="150" cy="152" r="44" fill="#f6c9a8"/>
+    <path d="M150 110 Q140 98 148 92 Q158 88 158 98 Q156 104 150 102" fill="none" stroke="#2a1a12" stroke-width="4.5"/>
+  </g>
+  <g id="cheeks" fill="#f2878a" opacity=".8" stroke="none"><ellipse cx="122" cy="168" rx="12" ry="8"/><ellipse cx="178" cy="168" rx="12" ry="8"/></g>
+  <g id="chupete" stroke="#2a1a12" stroke-width="3.5">
+    <ellipse cx="150" cy="176" rx="17" ry="9" fill="#2a9d8f"/>
+    <circle cx="150" cy="176" r="3.5" fill="#fff" stroke-width="2.5"/>
+    <circle cx="150" cy="190" r="7" fill="none" stroke="#f5b700" stroke-width="4"/>
+  </g>
+</defs>
+<use xlink:href="#base"/><use xlink:href="#cheeks"/>
+<g stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+
+  <path d="M120 144 L138 150 L120 156 M180 144 L162 150 L180 156" fill="none" stroke-width="4.5"/>
+  <path d="M126 158 Q118 176 122 196 M174 158 Q182 176 178 196" fill="none" stroke="#8fd3ff" stroke-width="7"/>
+  <path d="M120 132 L136 138 M180 132 L164 138" fill="none" stroke-width="3"/>
+  <path d="M66 120 l-14 -8 M62 140 l-16 0 M66 160 l-14 8 M234 120 l14 -8 M238 140 l16 0 M234 160 l14 8" stroke-width="4"/>
+  <path d="M148 158 Q147 162 151 162" fill="none" stroke-width="2.5"/>
+  <use xlink:href="#chupete"/>
+</g>
+</svg>

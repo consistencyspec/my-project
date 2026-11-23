@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="30 28 240 236" width="960" height="944">
+<defs>
+  <g id="base" stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M92 272 Q80 206 112 186 Q150 170 188 186 Q220 206 208 272 Z" fill="#f5b700"/>
+    <path d="M96 236 Q150 254 204 236" fill="none" stroke="#d7263d" stroke-width="7"/>
+    <path d="M92 254 Q150 272 208 254" fill="none" stroke="#2a9d8f" stroke-width="5"/>
+    <path d="M118 196 Q160 214 196 252" fill="none" stroke-width="3"/>
+    <ellipse cx="150" cy="140" rx="66" ry="64" fill="#f5b700"/>
+    <path d="M90 118 Q150 64 210 118" fill="none" stroke="#d7263d" stroke-width="6"/>
+    <path d="M86 132 Q150 74 214 132" fill="none" stroke="#2a9d8f" stroke-width="4"/>
+    <ellipse cx="150" cy="148" rx="52" ry="50" fill="#fbf6ec"/>
+    <circle cx="150" cy="152" r="44" fill="#f6c9a8"/>
+    <path d="M150 110 Q140 98 148 92 Q158 88 158 98 Q156 104 150 102" fill="none" stroke="#2a1a12" stroke-width="4.5"/>
+  </g>
+  <g id="cheeks" fill="#f2878a" opacity=".8" stroke="none"><ellipse cx="122" cy="168" rx="12" ry="8"/><ellipse cx="178" cy="168" rx="12" ry="8"/></g>
+  <g id="chupete" stroke="#2a1a12" stroke-width="3.5">
+    <ellipse cx="150" cy="176" rx="17" ry="9" fill="#2a9d8f"/>
+    <circle cx="150" cy="176" r="3.5" fill="#fff" stroke-width="2.5"/>
+    <circle cx="150" cy="190" r="7" fill="none" stroke="#f5b700" stroke-width="4"/>
+  </g>
+</defs>
+<use xlink:href="#base"/><use xlink:href="#cheeks"/>
+<g stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+
+  <path d="M122 150 Q131 140 140 150 M160 150 Q169 140 178 150" fill="none" stroke-width="4.5"/>
+  <path d="M232 96 c-4 -6 -12 -2 -8 5 l8 8 l8 -8 c4 -7 -4 -11 -8 -5 Z" fill="#ff6f91" stroke-width="2.5"/>
+  <path d="M66 104 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 l6 -2 Z M240 136 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 Z" fill="#f5b700" stroke-width="2.5"/>
+  <path d="M148 158 Q147 162 151 162" fill="none" stroke-width="2.5"/>
+  <use xlink:href="#chupete"/>
+</g>
+</svg>

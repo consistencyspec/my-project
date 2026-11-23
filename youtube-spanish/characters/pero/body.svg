@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="30 28 240 340" width="960" height="1360">
+
+  <g stroke="#2a1a12" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M214 316 Q256 300 250 262 Q246 240 232 246 Q240 262 236 280 Q230 298 206 300 Z" fill="#e9b97a"/>
+    <ellipse cx="96" cy="326" rx="30" ry="34" fill="#e9b97a"/>
+    <ellipse cx="204" cy="326" rx="30" ry="34" fill="#e9b97a"/>
+    <path d="M92.8 250 L207.2 250 L207.2 264 Q216 300 196 340 Q150 352 104 340 Q84 300 92.8 264 Z" fill="#e9b97a" stroke="none"/>
+    <path d="M92.8 264 Q84 300 104 340 Q150 352 196 340 Q216 300 207.2 264" fill="none"/>
+    <path d="M124 252 L176 252 Q174 304 150 318 Q126 304 124 252 Z" fill="#f7e3c6" stroke="none"/>
+    <rect x="114" y="296" width="24" height="58" rx="12" fill="#e9b97a"/>
+    <rect x="162" y="296" width="24" height="58" rx="12" fill="#e9b97a"/>
+    <ellipse cx="124" cy="356" rx="17" ry="9" fill="#f7e3c6"/>
+    <ellipse cx="176" cy="356" rx="17" ry="9" fill="#f7e3c6"/>
+    <path d="M118 352 l0 7 M126 352 l0 7 M170 352 l0 7 M178 352 l0 7" stroke-width="2.5"/>
+    <ellipse cx="78" cy="352" rx="18" ry="9" fill="#f7e3c6"/>
+    <ellipse cx="222" cy="352" rx="18" ry="9" fill="#f7e3c6"/>
+  </g>
+</svg>
