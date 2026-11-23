@@ -21,6 +21,12 @@ MM_DICT = ["コーヒー/こーひー", "1日/いちにち", "今日/きょう",
            "研究者/けんきゅうしゃ", "数値/すうち", "高評価/こうひょうか", "悪い派/わるいは", "いい派/いいは", "濾した/こした", "濾す/こす", "膵臓/すいぞう", "8杯/はっぱい", "6杯/ろっぱい",
            "1杯/いっぱい", "10杯/じゅっぱい", "14日間/じゅうよっかかん", "644人/ろっぴゃくよんじゅうよにん"]
 
+# 読み上げのルール(全回共通。2026-11-23 追加)
+# ・「29%」は数字のあとに「パーセント」と読む(数字とパーセントをまとめて、かなの読みを辞書に入れる)
+# ・「1日1杯」「1日20g」のように 1日 のあとに量が続くときは、1日 のあとに少し間を置く(MiniMax の <#秒#>)
+PERCENT_READING = True
+ICHINICHI_PAUSE = 0.25   # 秒。0 で間を置かない
+
 # Kokoro
 VOICE = "jf_alpha"   # 落ち着いた女性の声
 SPEED = 1.43         # 0.95 の1.5倍(テンポよく)
@@ -73,7 +79,33 @@ _pipe = None
 
 
 def voice_key():
-    return f"minimax3|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}" if ENGINE == "minimax" else f"{VOICE}|{SPEED}"
+    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
+    return (f"minimax3|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
+            else f"{VOICE}|{SPEED}")
+
+
+def decimal_kana(s):
+    """「1.5」「49」「0.68」→ かな。"""
+    if "." in s:
+        a, b = s.split(".")
+        return (kana(int(a)) or "れい") + "てん" + "".join(DIG[int(c)] or "ぜろ" for c in b)
+    return kana(int(s)) or "ぜろ"
+
+
+def percent_dict(text):
+    """「29%」「3〜5%」→「29%/にじゅうきゅうパーセント」。数字のあとにパーセントと読ませる。"""
+    out = []
+    for a, b in sorted(set(re.findall(r"(?:(\d+(?:\.\d+)?)〜)?(\d+(?:\.\d+)?)%", text)), key=lambda x: -len(x[0] + x[1])):
+        src = (f"{a}〜" if a else "") + f"{b}%"
+        out.append(f"{src}/{(decimal_kana(a) + 'から') if a else ''}{decimal_kana(b)}パーセント")
+    return out
+
+
+def add_pauses(text):
+    """「1日」のあとに量(数字・約・半分・グラス・純アルコールなど)が続くとき、少し間を置く。"""
+    if not ICHINICHI_PAUSE:
+        return text
+    return re.sub(r"1日(?=[0-9約半グ純平お]|あたり)", f"1日<#{ICHINICHI_PAUSE}#>", text)
 
 
 def big_kana(n):
@@ -113,7 +145,7 @@ def auto_dict(text):
 # 間(ま)の長さ(秒)。MiniMax は文中の <#秒#> で間をあける
 PAUSE_HA = 0.15     # 「いい派」と助詞「は(わ)」の間
 PAUSE_NUM = 0.2     # 「いい派」と議席の数字の間
-PAUSE_SHORT = 0.1   # 「約」「1日」と数字の間
+PAUSE_SHORT = 0.1   # 「約」と数字の間(「1日」のあとは ICHINICHI_PAUSE)
 KOSU = {1: "いっこ", 2: "にこ", 3: "さんこ", 4: "よんこ", 5: "ごこ", 6: "ろっこ", 7: "ななこ", 8: "はっこ", 9: "きゅうこ", 10: "じゅっこ"}
 HA_YOMI = {"いい": "いい", "悪い": "わるい"}
 
@@ -122,7 +154,7 @@ def tts_text(t):
     """合成の前に、読み方と間を文章に書き込む(全回共通のルール)。
 
     - 「いい派は」→「いいは・わ」(派と助詞の間に少し間)/「いい派、15議席」→「いいは・じゅうごぎせき」
-    - 「約3万人」→「やく・さんまんにん」/「1日200mg」→「いちにち・にひゃくミリグラム」(約・1日のあとに少し間)
+    - 「約3万人」→「やく・さんまんにん」/「1日200mg」→「1日・にひゃくミリグラム」(約・1日のあとに少し間)
     - 「11%」→「じゅういちパーセント」、「750mg未満」→「ななひゃくごじゅうミリグラムみまん」、「半個」→「はんこ」
     """
     p = lambda sec: f"<#{sec}#>"  # noqa: E731
@@ -130,11 +162,12 @@ def tts_text(t):
     t = re.sub(r"(いい|悪い)派は", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_HA) + "わ", t)
     t = re.sub(r"(いい|悪い)派、?(?=\d)", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_NUM), t)
     t = re.sub(r"(いい|悪い)派", lambda m: HA_YOMI[m.group(1)] + "は", t)
+    t = add_pauses(t)   # 「1日」のあとに量が続くときの間(ICHINICHI_PAUSE)
     t = re.sub(r"約(?=\d)", "やく" + p(PAUSE_SHORT), t)
-    t = re.sub(r"1日(?=[\d半])", "いちにち" + p(PAUSE_SHORT), t)
     t = re.sub(r"(\d+)mg", lambda m: kana(int(m.group(1))) + "ミリグラム", t)
     t = t.replace("未満", "みまん")
-    t = re.sub(r"(\d+)%", lambda m: kana(int(m.group(1))) + "パーセント", t)
+    t = re.sub(r"(?:(\d+(?:\.\d+)?)〜)?(\d+(?:\.\d+)?)%",
+               lambda m: ((decimal_kana(m.group(1)) + "から") if m.group(1) else "") + decimal_kana(m.group(2)) + "パーセント", t)
     t = re.sub(r"(\d+)議席", lambda m: kana(int(m.group(1))) + "ぎせき", t)
     t = t.replace("半個", "はんこ").replace("2個目", "にこめ")
     t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
@@ -147,15 +180,15 @@ def tts_text(t):
 
 
 def synth_minimax(text):
-    text = tts_text(text)
     import io
     import json
     import time
     import urllib.request
     import soundfile as sf
-    body = {"model": MM_MODEL, "text": text.replace("……", "、"), "stream": False, "language_boost": "Japanese",
+    tone = MM_DICT + auto_dict(text) + (percent_dict(text) if PERCENT_READING else [])  # tts_text の前の文章で作る(余っても害はない)
+    body = {"model": MM_MODEL, "text": tts_text(text.replace("……", "、")), "stream": False, "language_boost": "Japanese",
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
-            "pronunciation_dict": {"tone": MM_DICT + auto_dict(text)},
+            "pronunciation_dict": {"tone": tone},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
