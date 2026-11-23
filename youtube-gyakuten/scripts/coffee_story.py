@@ -16,6 +16,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from frames import BAD, GOOD, INK, LW, PANEL, SUB, TRIM, W, H, WHITE, arrow, bean, font, heart, line, meter, mug, panel, stage, text  # noqa: E402
 from motion import Card, blank, out_back, out_cubic, parliament_frame, seg, with_alpha  # noqa: E402
 import coffee_war as cw  # noqa: E402
+import narrate  # noqa: E402
+
+narrate.ICHINICHI_PAUSE = 0   # この回は「1日」のあとに間を置かない(2026-11-23 指示)
+INTRO_EMOTION = "happy"       # 冒頭(番組紹介〜タイトル)は爽やかに
+INTRO_SCENES = ("番組紹介", "オープニング", "タイトル")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "output", "coffee_story")
@@ -120,12 +125,12 @@ E = lambda f: f  # noqa: E731
 #   ("headlines", ナレーション) / ("title", ナレーション) / ("rules", ナレーション) / ("final", ナレーション)
 SCENES = [
     # 番組紹介(新常識クロニクルとは)。本題は30秒あまりから
-    ("intro_myths", "「卵は1日1個まで」「1日1万歩」「朝ごはんは必ず」。その常識、本当に、いまも正しいんでしょうか？",
-     ["卵は1日1個まで", "1日1万歩", "朝ごはんは必ず"]),
-    ("intro_flip", "決着したはずの話が、あっさりひっくり返る。"),
-    ("intro_logo", "新常識クロニクルは、論争の歴史をたどり、いまどちらが優勢かを、データで判定する番組です。"),
-    ("headlines", "コーヒーも「長生きできる」「いや、がんのもと」と、ずっと言われ続けてきました。結局どっちなの？"),
-    ("title", "今日のテーマは、コーヒー10年戦争です。"),
+    ("intro_myths", "「卵は1日1個まで」「1日1万歩」「朝ごはんはしっかり」。よく聞くこの話、いまの研究では、どうなっているんでしょう？",
+     ["卵は1日1個まで", "1日1万歩", "朝ごはんはしっかり"]),
+    ("intro_flip", "実は、研究の答えは、時代とともに少しずつ変わってきたんです。"),
+    ("intro_logo", "新常識クロニクルでは、そんな論争の歴史を年表でたどりながら、いまどちらが優勢なのかを、データで楽しく見ていきます。"),
+    ("headlines", "今回のテーマは、コーヒー。「長生きできる」という話もあれば、「体によくない」という話も。いったい、どっちなんでしょう？"),
+    ("title", "題して、コーヒー10年戦争です。"),
     # ルール説明
     ("rules_intro", "この番組では、研究の歴史を選挙に見立てて見ていきます。議会の議席は全部で100。オレンジが「いい派」、青が「悪い派」です。スタートは50対50の互角。真ん中の天秤は、いまどちらが優勢かを表しています。"),
     ("rules", "新しい研究や発表が出るたびに、勝った側に議席が移ります。動く議席の数は、その研究の重みで決まります。WHOや国、裁判所などの公的な判断は15議席。たくさんの研究をまとめた分析は10議席。数十万人を何年も追いかけた調査は6議席。対象や条件が限られた結果は3議席です。",
@@ -473,7 +478,7 @@ def headlines_frame(t):
             chip(d, x, y, s, c, int(54 * (0.5 + 0.5 * out_back(k))))
     k = seg(t, 4.6, 5.1)
     if k > 0:
-        text(d, (W / 2, 950), "結局どっちなの？", int(90 * (0.5 + 0.5 * out_back(k))), WHITE, anchor="mm")
+        text(d, (W / 2, 950), "いったい、どっちなんでしょう？", int(76 * (0.5 + 0.5 * out_back(k))), WHITE, anchor="mm")
     return im.convert("RGB")
 
 
@@ -499,12 +504,12 @@ def intro_myths_maker(narr, keys):
     """「常識」のチップが言葉に合わせて出て、最後に全部に「？」がつく。"""
     def make(alen, lead):
         times = [lead + narr.index(k) / len(narr) * alen - 0.1 for k in keys]
-        q_t = lead + narr.index("本当") / len(narr) * alen
+        q_t = lead + narr.index("いまの研究") / len(narr) * alen
         spots = [(560, 330), (1360, 470), (700, 650)]
 
         def frame(t):
             im, d = stage()
-            text(d, (W / 2, 160), "その常識、", 64, TRIM, anchor="mm")
+            text(d, (W / 2, 160), "よく聞くこの話", 64, TRIM, anchor="mm")
             for i, (k, (x, y)) in enumerate(zip(keys, spots)):
                 kk = seg(t, times[i], times[i] + 0.35)
                 if kk <= 0:
@@ -517,11 +522,11 @@ def intro_myths_maker(narr, keys):
                 qk = seg(t, q_t + i * 0.25, q_t + i * 0.25 + 0.35)
                 if qk > 0:
                     r = 52 * out_back(qk)
-                    d.ellipse([x + tw / 2 - r, y - size - r * 0.6, x + tw / 2 + r, y - size + r * 1.4], fill=(220, 60, 60))
+                    d.ellipse([x + tw / 2 - r, y - size - r * 0.6, x + tw / 2 + r, y - size + r * 1.4], fill=TRIM)
                     text(d, (x + tw / 2, y - size + r * 0.4), "？", int(70 * min(1, qk * 1.5)), WHITE, anchor="mm")
             k2 = seg(t, q_t + 0.9, q_t + 1.3)
             if k2 > 0:
-                text(d, (W / 2, 900), "本当に、いまも正しい？", int(84 * (0.6 + 0.4 * out_back(k2))), WHITE, anchor="mm")
+                text(d, (W / 2, 900), "いまの研究では、どうなってる？", int(76 * (0.6 + 0.4 * out_back(k2))), WHITE, anchor="mm")
             return im
         return frame, q_t + 1.6
     return WithAudio(make)
@@ -543,7 +548,7 @@ def intro_flip_frame(t):
             text(d, (cx, cy), label, int(170 * w), tc, anchor="mm")
     a = seg(t, 2.3, 2.7)
     if a > 0:
-        text(d, (W / 2, 920), "決着したはずの話が、ひっくり返る", int(60 * (0.7 + 0.3 * out_back(a))), WHITE, anchor="mm")
+        text(d, (W / 2, 920), "研究の答えは、時代とともに変わる", int(60 * (0.7 + 0.3 * out_back(a))), WHITE, anchor="mm")
     return im
 
 
@@ -554,7 +559,7 @@ def intro_logo_frame(t):
         text(d, (W / 2, 420), "新常識クロニクル", int(190 * (0.5 + 0.5 * k)), WHITE, anchor="mm")
     a = seg(t, 0.9, 1.3)
     if a > 0:
-        text(d, (W / 2, 600), "論争の歴史を、データで判定する", 70, tuple(int(TRIM[j] * a + 30 * (1 - a)) for j in range(3)), anchor="mm")
+        text(d, (W / 2, 600), "論争の歴史を、データで楽しく", 70, tuple(int(TRIM[j] * a + 30 * (1 - a)) for j in range(3)), anchor="mm")
     for i, (lab, c, x) in enumerate((("いい派", GOOD, W / 2 - 230), ("悪い派", BAD, W / 2 + 230))):
         kk = seg(t, 1.5 + i * 0.25, 1.9 + i * 0.25)
         if kk > 0:
@@ -649,11 +654,11 @@ def build_plan():
         elif kind == "summary":
             plan.append((summary_frame, 11.0, dur(sc[1]), ("まとめ", "", sc[1])))
         elif kind == "intro_myths":
-            plan.append((intro_myths_maker(sc[1], sc[2]), 0, dur(sc[1]), ("番組紹介", "その常識、本当に正しい？", sc[1])))
+            plan.append((intro_myths_maker(sc[1], sc[2]), 0, dur(sc[1]), ("番組紹介", "よく聞くこの話、いまの研究では？", sc[1])))
         elif kind == "intro_flip":
             plan.append((intro_flip_frame, 2.8, dur(sc[1]), ("番組紹介", "常識 → 新常識", sc[1])))
         elif kind == "intro_logo":
-            plan.append((intro_logo_frame, 2.2, dur(sc[1]), ("番組紹介", "新常識クロニクル:論争の歴史を、データで判定する", sc[1])))
+            plan.append((intro_logo_frame, 2.2, dur(sc[1]), ("番組紹介", "新常識クロニクル:論争の歴史を、データで楽しく", sc[1])))
         elif kind == "outro":
             plan.append((outro_frame, 4.2, dur(sc[1]), ("エンディング", "チャンネル登録・今後の論争", sc[1])))
         elif kind == "next":
@@ -730,8 +735,9 @@ def write_narration_txt(plan):
         f.write("\n".join(plain))
 
 
-def voice_for(i, narr, cache):
+def voice_for(i, narr, cache, emotion=None):
     """場面のナレーション音声(キャッシュあり)。"""
+    narrate.MM_EMOTION = emotion
     import hashlib
     import numpy as np
     import soundfile as sf
@@ -761,7 +767,7 @@ def main():
     voices = []
     new_plan = []
     for i, (fn, anim, sec, meta) in enumerate(plan):
-        v = voice_for(i, meta[2], os.path.join(OUT, "voice"))
+        v = voice_for(i, meta[2], os.path.join(OUT, "voice"), INTRO_EMOTION if meta[0] in INTRO_SCENES else None)
         extra = 2.0 if "クイズ" in meta[0] else 0.0   # クイズは考える時間
         sec = max(anim + 0.3 if anim else 2.0, LEAD + len(v) / RATE + TAIL + extra)
         if "研究カード" in meta[0]:

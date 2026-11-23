@@ -76,8 +76,12 @@ def reading(text):
 _pipe = None
 
 
+MM_EMOTION = None   # 声の感情(None=自動。"happy" "calm" など)。場面ごとに回のスクリプトから切りかえてよい
+
+
 def voice_key():
     rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
+    rules += f"|emo{MM_EMOTION}" if MM_EMOTION else ""
     return (f"minimax4|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
             else f"{VOICE}|{SPEED}")
 
@@ -272,6 +276,8 @@ def synth_minimax(text):
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
             "pronunciation_dict": {"tone": MM_DICT},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
+    if MM_EMOTION:
+        body["voice_setting"]["emotion"] = MM_EMOTION
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
                                      headers={"Authorization": "Bearer proxy-injected", "Content-Type": "application/json"})
