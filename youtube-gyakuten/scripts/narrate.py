@@ -13,13 +13,11 @@ MM_MODEL = "speech-2.8-hd"
 MM_VOICE = "Japanese_IntellectualSenior"   # 知的で落ち着いた男性の声
 MM_SPEED = 1.2
 # 読み間違えやすい語(元の文字/読み方)。MiniMax の pronunciation_dict に渡す
-MM_DICT = ["コーヒー/こーひー", "1日/いちにち", "今日/きょう", "熱すぎ/あつすぎ", "一日中/いちにちじゅう",
-           "何年か/なんねんか", "高めの方/たかめのかた", "心配な方/しんぱいなかた", "高い方/たかいかた",
-           "37年前/さんじゅうななねんまえ", "37年後/さんじゅうななねんご", "25年/にじゅうごねん", "大勝/たいしょう",
-           "火種/ひだね", "1日1個/いちにちいっこ", "甘党/あまとう", "一方/いっぽう", "主な/おもな", "天秤/てんびん",
-           "互角/ごかく", "優勢/ゆうせい", "煮出/にだ", "南米/なんべい", "行ってみましょう/いってみましょう",
-           "研究者/けんきゅうしゃ", "数値/すうち", "高評価/こうひょうか", "悪い派/わるいは", "いい派/いいは", "濾した/こした", "濾す/こす", "膵臓/すいぞう", "8杯/はっぱい", "6杯/ろっぱい",
-           "1杯/いっぱい", "10杯/じゅっぱい", "14日間/じゅうよっかかん", "644人/ろっぴゃくよんじゅうよにん"]
+MM_DICT = ["コーヒー/こおひい", "熱すぎ/あつすぎ", "何年か/なんねんか", "高めの方/たかめのかた", "心配な方/しんぱいなかた",
+           "高い方/たかいかた", "大勝/たいしょう", "火種/ひだね", "甘党/あまとう", "一方/いっぽう", "主な/おもな",
+           "天秤/てんびん", "互角/ごかく", "優勢/ゆうせい", "煮出/にだ", "南米/なんべい", "行ってみましょう/いってみましょう",
+           "研究者/けんきゅうしゃ", "数値/すうち", "高評価/こうひょうか", "濾した/こした", "濾す/こす", "膵臓/すいぞう",
+           "14日間/じゅうよっかかん", "年前/ねんまえ", "年後/ねんご"]
 
 # 読み上げのルール(全回共通。2026-11-23 追加)
 # ・「29%」は数字のあとに「パーセント」と読む(数字とパーセントをまとめて、かなの読みを辞書に入れる)
@@ -79,8 +77,8 @@ _pipe = None
 
 
 def voice_key():
-    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|v3|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
-    return (f"minimax3|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
+    rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
+    return (f"minimax4|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
             else f"{VOICE}|{SPEED}")
 
 
@@ -159,12 +157,6 @@ def tts_text(t):
     """
     p = lambda sec: f"<#{sec}#>"  # noqa: E731
     t = re.sub(r"(\d),(\d{3})", r"\1\2", t)
-    for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)
-        t = t.replace(a, b)
-    # 年号と「第1話」は、途中で切れないよう、かなで書き込む(辞書だけだと「せんきゅうひゃく・ななじゅうきゅうねん」と切れる)
-    t = re.sub(r"(\d{4})年", lambda m: (lambda y: ("にせん" if y // 1000 == 2 else "せん") + kana(y % 1000))(int(m.group(1))) + "ねん", t)
-    t = re.sub(r"第(\d+)話", lambda m: "だい" + kana(int(m.group(1))) + "わ", t)
-    t = t.replace("WHO", "ダブリューエイチオー")
     t = re.sub(r"(いい|悪い)派は", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_HA) + "わ", t)
     t = re.sub(r"(いい|悪い)派、?(?=\d)", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_NUM), t)
     t = re.sub(r"(いい|悪い)派", lambda m: HA_YOMI[m.group(1)] + "は", t)
@@ -182,9 +174,6 @@ def tts_text(t):
         n = jp_number(m.group(1))
         return ({1: "ひとり", 2: "ふたり", 4: "よにん"}.get(n) or big_kana(n) + "にん") if n else m.group(0)
     t = re.sub(r"(\d+万\d+千|\d+万|\d+)人", people, t)
-    # 数え方がつかない数字(「52対48」「いい派78、」「87のうち」「13でした」)も、かなで書き込む
-    t = re.sub(r"(\d+)対(\d+)", lambda m: kana(int(m.group(1))) + "たい" + kana(int(m.group(2))), t)
-    t = re.sub(r"(?<![\d.〜])(\d+)(?=[、。！？]|の|でした|$)", lambda m: kana(int(m.group(1))) if len(m.group(1)) <= 4 else m.group(1), t)
     return t
 
 
@@ -198,6 +187,79 @@ def too_long(text, sec):
     pauses = sum(float(x) for x in re.findall(r"<#([\d.]+)#>", text))
     return sec > len(plain) / 5.0 + pauses + 3.0
 
+# ---- 全回共通の読み方の流れ:pre_text(決まった言い回し)→ tts_text(派・約・1日の間など)→ post_text(残りの数字をかなに)
+# 決まった言い回し(数字ごと、かなに直す)。tts_text より前に使う
+MM_FIXED = [
+    ("1.5〜3.5杯", "いちてんごはいからさんてんごはいまで"),
+    ("3〜4杯", "さんよんはい"), ("3から4杯", "さんからよんはい"), ("3〜5杯", "さんからごはい"), ("1〜2杯", "いちからにはい"),
+    ("40〜79歳", "よんじっさいからななじゅうきゅうさいまで"),
+    ("約1.5倍", "やくいってんごばい"), ("36分", "さんじゅうろっぷん"),
+    ("10か国", "じっかこく"), ("今日は飲む", "きょうわのむ"), ("今日は飲まない", "きょうわのまない"),
+    ("今日", "きょう"), ("一日中", "いちにちじゅう"),
+    ("WHO", "ダブリューエイチオー"), ("65℃", "ろくじゅうごど"), ("℃", "ど"),
+]
+COUNTER = {"杯": {1: "いっぱい", 2: "にはい", 3: "さんばい", 4: "よんはい", 5: "ごはい", 6: "ろっぱい", 8: "はっぱい", 10: "じゅっぱい"},
+           "歳": {60: "ろくじゅっさい", 40: "よんじっさい", 20: "はたち"},
+           "社": {90: "きゅうじゅっしゃ", 10: "じゅっしゃ"},
+           "歩": {1000: "せんぽ", 10000: "いちまんぽ", 3000: "さんぜんぽ", 8000: "はっせんぽ"}}
+
+
+KAN = "〇一二三四五六七八九"
+
+
+def kanji_num(n):
+    """1986 → 千九百八十六(年号用)。"""
+    out = ""
+    for unit, name in ((1000, "千"), (100, "百"), (10, "十")):
+        q, n = divmod(n, unit)
+        if q:
+            out += ("" if q == 1 else KAN[q]) + name
+    return out + (KAN[n] if n else "")
+
+
+def num_kana(s):
+    n = jp_number(s)
+    return None if n is None else (big_kana(n) if n else "ぜろ")
+
+
+def pre_text(text):
+    t = add_pauses(text)   # 「1日」のあとの間は、数字をかなに直す前に入れる(あとだと「1日3〜5杯」が見つからない)
+    for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)。決まった言い回しより先に使う
+        t = t.replace(a, b)
+    t = t.replace("……", "、").replace("「", "").replace("」", "、")
+    for a, b in MM_FIXED:
+        t = t.replace(a, b)
+    return t
+
+
+def post_text(t):
+    """tts_text のあとに残った数字を、すべてかなに直す(<#秒#> の間の記号はそのまま)。"""
+    marks = []
+    t = re.sub(r"<#[\d.]+#>", lambda m: marks.append(m.group(0)) or f"\x00{chr(65 + len(marks) - 1)}\x00", t)
+    t = t.replace("1日", "いちにち")
+    t = re.sub(r"第(\d+)話", lambda m: f"だい{num_kana(m.group(1))}わ", t)
+    t = re.sub(r"(\d{4})年", lambda m: "\x01" + kanji_num(int(m.group(1))) + "年", t)   # 年号は漢数字で(ひらがなだと読み崩れる)
+    for unit, yomi in (("杯", "はい"), ("歳", "さい"), ("社", "しゃ"), ("歩", "ほ")):
+        t = re.sub(r"([\d,]+万?)" + unit, lambda m, u=unit, y=yomi: COUNTER[u].get(jp_number(m.group(1)) or -1, (num_kana(m.group(1)) or "") + y), t)
+    t = re.sub(r"(\d+)対(\d+)", lambda m: f"{num_kana(m.group(1))}たい{num_kana(m.group(2))}", t)
+    t = re.sub(r"(\d+)年", lambda m: num_kana(m.group(1)) + "ねん", t)
+    t = re.sub(r"(\d+)割", lambda m: num_kana(m.group(1)) + "わり", t)
+    t = re.sub(r"(\d+(?:\.\d+)?)倍", lambda m: decimal_kana(m.group(1)) + "ばい", t)
+    t = re.sub(r"(\d+)以上", lambda m: num_kana(m.group(1)) + "いじょう", t)
+    t = re.sub(r"(\d+\.\d+)", lambda m: decimal_kana(m.group(1)), t)
+    t = re.sub(r"(\d+万?)", lambda m: num_kana(m.group(1)) or m.group(1), t)   # 残りの数字
+    t = re.sub(r"(^|[、。！？\s])\x01", r"\1", t).replace("\x01", "<#0.15#>")   # 文の頭・句読点のあとは間を入れない
+    t = t.replace("ねん後", "ねんご").replace("ねん前", "ねんまえ").replace("年後", "年ご").replace("年前", "年まえ")
+    t = t.replace("いいは", "いいハ").replace("わるいは", "わるいハ")   # 派の「は」を助詞の「わ」と読ませない
+    return re.sub(r"\x00([A-Z])\x00", lambda m: marks[ord(m.group(1)) - 65], t)
+
+
+def mm_text(text):
+    """MiniMax に送る文(全回共通)。数字はすべて読み方に直し、間を入れる。"""
+    return post_text(tts_text(pre_text(text)))
+
+
+
 
 def synth_minimax(text):
     import io
@@ -205,10 +267,9 @@ def synth_minimax(text):
     import time
     import urllib.request
     import soundfile as sf
-    tone = MM_DICT + auto_dict(text) + (percent_dict(text) if PERCENT_READING else [])  # tts_text の前の文章で作る(余っても害はない)
-    body = {"model": MM_MODEL, "text": tts_text(text.replace("……", "、")), "stream": False, "language_boost": "Japanese",
+    body = {"model": MM_MODEL, "text": mm_text(text), "stream": False, "language_boost": "Japanese",
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
-            "pronunciation_dict": {"tone": tone},
+            "pronunciation_dict": {"tone": MM_DICT},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
