@@ -243,6 +243,7 @@ def post_text(t):
     t = re.sub(r"<#[\d.]+#>", lambda m: marks.append(m.group(0)) or f"\x00{chr(65 + len(marks) - 1)}\x00", t)
     t = t.replace("1日", "いちにち")
     t = re.sub(r"第(\d+)話", lambda m: f"だい{num_kana(m.group(1))}わ", t)
+    t = re.sub(r"(\d{3}4)年", lambda m: "\x01" + kana(int(m.group(1)))[:-2] + "よねん", t)   # 4で終わる年は「〜よねん」(2014年=にせんじゅうよねん)
     t = re.sub(r"(\d{4})年", lambda m: "\x01" + kanji_num(int(m.group(1))) + "年", t)   # 年号は漢数字で(ひらがなだと読み崩れる)
     for unit, yomi in (("杯", "はい"), ("歳", "さい"), ("社", "しゃ"), ("歩", "ほ")):
         t = re.sub(r"([\d,]+万?)" + unit, lambda m, u=unit, y=yomi: COUNTER[u].get(jp_number(m.group(1)) or -1, (num_kana(m.group(1)) or "") + y), t)

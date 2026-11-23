@@ -735,8 +735,8 @@ def write_narration_txt(plan):
         f.write("\n".join(plain))
 
 
-def voice_for(i, narr, cache, emotion=None):
-    """場面のナレーション音声(キャッシュあり)。"""
+def voice_for(i, narr, cache, emotion=None, fresh=False):
+    """場面のナレーション音声(キャッシュあり)。fresh=True で作り直す。"""
     narrate.MM_EMOTION = emotion
     import hashlib
     import numpy as np
@@ -747,7 +747,7 @@ def voice_for(i, narr, cache, emotion=None):
     from narrate import mm_text
     key = hashlib.md5(f"{voice_key()}|{mm_text(narr)}".encode()).hexdigest()[:12]   # 送る文章が同じなら作り直さない
     path = os.path.join(cache, f"{key}.wav")
-    if not os.path.exists(path):
+    if fresh or not os.path.exists(path):
         sf.write(path, synth(narr), RATE)
     a, _ = sf.read(path, dtype="float32")
     return np.asarray(a)

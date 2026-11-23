@@ -44,8 +44,15 @@ narrate.MM_DICT += ["魅力度/みりょくど", "圏外/けんがい", "初登�
                     "北陸/ほくりく", "金沢/かなざわ", "晩年/ばんねん", "4位/よんい"]
 
 # 文字を直接読み方に置きかえる語(数字がかなに直される前に使う)
-narrate.TEXT_READ += [("G20", "ジートゥエンティ"), ("18年間", "じゅうはちねんかん"), ("2時間半", "にじかんはん"),
-                      ("1300年祭", "せんさんびゃくねんさい"), ("4位から10位", "よんいからじゅうい")]
+narrate.TEXT_READ += [("G20", "ジートゥエンティ"), ("18年間", "十八年間"), ("18年分", "十八年分"), ("2時間半", "にじかんはん"),
+                      ("1300年祭", "せんさんびゃくねんさい"), ("約3万人", "やくさんまんにん"), ("平清盛", "たいらのきよもり"),
+                      ("トップ10", "トップテン"), ("トップ3", "トップスリー"), ("2県", "にけん"), ("2つ", "ふたつ"), ("1つ", "ひとつ"),
+                      ("順位", "じゅんい")]
+# 「〇位」はすべて かな+い で読ませる(漢字の「位」は「くらい」などと読まれる)。長い数字から先に置きかえる
+narrate.TEXT_READ += [("139点", "ひゃくさんじゅうきゅうてん"), ("130点", "ひゃくさんじゅってん"), ("100点", "ひゃくてん"),
+                      ("75点", "ななじゅうごてん"), ("71点", "ななじゅういってん"), ("8点", "はってん"), ("7点", "ななてん"),
+                      ("3点", "さんてん"), ("1点", "いってん"), ("何位", "なんい")]
+narrate.TEXT_READ += [(f"{n}位", narrate.kana(n) + "い") for n in range(13, 0, -1)]
 
 # ---------- データ ----------
 REGIONS = [("関東", (62, 120, 220)), ("関西", (240, 128, 40)), ("九州・沖縄", (60, 165, 105)), ("中部・北陸", (150, 95, 200))]
@@ -403,6 +410,7 @@ SCENES = [
     ("law", "順位が上がった年をみると、世界遺産、新幹線、大河ドラマが、よく重なっていました。ただし、大河ドラマでも、兵庫のように、下がった年もあります。出来事が、そのまま順位を上げるとは限りません。"),
     ("summary", "今日のまとめです。1位北海道、2位京都は18年間不動。3位の沖縄を抜いたのは、東京の5年間だけ。そして4位から10位は、世界遺産や新幹線の年に、新しい県が飛び込んでくる席でした。来年、トップ10に初登場するのは、どの県でしょうか。",
      ["1位北海道", "3位の沖縄", "4位から10位"]),
+    ("points", "最後に、18年間の総合ランキングです。3位を8点、4位を7点と、1つ下がるごとに1点ずつ減らし、10位を1点として、18年分を足しました。11位は静岡、3点。10位は兵庫、9位は石川。8位は長崎、7位は長野、6位は福岡。5位奈良、71点。4位大阪、75点。そしてトップ3。3位、神奈川、100点。2位、東京、130点。1位は、沖縄、139点！ 3位の常連、沖縄が、18年間の王者でした。"),
     ("next", "次回のテーマは「1日1万歩は必要？」。その数字、どこから来たのでしょうか。"),
     ("outro", "新常識クロニクルでは、これからも、ランキングや常識の移り変わりを、データで追いかけていきます。あなたの県は、何位でしたか？ ぜひコメントで教えてください。チャンネル登録と高評価も、よろしくお願いします！"),
 ]
@@ -696,6 +704,53 @@ def outro_frame(t):
     return im
 
 
+# ---------- 18年間の総合ランキング(3位=8点 … 10位=1点) ----------
+POINT_OF = {3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1}
+
+
+def points():
+    """{県: 合計点}。1位・2位(北海道・京都)は除く。3位も数える。2021年の10位同点は両方1点。"""
+    out = {}
+    for y in YEARS:
+        p3 = TOP3[y][2]
+        out[p3] = out.get(p3, 0) + POINT_OF[3]
+        for p, r in ranks(y).items():
+            out[p] = out.get(p, 0) + POINT_OF[r]
+    return sorted(out.items(), key=lambda x: -x[1])
+
+
+def points_draw(t, ts):
+    im, d = stage()
+    panel(d, (200, 120, 1720, 1010))
+    text(d, (W / 2, 180), "18年間の総合ランキング(1位・2位の北海道・京都を除く)", 46, INK, anchor="mm")
+    text(d, (W / 2, 232), "3位=8点 4位=7点 … 10位=1点 で2009〜2026年を合計", 32, SUB, heavy=False, anchor="mm")
+    pts = points()
+    mx = pts[0][1]
+    n = len(pts)
+    order = {p: i for i, p in enumerate(reversed([p for p, _ in pts]))}   # 下位から出す
+    for i, (p, v) in enumerate(pts):
+        j = order[p]
+        k = seg(t, ts[j], ts[j] + 0.5)
+        if k <= 0:
+            continue
+        y = 290 + i * 64
+        top = i < 3
+        x0 = 520
+        bw = (1600 - x0 - 120) * v / mx * out_cubic(k)
+        text(d, (300, y + 26), f"{i + 1}位", 38 if top else 32, (220, 50, 50) if top else INK, anchor="mm")
+        text(d, (370, y + 26), p, 40 if top else 34, INK, anchor="lm")
+        d.rounded_rectangle([x0, y + 4, x0 + max(bw, 8), y + 48], radius=22, fill=rc(p))
+        text(d, (x0 + max(bw, 8) + 16, y + 26), f"{round(v * min(1, k * 1.3))}点", 36 if top else 30, INK, anchor="lm")
+    s1 = seg(t, ts[-1] + 0.6, ts[-1] + 1.0)
+    if s1 > 0:
+        sc = 1.4 - 0.4 * out_back(s1)
+        cx, cy = 960, 316
+        d.rounded_rectangle([cx - 150 * sc, cy - 50 * sc, cx + 150 * sc, cy + 50 * sc], radius=20 * sc, fill=(220, 50, 50),
+                            outline=WHITE, width=max(3, int(6 * sc)))
+        text(d, (cx, cy), "18年間の王者", int(42 * sc), WHITE, anchor="mm")
+    return im
+
+
 # ---------- 組み立て ----------
 def dur(narr):
     return max(3.0, len(narr) / 8.0 + 0.8)
@@ -748,6 +803,10 @@ def build_plan():
                          ("振り返り", "世界遺産・新幹線・大河ドラマ / ただし兵庫2012", narr)))
         elif kind == "summary":
             plan.append((at_maker(narr, sc[2], summary_draw), 0, dur(narr), ("まとめ", "", narr)))
+        elif kind == "points":
+            keys = [p for p, _ in reversed(points())]
+            plan.append((at_maker(narr, keys, points_draw, tail=1.6), 0, dur(narr),
+                         ("総合ランキング", "18年間の総合ランキング(3位=8点〜10位=1点):" + " ".join(f"{i + 1}位{p}{v}点" for i, (p, v) in enumerate(points())), narr)))
         elif kind == "next":
             plan.append((next_frame, 1.0, dur(narr), ("次回予告", NEXT_TITLE, narr)))
         elif kind == "outro":
@@ -798,6 +857,8 @@ def write_script(plan):
         b = BOARD[y]
         cells = b[:6] + ["・".join(b[6:])]
         lines.append(f"| {y} | " + " | ".join(cells) + " | " + " | ".join(str(c) for c in counts(y)) + " |")
+    lines += ["", "## 18年間の総合ランキング(3位=8点・4位=7点 … 10位=1点。1位・2位の北海道・京都は除く)", "",
+              "| 順位 | 県 | 合計点 |", "|---|---|---|"] + [f"| {i + 1} | {p} | {v} |" for i, (p, v) in enumerate(points())]
     lines += ["", "## 公開前に確認すること"] + [f"- {c}" for c in CHECKS] + [""]
     with open(SCRIPT_MD, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -850,6 +911,20 @@ def main():
         new_plan.append((fn, anim, sec, meta))
         print(f"声 {i + 1:3d}/{len(plan)} {len(v) / RATE:5.1f}秒 {meta[0]}", flush=True)
     plan = new_plan
+    # 声の速さが他の場面よりずっと遅い(=変な声・うなり声などが混じっている)場面は作り直す
+    import re
+    import statistics
+    def rate(i):
+        return len(re.sub(r"<#[\d.]+#>", "", narrate.mm_text(plan[i][3][2]))) / (len(voices[i]) / RATE)
+    med = statistics.median(rate(i) for i in range(len(plan)))
+    for i in range(len(plan)):
+        for _ in range(3):
+            if rate(i) >= med * 0.75:
+                break
+            print(f"  ! 声が遅すぎるので作り直し({len(voices[i]) / RATE:.1f}秒): {plan[i][3][0]}", flush=True)
+            voices[i] = cs.voice_for(i, plan[i][3][2], os.path.join(OUT, "voice"), fresh=True)
+        fn, anim, sec, meta = plan[i]
+        plan[i] = (fn, anim, max(anim + 0.3, LEAD + len(voices[i]) / RATE + TAIL), meta)
     total = write_script(plan)
     print(f"台本：{SCRIPT_MD}(約{int(total // 60)}分{int(total % 60):02d}秒、{len(plan)}場面)")
     if "--voice" in sys.argv:
