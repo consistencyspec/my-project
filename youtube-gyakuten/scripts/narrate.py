@@ -243,7 +243,7 @@ def pre_text(text):
     for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)。決まった言い回しより先に使う
         t = t.replace(a, b)
     t = t.replace("」派", f"<#{PAUSE_QUOTE_HA}#>派" if PAUSE_QUOTE_HA else "派")   # 「卵は食べていい」派:かぎかっこのあとは、ほんの少しの間だけ
-    t = t.replace("……", "、").replace("「", "").replace("」", "、").replace("、。", "。").replace("、？", "？")
+    t = t.replace("……", "、").replace("「", "").replace("」", "、").replace("、。", "。").replace("、？", "？").replace("？、", "？")
     for a, b in MM_FIXED:
         t = t.replace(a, b)
     return t
@@ -304,7 +304,9 @@ def mm_tone(text):
         out[f"{n}人"] = {1: "ひとり", 2: "ふたり", 4: "よにん"}.get(v) or big_kana(v) + "にん"
     for n in re.findall(r"(?<!\d)(\d{1,3})年", sent):
         out[f"{n}年"] = nen_kana(int(n))
-    for n in re.findall(r"(?<![\d万])(\d+)(?![\d年人議対万])", sent):
+    # 単独の数字(「悪い派68」など)は2けた以上で、前後が句読点のものだけ。「1/いち」のような短い項目は
+    # 「1日」「2015年」の中の 1 にもかかって声が壊れた(2026-11-23)ので作らない
+    for n in re.findall(r"(?<=[派\s、。>])(\d{2,})(?=[、。！？\s]|$)", sent):
         out.setdefault(n, num_kana(n))
     return MM_DICT + [f"{k}/{v}" for k, v in sorted(out.items(), key=lambda kv: -len(kv[0]))]
 

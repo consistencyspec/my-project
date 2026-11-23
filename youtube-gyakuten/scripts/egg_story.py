@@ -7,6 +7,7 @@
 番組紹介を短くし、最初の一言から卵の話をする。場面の長さは合成したナレーションの長さで決まる。
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -415,6 +416,45 @@ def write_script(plan):
     return total
 
 
+def spoken_len(narr):
+    """声の長さの目安になる文字数(辞書で読ませる数字は読み方の長さで数える。間の記号は除く)。"""
+    t = re.sub(r"<#[\d.]+#>", "", narrate.mm_text(narr))
+    for entry in narrate.mm_tone(narr)[len(narrate.MM_DICT):]:
+        k, v = entry.split("/", 1)
+        t = t.replace(k, v)
+    return len(t)
+
+
+def voiced_sec(narr, v):
+    """声の長さから、わざと入れた間(<#秒#>。実際は指定の約2.5倍あく)を引いた秒数。"""
+    from narrate import RATE
+    pauses = sum(float(x) for x in re.findall(r"<#([\d.]+)#>", narrate.mm_text(narr)))
+    return max(0.5, len(v) / RATE - 2.5 * pauses)
+
+
+def check_voices(plan, tries=3):
+    """文字数に比べて長すぎる声(変な声・笑い声などが混ざった声)を見つけて作り直す。
+
+    2026-11-23:冒頭の声に4秒ほど変な音が入っていたのに気づけなかったため追加。"""
+    import numpy as np
+    from narrate import RATE
+    cache = os.path.join(OUT, "voice")
+    rates = []
+    for i, (_, _, _, meta) in enumerate(plan):
+        v = cs.voice_for(i, meta[2], cache)
+        rates.append(spoken_len(meta[2]) / voiced_sec(meta[2], v))
+    med = float(np.median(rates))
+    for i, (_, _, _, meta) in enumerate(plan):
+        n = 0
+        while rates[i] < med * 0.82 and n < tries:
+            n += 1
+            print(f"  ! 声が長すぎる({meta[0]}、{rates[i]:.1f}字/秒、ふつうは{med:.1f})ので作り直し {n}/{tries}", flush=True)
+            v = cs.voice_for(i, meta[2], cache, fresh=True)
+            rates[i] = spoken_len(meta[2]) / voiced_sec(meta[2], v)
+        if rates[i] < med * 0.82:
+            print(f"  !! まだ長い:{meta[0]}(耳で確認が必要)", flush=True)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     plan = build_plan()
@@ -426,6 +466,7 @@ def main():
     import soundfile as sf
     from narrate import RATE
     LEAD, TAIL = 0.35, 0.55
+    check_voices(plan)
     voices, new_plan = [], []
     for i, (fn, anim, sec, meta) in enumerate(plan):
         v = cs.voice_for(i, meta[2], os.path.join(OUT, "voice"))
