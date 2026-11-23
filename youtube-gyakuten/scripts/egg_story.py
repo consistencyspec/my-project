@@ -44,7 +44,7 @@ narrate.NUM_STYLE = "dict"          # 数字・年号・人数・議席は数字
 narrate.ICHINICHI_PAUSE = 0         # 「1日」「約」のあとは記号の間を入れない(記号を入れると流れが途切れる。2026-11-23)
 narrate.PAUSE_SHORT = 0
 narrate.PAUSE_QUOTE_HA = 0          # 「卵は食べていい」派 は続けて読む
-narrate.TEXT_READ += [("61人", "六十一人"), ("70歳以上", "七十さい以上"), ("1968年", "千九百六十八年"),
+narrate.TEXT_READ += [("61人", "六十いちにん"), ("70歳以上", "七十さい以上"), ("1968年", "千九百六十八年"),
                       ("たくさん入る", "たくさんはいる"), ("1つ目", "ひとつめ"), ("2つ目", "ふたつめ"), ("3つ目", "みっつめ"),
                       ("3つの", "みっつの"), ("6つの", "むっつの")]
 cs.STEP_COLORS.update({"どうやって？": BAD, "なぜ調べた？": INK, "なぜ？": INK})
@@ -446,13 +446,13 @@ def check_voices(plan, tries=3):
     med = float(np.median(rates))
     for i, (_, _, _, meta) in enumerate(plan):
         n = 0
-        while rates[i] < med * 0.82 and n < tries:
+        while rates[i] < med * 0.82 and n < tries and "--fix-voices" in sys.argv:   # 作り直しは指定したときだけ(確認済みの声を勝手に変えない)
             n += 1
             print(f"  ! 声が長すぎる({meta[0]}、{rates[i]:.1f}字/秒、ふつうは{med:.1f})ので作り直し {n}/{tries}", flush=True)
             v = cs.voice_for(i, meta[2], cache, fresh=True)
             rates[i] = spoken_len(meta[2]) / voiced_sec(meta[2], v)
         if rates[i] < med * 0.82:
-            print(f"  !! まだ長い:{meta[0]}(耳で確認が必要)", flush=True)
+            print(f"  !! 声が長め:{meta[0]}(耳で確認。作り直すなら --fix-voices)", flush=True)
 
 
 def main():
