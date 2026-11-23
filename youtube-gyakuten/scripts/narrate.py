@@ -23,7 +23,7 @@ MM_DICT = ["コーヒー/こおひい", "熱すぎ/あつすぎ", "何年か/な
 # ・「29%」は数字のあとに「パーセント」と読む(数字とパーセントをまとめて、かなの読みを辞書に入れる)
 # ・「1日1杯」「1日20g」のように 1日 のあとに量が続くときは、1日 のあとに少し間を置く(MiniMax の <#秒#>)
 PERCENT_READING = True
-ICHINICHI_PAUSE = 0.25   # 秒。0 で間を置かない
+ICHINICHI_PAUSE = 0.1    # 秒。0 で間を置かない(2026-11-23 0.25→0.1:もう少し詰める)
 
 # Kokoro
 VOICE = "jf_alpha"   # 落ち着いた女性の声
@@ -76,8 +76,12 @@ def reading(text):
 _pipe = None
 
 
+MM_EMOTION = None   # 声の感情(None=自動。"happy" "calm" など)。場面ごとに回のスクリプトから切りかえてよい
+
+
 def voice_key():
     rules = f"|pct{int(PERCENT_READING)}|pause{ICHINICHI_PAUSE}|{'/'.join(a + '=' + b for a, b in TEXT_READ)}" if (PERCENT_READING or ICHINICHI_PAUSE) else ""
+    rules += f"|emo{MM_EMOTION}" if MM_EMOTION else ""
     return (f"minimax4|{MM_MODEL}|{MM_VOICE}|{MM_SPEED}|{'/'.join(MM_DICT)}{rules}" if ENGINE == "minimax"
             else f"{VOICE}|{SPEED}")
 
@@ -144,7 +148,8 @@ def auto_dict(text):
 PAUSE_HA = 0.15     # 「いい派」と助詞「は(わ)」の間
 PAUSE_NUM = 0.2     # 「いい派」と議席の数字の間
 PAUSE_SHORT = 0.1   # 「約」と数字の間(「1日」のあとは ICHINICHI_PAUSE)
-KOSU = {1: "いっこ", 2: "にこ", 3: "さんこ", 4: "よんこ", 5: "ごこ", 6: "ろっこ", 7: "ななこ", 8: "はっこ", 9: "きゅうこ", 10: "じゅっこ"}
+KOSU = {1: "いっこ", 2: "ニコ",   # 「にこ」は「にご」と濁って聞こえるのでカタカナで送る
+        3: "さんこ", 4: "よんこ", 5: "ごこ", 6: "ろっこ", 7: "ななこ", 8: "はっこ", 9: "きゅうこ", 10: "じゅっこ"}
 HA_YOMI = {"いい": "いい", "悪い": "わるい"}
 
 
@@ -167,7 +172,7 @@ def tts_text(t):
     t = re.sub(r"(?:(\d+(?:\.\d+)?)〜)?(\d+(?:\.\d+)?)%",
                lambda m: ((decimal_kana(m.group(1)) + "から") if m.group(1) else "") + decimal_kana(m.group(2)) + "パーセント", t)
     t = re.sub(r"(\d+)議席", lambda m: kana(int(m.group(1))) + "ぎせき", t)
-    t = t.replace("半個", "はんこ").replace("2個目", "にこめ")
+    t = t.replace("半個", "はんこ").replace("2個目", "ニコめ")
     t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
 
     def people(m):
@@ -226,7 +231,7 @@ def pre_text(text):
     t = add_pauses(text)   # 「1日」のあとの間は、数字をかなに直す前に入れる(あとだと「1日3〜5杯」が見つからない)
     for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)。決まった言い回しより先に使う
         t = t.replace(a, b)
-    t = t.replace("……", "、").replace("「", "").replace("」", "、")
+    t = t.replace("……", "、").replace("「", "").replace("」", "、").replace("、。", "。").replace("、？", "？")
     for a, b in MM_FIXED:
         t = t.replace(a, b)
     return t
@@ -272,6 +277,8 @@ def synth_minimax(text):
             "output_format": "hex", "voice_setting": {"voice_id": MM_VOICE, "speed": MM_SPEED, "vol": 1, "pitch": 0},
             "pronunciation_dict": {"tone": MM_DICT},
             "audio_setting": {"sample_rate": RATE, "format": "wav", "channel": 1}}
+    if MM_EMOTION:
+        body["voice_setting"]["emotion"] = MM_EMOTION
     for attempt in range(4):
         req = urllib.request.Request("https://api.minimax.io/v1/t2a_v2", data=json.dumps(body).encode(),
                                      headers={"Authorization": "Bearer proxy-injected", "Content-Type": "application/json"})
