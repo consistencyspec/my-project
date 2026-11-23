@@ -153,7 +153,7 @@ PAUSE_QUOTE_HA = 0.03   # 「卵は食べていい」派 のように、かぎ�
 # (かなや漢数字で送ると「68」「1913年」の読みが不自然になったため。卵の回は "dict")
 NUM_STYLE = "kana"
 
-KOSU = {1: "いっこ", 2: "ニコ",   # 「にこ」は「にご」と濁って聞こえるのでカタカナで送る
+KOSU = {1: "いっこ", 2: "二個",   # 「にこ」は「にご」と濁り、カタカナ「ニコ」は笑い・不自然になりやすいので漢字で送る
         3: "さんこ", 4: "よんこ", 5: "ごこ", 6: "ろっこ", 7: "ななこ", 8: "はっこ", 9: "きゅうこ", 10: "じゅっこ"}
 HA_YOMI = {"いい": "いい", "悪い": "わるい"}
 
@@ -165,28 +165,31 @@ def tts_text(t):
     - 「約3万人」→「やく・さんまんにん」/「1日200mg」→「1日・にひゃくミリグラム」(約・1日のあとに少し間)
     - 「11%」→「じゅういちパーセント」、「750mg未満」→「ななひゃくごじゅうミリグラムみまん」、「半個」→「はんこ」
     """
-    p = lambda sec: f"<#{sec}#>"  # noqa: E731
+    p = lambda sec: f"<#{sec}#>" if sec else ""  # noqa: E731
     t = re.sub(r"(\d),(\d{3})", r"\1\2", t)
-    t = re.sub(r"(いい|悪い)派は", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_HA) + "わ", t)
-    t = re.sub(r"(いい|悪い)派、?(?=\d)", lambda m: HA_YOMI[m.group(1)] + "は" + p(PAUSE_NUM), t)
-    t = re.sub(r"(いい|悪い)派", lambda m: HA_YOMI[m.group(1)] + "は", t)
+    # 「派」は漢字のまま送る(かなの「は」は助詞の「わ」と読まれ、カタカナの「ハ」は笑い声「ハッ」になる)
+    t = re.sub(r"(いい|悪い)派は", lambda m: m.group(1) + "派" + p(PAUSE_HA) + "は", t)
+    t = re.sub(r"(いい|悪い)派、?(?=\d)", lambda m: m.group(1) + "派" + p(PAUSE_NUM), t)
     t = add_pauses(t)   # 「1日」のあとに量が続くときの間(ICHINICHI_PAUSE)
-    t = re.sub(r"約(?=\d)", "やく" + p(PAUSE_SHORT), t)
+    if PAUSE_SHORT:
+        t = re.sub(r"約(?=\d)", "やく" + p(PAUSE_SHORT), t)
     t = re.sub(r"(\d+)mg", lambda m: kana(int(m.group(1))) + "ミリグラム", t)
     t = t.replace("未満", "みまん")
     t = re.sub(r"(?:(\d+(?:\.\d+)?)〜)?(\d+(?:\.\d+)?)%",
                lambda m: ((decimal_kana(m.group(1)) + "から") if m.group(1) else "") + decimal_kana(m.group(2)) + "パーセント", t)
     if NUM_STYLE != "dict":
         t = re.sub(r"(\d+)議席", lambda m: kana(int(m.group(1))) + "ぎせき", t)
-    t = t.replace("半個", "ハンコ").replace("2個目", "ニコめ")   # ひらがなだと「はんご」「にご」と濁る
-    t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
+    t = t.replace("半個", "ハンコ").replace("2個目", "二個目")   # ひらがなだと「はんご」「にご」と濁る
+    if NUM_STYLE == "dict":
+        t = t.replace("2個", "二個")   # ほかの「1個」「3個」は普通に読めるので、そのまま
+    else:
+        t = re.sub(r"(\d+)個", lambda m: KOSU.get(int(m.group(1)), kana(int(m.group(1))) + "こ"), t)
 
     def people(m):
         n = jp_number(m.group(1))
         return ({1: "ひとり", 2: "ふたり", 4: "よにん"}.get(n) or big_kana(n) + "にん") if n else m.group(0)
     if NUM_STYLE != "dict":
         t = re.sub(r"(\d+万\d+千|\d+万|\d+)人", people, t)
-    t = t.replace("派", "ハ")   # 残った「派」(「…」派 など)を助詞の「わ」と読ませない
     return t
 
 
@@ -239,7 +242,7 @@ def pre_text(text):
     t = add_pauses(text)   # 「1日」のあとの間は、数字をかなに直す前に入れる(あとだと「1日3〜5杯」が見つからない)
     for a, b in TEXT_READ:   # 回ごとの読み方(文字を直接置きかえる)。決まった言い回しより先に使う
         t = t.replace(a, b)
-    t = t.replace("」派", f"<#{PAUSE_QUOTE_HA}#>派")   # 「卵は食べていい」派:かぎかっこのあとは、ほんの少しの間だけ
+    t = t.replace("」派", f"<#{PAUSE_QUOTE_HA}#>派" if PAUSE_QUOTE_HA else "派")   # 「卵は食べていい」派:かぎかっこのあとは、ほんの少しの間だけ
     t = t.replace("……", "、").replace("「", "").replace("」", "、").replace("、。", "。").replace("、？", "？")
     for a, b in MM_FIXED:
         t = t.replace(a, b)
@@ -250,10 +253,10 @@ def post_text(t):
     """tts_text のあとに残った数字を、すべてかなに直す(<#秒#> の間の記号はそのまま)。"""
     marks = []
     t = re.sub(r"<#[\d.]+#>", lambda m: marks.append(m.group(0)) or f"\x00{chr(65 + len(marks) - 1)}\x00", t)
-    t = t.replace("1日", "いちにち")
+    if NUM_STYLE != "dict":   # dict のときは「1日」も普通の文字のまま
+        t = t.replace("1日", "いちにち")
     t = re.sub(r"第(\d+)話", lambda m: f"だい{num_kana(m.group(1))}わ", t)
     if NUM_STYLE == "dict":   # 残りの数字は数字のまま(読み方は mm_tone の辞書で指定)
-        t = t.replace("いいは", "いいハ").replace("わるいは", "わるいハ")
         return re.sub(r"\x00([A-Z])\x00", lambda m: marks[ord(m.group(1)) - 65], t)
     t = re.sub(r"(\d{3}4)年", lambda m: "\x01" + kana(int(m.group(1)))[:-2] + "よねん", t)   # 4で終わる年は「〜よねん」(2014年=にせんじゅうよねん)
     t = re.sub(r"(\d{4})年", lambda m: "\x01" + kanji_num(int(m.group(1))) + "年", t)   # 年号は漢数字で(ひらがなだと読み崩れる)
@@ -268,7 +271,6 @@ def post_text(t):
     t = re.sub(r"(\d+万?)", lambda m: num_kana(m.group(1)) or m.group(1), t)   # 残りの数字
     t = re.sub(r"(^|[、。！？\s])\x01", r"\1", t).replace("\x01", "<#0.15#>")   # 文の頭・句読点のあとは間を入れない
     t = t.replace("ねん後", "ねんご").replace("ねん前", "ねんまえ").replace("年後", "年ご").replace("年前", "年まえ")
-    t = t.replace("いいは", "いいハ").replace("わるいは", "わるいハ")   # 派の「は」を助詞の「わ」と読ませない
     return re.sub(r"\x00([A-Z])\x00", lambda m: marks[ord(m.group(1)) - 65], t)
 
 
