@@ -3,7 +3,8 @@
 物語版の動画は scripts/steps_story.py で作る(このファイルはデータと絵だけ)。
   python3 scripts/steps_war.py   -> output/steps_war/*.png(全13枚のカードを確認用に書き出す)
 
-いい派=「一日1万歩を目指すべき(多いほどいい)」/悪い派=「1万歩もいらない(7,000〜8,000歩で十分)」。
+必要派(オレンジ)=「一日1万歩は必要(多いほどいい)」/不要派(青)=「1万歩もいらない(7,000〜8,000歩で十分)」。
+画面の派の名前は motion.LABELS で「必要派」「不要派」にする(steps_story.py で設定)。
 """
 import math
 import os
@@ -309,13 +310,15 @@ EVENTS = [
 
 
 def main():
+    import motion
+    motion.LABELS[:] = ["必要派", "不要派"]
     from motion import Card
     os.makedirs(OUT, exist_ok=True)
     for i, (year, country, kind, title, facts, picto, before, after, _, source) in enumerate(EVENTS, 1):
         rows = [[(s, cw.color_of(c)) for s, c in row] for row in title]
         diff = after - before
         card = Card(year, country, kind, rows, facts, picto, before, after,
-                    f"{'いい派' if diff > 0 else '悪い派'} +{abs(diff)}議席", source)
+                    f"{'必要派' if diff > 0 else '不要派'} +{abs(diff)}議席", source)
         path = os.path.join(OUT, f"{i:02d}_{year.replace('.', '_')}.png")
         card.frame(Card.ANIM_END).save(path)
         print(path)

@@ -404,7 +404,8 @@ def final_frame(good, t):
     text(d, (W / 2, 160), "最終結果", 80, TRIM, anchor="mm")
     cx, cy, R = W / 2, 720, 470
     hemicycle(d, cx, cy, R, good)
-    for x, lab, n, c in ((cx - R * 0.72, "いい派", good, GOOD), (cx + R * 0.72, "悪い派", 100 - good, BAD)):
+    from motion import LABELS
+    for x, lab, n, c in ((cx - R * 0.72, LABELS[0], good, GOOD), (cx + R * 0.72, LABELS[1], 100 - good, BAD)):
         text(d, (x, cy + 30), lab, 52, c, anchor="ma")
         text(d, (x, cy + 86), str(n), 112, WHITE, anchor="ma")
     # 「当選確実」のハンコ → 押されそうになって止まる

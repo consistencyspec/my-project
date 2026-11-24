@@ -19,8 +19,10 @@ def path_for(narr):
     key = hashlib.md5(f"{narrate.voice_key()}|{narrate.mm_text(t)}{tone}".encode()).hexdigest()[:12]
     return os.path.join(cache, f"{key}.wav")
 
-MISREAD = {0: "焦る", 11: "アオヤギユキトシ", 13: "十分", 17: "41%・約", 29: "1月", 33: "十分"}
-YAKU = [9, 12, 16, 20, 21, 23, 26, 27]
+# 2回目の指摘(2026-11-24):2007=ニセンナナ、3月=サンガツ、7万8千人=ニン・取り戻しました、は約=ワヤク → 3本ずつ
+MISREAD = {9: "2007", 20: "3月", 21: "7万8千人・取り戻し", 27: "は約"}
+# 必要派・不要派に名前を変えた場面(文字が変わった所だけ)→ 1本ずつ
+YAKU = [2, 7, 10, 14, 18, 19, 22, 25, 28, 30, 31, 32]
 for i in sorted(MISREAD):
     narr = plan[i][3][2]
     p = path_for(narr)
