@@ -63,13 +63,14 @@ def hachi(t):
 
 
 def year_voice(y):
-    """2024 → ニセン、ニジュウヨネン(年号はカタカナ+読点の候補D。4で終わる年は「ヨネン」、年はネン)。"""
+    """2024 → ニセンニジュウヨネン、1965 → センキュウヒャク、ロクジュウゴネン(年号はカタカナ+読点の候補D。4で終わる年は「ヨネン」、年はネン)。"""
     y = int(y)
     head = "にせん" if y // 1000 == 2 else "せんきゅうひゃく"
     rest = y % 1000 if y // 1000 == 2 else y % 100
     r = narrate.kana(rest)
     r = (r[:-2] + "よ") if rest % 10 == 4 else r
-    return kata(head) + ("、" + kata(hachi(r)) if rest else "") + "ネン"
+    sep = "" if y // 1000 == 2 else "、"   # 2000年代は読点なし(赤ワインの回の「ニセンニネン」に合わせる)、1900年代は候補D(読点あり)
+    return kata(head) + (sep + kata(hachi(r)) if rest else "") + "ネン"
 
 
 def steps_voice(n):
@@ -90,7 +91,7 @@ def kanji_big(n):
 
 def voice_text(narr):
     t = re.sub(r"(\d{4})年", lambda m: year_voice(m.group(1)), narr)
-    t = t.replace("一日", "イチニチ")
+    t = t.replace("一日", "イチニチ").replace("下がった", "さがった").replace("得をする", "とくをする")
     # 歩数:「6,000歩から8,000歩」「1万2千歩」「1万歩」→ カタカナ(1万歩=イチマンポ)
     t = re.sub(r"([\d,]+万?(?:\d+千)?)歩", lambda m: steps_voice(narrate.jp_number(m.group(1))), t)
     # 数字+人 → 漢数字+「にん」(赤ワインの回で「ヒト」と読まれたのを直した書き方)
