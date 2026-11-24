@@ -49,7 +49,7 @@ narrate.NUM_STYLE = "dict"
 narrate.ICHINICHI_PAUSE = 0.03      # 「1日」のあとにごく短い間(「置きすぎ」の指摘で 0.25→0.03)
 narrate.PAUSE_SHORT = 0
 narrate.PAUSE_QUOTE_HA = 0
-narrate.TEXT_READ += [("下がった", "さがった"), ("78議席", "ななじゅうはち議席"),
+narrate.TEXT_READ += [("下がった", "さがった"), ("78議席", "ななじゅう<#0.05#>はち議席"),
                       ("飲む国", "のむくに"), ("WHOヨーロッパ", "WHO<#0.15#>ヨーロッパ"),
                       ("18か国", "じゅうはっかこく"), ("195か国", "ひゃくきゅうじゅうごかこく"), ("60ミニッツ", "シックスティミニッツ"),
                       ("150g", "ひゃくごじゅうグラム"), ("20g", "にじゅうグラム"), ("40g", "よんじゅうグラム"),
@@ -58,6 +58,22 @@ narrate.TEXT_READ += [("下がった", "さがった"), ("78議席", "ななじ�
 cs.VOICE_FIX += [("1979年のイギリスから", "センキュウヒャク、ナナジュウキュウネンのイギリスから"),   # 候補Dに決定(2026-11-24 聞き比べ)
                  ("1979年、イギリスの研究者", "センキュウヒャク、ナナジュウキュウネン、イギリスの研究者"),
                  ("約1,200人の高齢者", "約千二百にんの高齢者")]   # 「1,232人です」は何をしても「ヒト」と読まれた。候補Lに決定(2026-11-24)
+# 「8」は「ジュウ」「ヒャク」のすぐあとだと「バチ」と濁るので、ごく短い間をはさんで「ハチ」と読ませる(2026-11-24 指示)。
+# コーヒーの回の 2018年(候補D)より先に使うため、先頭に入れる
+cs.VOICE_FIX[:0] = [("2018年", "ニセンジュウ<#0.05#>ハチネン"), ("783人の尿", "ナナヒャク<#0.05#>ハチジュウサンにんの尿"),
+                    ("52対48", "ゴジュウニ対ヨンジュウ<#0.05#>ハチ"), ("ヒーローから", "ひーろーから"),
+                    ("容疑者になった赤ワイン", "容疑者になった、赤ワイン")]
+
+
+# 「ついに逆転」の場面は、声を落ち着いた感じ(calm)にする(2026-11-24「声が強すぎる」の指摘)
+_voice_for = cs.voice_for
+
+
+def _calm_voice_for(i, narr, cache, emotion=None, fresh=False):
+    return _voice_for(i, narr, cache, emotion=emotion or ("calm" if "逆転です" in narr else None), fresh=fresh)
+
+
+cs.voice_for = _calm_voice_for
 cs.STEP_COLORS.update({"どうやって？": BAD, "なぜ調べた？": INK, "落とし穴": BAD, "結果": GOOD})
 
 
@@ -160,7 +176,7 @@ SCENES = [
      "結果、体質のせいで飲む量が多い人ほど、脳卒中が多く、少しなら脳卒中を防ぐ、という効果は見られませんでした。"),
     ("card", 10, "悪い派が6議席を取ります。これで52対48。いい派の過半数は、ぎりぎりです。"),
     ("card", 11, "そして2023年、WHOヨーロッパ事務局が、公式に発表します。安全な飲酒量はない。少量でも、がんのリスクは上がり、心臓への得は、それを上回らない、と。"),
-    ("seats", 11, "いい派が37議席、悪い派が63議席。ついに逆転です！"),
+    ("seats", 11, "いい派が37議席、悪い派が63議席。ついに、逆転です。"),
     ("card", 12, "日本でも2024年、厚生労働省が、初めての飲酒ガイドラインを出します。男性の大腸がんは、純アルコールで1日20g、ワインならグラス2杯ほどから、リスクが上がる、などと示しました。"),
     ("card", 13, "一方、2024年の暮れ、アメリカの全米アカデミーズは、少し飲む人は一生飲まない人より、死亡リスクがやや低い、とまとめます。ただし乳がんは高め。差し引きで、いい派が7議席を取ります。"),
 
@@ -514,7 +530,19 @@ def main():
     plan = new_plan
     total = write_script(plan)
     print(f"台本：{SCRIPT_MD}(約{int(total // 60)}分{int(total % 60):02d}秒、{len(plan)}場面)")
-    if "--voice" in sys.argv:   # 声と台本だけ(映像は作らない)
+    if "--voice" in sys.argv:   # 声と台本だけ(映像は作らない)。動画と同じ間隔でつないだ音声も書き出す
+        parts = []
+        for v, (_, _, sec, _) in zip(voices, plan):
+            a = np.zeros(int(round(sec * RATE)), dtype="float32")
+            vv = v[: max(0, len(a) - int(LEAD * RATE))]
+            a[int(LEAD * RATE): int(LEAD * RATE) + len(vv)] = vv
+            parts.append(a)
+        wav = os.path.join(OUT, "narration.wav")
+        sf.write(wav, np.concatenate(parts), RATE)
+        mp3 = os.path.join(OUT, "wine_narration.mp3")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",
+                        "-ar", "48000", "-b:a", "192k", mp3], check=True)
+        print("音声:", mp3)
         return
 
     seg_dir = os.path.join(OUT, "_seg")
