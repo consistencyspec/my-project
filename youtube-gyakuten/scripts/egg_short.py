@@ -26,6 +26,7 @@ from motion import angle_at, out_back, out_cubic, reverse_stamp, seats_motion, s
 W, H = 1080, 1920
 FPS = 30
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "egg_short")
+COVER_SEC = 0.5   # 冒頭にサムネイルを出す秒数
 FINAL = 50   # 最後の場面:議席は互角の形で見せ、数は「？」で隠す
 LEAD, TAIL = 0.2, 0.35
 
@@ -198,6 +199,13 @@ def main():
     shutil.rmtree(tmp, ignore_errors=True)
     os.makedirs(tmp)
     audio, n = [], 0
+    # 冒頭0.5秒:縦サムネイル(表紙に選べるように。音なし)
+    cov = os.path.join(OUT, "_cover.png")
+    cover(cov)
+    for _ in range(int(COVER_SEC * FPS)):
+        shutil.copy(cov, os.path.join(tmp, f"{n:05d}.png"))
+        n += 1
+    audio.append(np.zeros(int(round(int(COVER_SEC * FPS) / FPS * 24000)), dtype="float32"))
     for i, sc in enumerate(SCENES):
         v = cs.voice_for(i, sc[5], os.path.join(OUT, "voice"))
         vl = len(v) / 24000
