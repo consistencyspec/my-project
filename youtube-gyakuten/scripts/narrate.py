@@ -292,7 +292,7 @@ def mm_tone(text):
     sent = re.sub(r"<#[\d.]+#>", " ", mm_text(text))
     out = {}
     for y in re.findall(r"(\d{4})年", sent):
-        out[f"{y}年"] = year_kana(int(y)) + "ねん"
+        out[f"{y}年"] = (year_kana(int(y))[:-2] + "よ" if int(y) % 10 == 4 else year_kana(int(y))) + "ねん"   # 2024年=にせんにじゅうよねん
     for a, b in re.findall(r"(\d+)対(\d+)", sent):
         out[f"{a}対{b}"] = f"{num_kana(a)}たい{num_kana(b)}"
     for n in re.findall(r"(\d+)議席", sent):
