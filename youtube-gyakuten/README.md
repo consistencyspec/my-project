@@ -20,6 +20,7 @@
 - **第2回「卵は1日1個まで？」(物語版)**:`.venv/bin/python scripts/egg_story.py` → `output/egg_story/egg_story_draft.mp4`(約7分)。研究カードのデータと卵の絵は `scripts/egg_war.py`、台本は `content/egg_war_story.md`。冒頭はサムネイルの続きとして最初の一言から本題に入り、番組紹介はタイトル画面の1文だけにした(第3回以降もこの形がおすすめ)
 - **第3回「赤ワインは体にいい？」(物語版)**:`.venv/bin/python scripts/wine_story.py` → `output/wine_story/wine_story_draft.mp4`。研究カード14枚(1979〜2025年)と赤ワインの絵は `scripts/wine_war.py`、台本は `content/wine_war_story.md`。この回から、読み上げで「%」は数字のあとに読み、「1日」のあとに少し間を置く(`scripts/narrate.py`、全回共通)
 - **番外編「魅力度ランキング18年」**:`.venv/bin/python scripts/miryokudo_story.py` → `output/miryokudo_story/miryokudo_story_draft.mp4`(約8分)。議席は使わず、1〜3位を除外して4位〜10位の番付ボードと、7つの席の地方別の比率(円グラフ)で年ごとに見せる。順位が動いた県は「その年、何があった？」の場面でイラストつき(イラストは `scripts/miryokudo_art.py`)。台本は `content/miryokudo_story.md`、データは `research/todofuken-miryokudo-top10-2009-2026.md`。`--stills` で各場面の静止画だけ書き出せる
+- **卵の回のショート(縦・59秒)**:`.venv/bin/python scripts/egg_short.py` → `output/egg_short/egg_short.mp4`。`coffee_short.py` と同じ作りで、1968→2005→2015/16→2019→2025 の流れ。読み方の設定は卵の本編と同じ
 - **サムネイル**:タイトル画面と同じ形で全回統一(上に「新常識クロニクル」、大きな題名、副題、2つの派のラベル)。`python3 scripts/thumbnail.py` → `output/thumbnails/<回>.png`(1280x720)。新しい回は `thumbnail.py` の EPISODES に題名と副題を足す
 - **ショート動画(縦1080x1920・約54秒)**:`.venv/bin/python scripts/coffee_short.py` → `output/coffee_short/coffee_short.mp4`。議席がひっくり返る流れ(1991→2016→2018→2019→2025)を1本にまとめ、最後に「続きは本編で」。字幕つき(音なしでも分かる)。声と読み方のルールは本編と同じ
 - 作り方:`python3 scripts/frames.py` → `output/frames/` に画像と議席アニメ(mp4)ができる(GitHub には上げない)。日本語フォントは Noto CJK(Linux なら `fonts-noto-cjk-extra`)
