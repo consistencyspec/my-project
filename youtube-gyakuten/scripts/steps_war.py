@@ -37,9 +37,42 @@ def pedometer(d, cx, cy, s, num="10000", fill=CASE):
     d.rounded_rectangle([cx - w * 0.18, cy - h / 2 - s * 0.1, cx + w * 0.18, cy - h / 2 + 4], radius=8, fill=SUB, outline=INK, width=5)
 
 
+def person(d, cx, top, h, fill=None, step=False):
+    """スニーカーを履いた人(頭+縦長の胴+腕+足)。step=True で手足を前後に振る(歩いている形)。"""
+    hr = h * 0.12
+    hy = top + hr
+    bw = h * 0.17
+    bt, bb = top + 2 * hr + h * 0.03, top + h * 0.64
+    foot_y = top + h
+    lw = LW + 2
+    # 腕(胴の後ろ)
+    for side in (-1, 1):
+        sx, sy = cx + side * bw * 0.8, bt + h * 0.07
+        hx = cx + (side * h * 0.2 if step else side * bw * 1.25)
+        hand_y = bt + h * (0.25 if step else 0.27)
+        line(d, [(sx, sy), (hx, hand_y)], INK, lw)
+        d.ellipse([hx - h * 0.03, hand_y - h * 0.03, hx + h * 0.03, hand_y + h * 0.03], fill=PANEL, outline=INK, width=5)
+    # 足とスニーカー(つま先は右向き)
+    sw_, sh = h * 0.24, h * 0.1
+    for side in (-1, 1):
+        hip = (cx + side * bw * 0.45, bb - 8)
+        fx = cx + side * (h * 0.17 if step else bw * 0.95)
+        line(d, [hip, (fx, foot_y - sh * 0.8)], INK, lw)
+        x0 = fx - sw_ * 0.35
+        d.rounded_rectangle([x0, foot_y - sh, x0 + sw_, foot_y], radius=sh * 0.45, fill=GOOD, outline=INK, width=6)
+        d.rectangle([x0 + 6, foot_y - sh * 0.32, x0 + sw_ - 6, foot_y - 6], fill=WHITE)
+        for k in range(2):
+            x = x0 + sw_ * (0.3 + k * 0.18)
+            d.line([(x, foot_y - sh * 0.85), (x + sh * 0.25, foot_y - sh * 0.55)], fill=WHITE, width=4)
+    # 胴と頭
+    d.rounded_rectangle([cx - bw, bt, cx + bw, bb], radius=bw * 0.95, outline=INK, width=LW, fill=fill or PANEL)
+    d.ellipse([cx - hr, top, cx + hr, top + 2 * hr], outline=INK, width=LW, fill=PANEL)
+    line(d, [(cx - h * 0.35, foot_y + 10), (cx + h * 0.35, foot_y + 10)], INK, max(4, LW // 2))
+
+
 def walker(d, cx, top, h, fill=None):
-    """歩いている人(まるっとした人+うしろに動きの線)。"""
-    bean(d, cx, top, h, fill=fill)
+    """歩いている人(スニーカーを履いた人が足を開く+うしろに動きの線)。"""
+    person(d, cx, top, h, fill=fill, step=True)
     for k in range(3):
         y = top + h * (0.5 + k * 0.14)
         line(d, [(cx - h * 0.55 - k * 10, y), (cx - h * 0.42 - k * 10, y)], SUB, 6)
