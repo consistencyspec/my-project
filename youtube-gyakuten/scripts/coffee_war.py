@@ -15,7 +15,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from motion import Card, out_back, parliament_frame, seg  # noqa: E402
 from frames import (  # noqa: E402
-    BAD, GOOD, H, INK, LBL, LW, PANEL, SUB, TRIM, W, WHITE, arrow, bean, font, heart, hemicycle, line,
+    BAD, GOOD, H, INK, LW, PANEL, SUB, TRIM, W, WHITE, arrow, bean, font, heart, hemicycle, line,
     meter, mug, panel, parliament, stage, study_card, text,
 )
 
@@ -404,7 +404,8 @@ def final_frame(good, t, note="ほとんどが観察研究：因果関係はま�
     text(d, (W / 2, 160), "最終結果", 80, TRIM, anchor="mm")
     cx, cy, R = W / 2, 720, 470
     hemicycle(d, cx, cy, R, good)
-    for x, lab, n, c in ((cx - R * 0.72, LBL[0], good, GOOD), (cx + R * 0.72, LBL[1], 100 - good, BAD)):
+    from motion import LABELS
+    for x, lab, n, c in ((cx - R * 0.72, LABELS[0], good, GOOD), (cx + R * 0.72, LABELS[1], 100 - good, BAD)):
         text(d, (x, cy + 30), lab, 52, c, anchor="ma")
         text(d, (x, cy + 86), str(n), 112, WHITE, anchor="ma")
     # 「当選確実」のハンコ → 押されそうになって止まる
