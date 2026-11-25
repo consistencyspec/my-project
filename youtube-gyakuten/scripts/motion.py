@@ -4,7 +4,7 @@ import math
 from PIL import Image, ImageDraw
 
 from frames import (
-    BAD, GOOD, INK, PANEL, SEATS, SUB, TRIM, W, H, WHITE, font, mixed_line, panel, stage, text,
+    BAD, GOOD, INK, LBL, PANEL, SEATS, SUB, TRIM, W, H, WHITE, font, mixed_line, panel, stage, text,
 )
 
 REVERSE_RED = (230, 60, 60)
@@ -109,7 +109,7 @@ def angle_at(before, after, q):
 
 
 def numbers(d, cx, cy, R, good, big=None, pop=0.0):
-    for k, (x, label, n, c) in enumerate(((cx - R * 0.72, "いい派", good, GOOD), (cx + R * 0.72, "悪い派", 100 - good, BAD))):
+    for k, (x, label, n, c) in enumerate(((cx - R * 0.72, LBL[0], good, GOOD), (cx + R * 0.72, LBL[1], 100 - good, BAD))):
         text(d, (x, cy + R * 0.06), label, int(R * 0.12), c, anchor="ma")
         size = int(R * 0.3 * (1 + (0.25 * pop if big == k else 0)))
         text(d, (x, cy + R * 0.2), str(n), size, WHITE, anchor="ma")
@@ -244,7 +244,7 @@ def parliament_frame(year, headline, before, after, t, flip=(0.5, 1.6), settle=2
     seats_motion(d, cx, cy, R, before, after, p, angle_at(before, after, q))
     good = round(before + (after - before) * p)
     win = 0 if after > before else 1
-    for i, (x, label, n, c) in enumerate(((cx - R * 0.72, "いい派", good, GOOD), (cx + R * 0.72, "悪い派", 100 - good, BAD))):
+    for i, (x, label, n, c) in enumerate(((cx - R * 0.72, LBL[0], good, GOOD), (cx + R * 0.72, LBL[1], 100 - good, BAD))):
         text(d, (x, cy + 30), label, 52, c, anchor="ma")
         size = int(112 * (1 + (0.25 * math.sin(math.pi * seg(t, flip[0], flip[1] + 0.3)) if i == win else 0)))
         text(d, (x, cy + 76), str(n), size, WHITE, anchor="ma")
