@@ -27,19 +27,15 @@ LEAD, TAIL = 0.2, 0.35
 # 場面:(見出し, 年のチップ, パネルの文, [(議席が動き始める割合, 前, 後)], ナレーション)
 SCENES = [
     ("コーヒーは\n体にいい？悪い？", None, None, [], 50,
-     "コーヒーって、体にいいの？悪いの？実は研究の世界では、30年以上も答えがひっくり返り続けているんです。"),
-    ("1991年", "1991年", "WHOの機関\n「発がん性の疑い」", [(0.35, 50, 35)], None,
-     "1991年、WHOの機関が、コーヒーに発がん性の疑いあり、と発表。悪い派が大きくリードします。"),
-    ("2016年", "2016年", "見直したら\n疑いの正体はタバコ", [(0.45, 35, 53)], None,
-     "ところが2016年。研究を見直すと、疑いの正体はタバコでした。いい派が逆転します！"),
-    ("2018年", "2018年", "裁判所\n「がんの警告表示が必要」", [(0.05, 53, 66), (0.45, 66, 51)], None,
-     "その後、大きな調査で差を広げますが、2018年、アメリカの裁判所が、がんの警告表示が必要と判断。51対49の大接戦に。"),
-    ("2019年", "2019年", "州が\n「警告は不要」と決定", [(0.4, 51, 66)], None,
-     "でも2019年、州が警告は不要と決定。いい派が一気に突き放します。"),
-    ("2025年", "2025年", "最新の研究のまとめ\n1日3〜5杯で低リスク", [(0.3, 66, 76)], None,
-     "そして2025年、最新の研究のまとめで、いい派が76議席。"),
-    ("当選確実？", None, "まだ出せない\nその理由は…", [], 76,
-     "ただし、当選確実はまだ出せません。その理由は、本編で。"),
+     "コーヒーって、体にいいの？悪いの？実は研究の世界では、いい派と悪い派の決戦が、30年以上も続いているんです。"),
+    ("1991年", "1991年", "WHOの機関\n「発がん性の疑い」", [(0.4, 50, 35)], None,
+     "始まりは1991年。WHOの機関が、コーヒーに発がん性の疑いあり、と発表。悪い派がいきなり大きくリードします。"),
+    ("2016年", "2016年", "25年ぶりの見直しで\nまさかの展開に", [(0.55, 35, 53)], None,
+     "ところが2016年。25年ぶりの見直しで、まさかの展開が。いい派が大逆転！"),
+    ("2018年", "2018年", "裁判所\n「がんの警告表示が必要」", [(0.05, 53, 66), (0.5, 66, 51)], None,
+     "いい派の快進撃が続きます。しかし2018年、アメリカの裁判所が、がんの警告表示が必要と判断。51対49、一気に大接戦です。"),
+    ("勝つのは\nどっち？", None, None, [], "climax",
+     "ここから、いい派と悪い派の決戦は、さらに激しさを増していきます。勝つのはどっちか。決着は、本編で！"),
 ]
 
 
@@ -110,6 +106,25 @@ def frame(scene, t, dur, voice_len):
         mug(d, W / 2 - 140, 470, 280)
     # 議席
     cx, cy, R = W / 2, 1290, 430
+    if seats_static == "climax":
+        import math
+        swing = 9 * math.sin(t * 5.5)   # 天秤が左右に揺れ続ける
+        seats_motion(d, cx, cy, R, 51, 51, 1.0, swing)
+        for x, lab, n, c in ((cx - R * 0.72, "いい派", 51, GOOD), (cx + R * 0.72, "悪い派", 49, BAD)):
+            pulse = 1 + 0.08 * abs(math.sin(t * 5.5))
+            text(d, (x, cy + 25), lab, 50, c, anchor="ma")
+            text(d, (x, cy + 80), str(n), int(110 * pulse), WHITE, anchor="ma")
+        kk = out_back(seg(t, 0.3, 0.7))
+        if kk > 0:
+            d.rounded_rectangle([cx - 210 * kk, cy - R * 0.62 - 70 * kk, cx + 210 * kk, cy - R * 0.62 + 70 * kk],
+                                radius=30 * kk, fill=(220, 60, 60), outline=WHITE, width=max(3, int(8 * kk)))
+            text(d, (cx, cy - R * 0.62), "決戦！", int(90 * kk), WHITE, anchor="mm")
+        b = seg(t, LEAD + voice_len * 0.75, LEAD + voice_len * 0.75 + 0.4)
+        if b > 0:
+            s2 = 0.6 + 0.4 * out_back(b)
+            d.rounded_rectangle([W / 2 - 330 * s2, 1690 - 62 * s2, W / 2 + 330 * s2, 1690 + 62 * s2], radius=62 * s2, fill=(220, 40, 40))
+            text(d, (W / 2, 1690), "決着は本編で ▶", int(62 * s2), WHITE, anchor="mm")
+        return im
     good = seats_static if seats_static is not None else (flips[0][1] if flips else 50)
     before, after, p, q = good, good, 1.0, 1.0
     for start, b, a_ in flips:
@@ -129,22 +144,6 @@ def frame(scene, t, dur, voice_len):
         if (b < 50 < a_) or (a_ < 50 < b):
             ts = LEAD + start * voice_len
             reverse_stamp(d, cx, cy - R * 0.62, 95, seg(t, ts + 0.8, ts + 1.2))
-    # 最後の場面:「当選確実」のハンコ+本編への誘導
-    if seats_static == 76:
-        kk = seg(t, 0.4, 0.8)
-        if kk > 0:
-            sc = 1.5 - 0.5 * out_back(kk)
-            r = 140 * sc
-            sx, sy = cx, cy - 90
-            d.ellipse([sx - r, sy - r, sx + r, sy + r], fill=(27, 36, 58), outline=(220, 60, 60), width=max(4, int(12 * sc)))
-            text(d, (sx, sy - 30 * sc), "当選確実", int(54 * sc), (220, 60, 60), anchor="mm")
-            text(d, (sx, sy + 40 * sc), "まだ出せない", int(36 * sc), WHITE, anchor="mm")
-        b = seg(t, 1.6, 2.0)
-        if b > 0:
-            s2 = 0.6 + 0.4 * out_back(b)
-            d.rounded_rectangle([W / 2 - 300 * s2, 1690 - 60 * s2, W / 2 + 300 * s2, 1690 + 60 * s2], radius=60 * s2, fill=(220, 40, 40))
-            text(d, (W / 2, 1690), "続きは本編で ▶", int(60 * s2), WHITE, anchor="mm")
-        return im
     # 字幕(句点ごと・声の長さに合わせて切りかえ)
     chunks = caption_chunks(narr)
     total = sum(len(c) for c in chunks)

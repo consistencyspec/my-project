@@ -23,7 +23,7 @@
 - **番外編「魅力度ランキング18年」**:`.venv/bin/python scripts/miryokudo_story.py` → `output/miryokudo_story/miryokudo_story_draft.mp4`(約8分)。議席は使わず、1〜3位を除外して4位〜10位の番付ボードと、7つの席の地方別の比率(円グラフ)で年ごとに見せる。順位が動いた県は「その年、何があった？」の場面でイラストつき(イラストは `scripts/miryokudo_art.py`)。台本は `content/miryokudo_story.md`、データは `research/todofuken-miryokudo-top10-2009-2026.md`。`--stills` で各場面の静止画だけ書き出せる
 - **卵の回のショート(縦・43秒)**:`.venv/bin/python scripts/egg_short.py` → `output/egg_short/egg_short.mp4`。`coffee_short.py` と同じ作り。1968→2005→2015 までを見せ、上限が消えた理由・その後の逆転・真犯人・最終結果は隠して本編へ誘導する(**ショートで本編の答えを出しすぎない**)。読み方の設定は卵の本編と同じ
 - **サムネイル**:タイトル画面と同じ形で全回統一(上に「新常識クロニクル」、大きな題名、副題、2つの派のラベル)。`python3 scripts/thumbnail.py` → `output/thumbnails/<回>.png`(1280x720)。新しい回は `thumbnail.py` の EPISODES に題名と副題を足す
-- **ショート動画(縦1080x1920・約54秒)**:`.venv/bin/python scripts/coffee_short.py` → `output/coffee_short/coffee_short.mp4`。議席がひっくり返る流れ(1991→2016→2018→2019→2025)を1本にまとめ、最後に「続きは本編で」。字幕つき(音なしでも分かる)。声と読み方のルールは本編と同じ
+- **ショート動画(縦1080x1920・約48秒)**:`.venv/bin/python scripts/coffee_short.py` → `output/coffee_short/coffee_short.mp4`。本編への導入(予告編)。1991→2016→2018年の51対49の大接戦まで見せて、結末は出さずに「決着は本編で」。字幕つき(音なしでも分かる)。声と読み方のルールは本編と同じ
 - 作り方:`python3 scripts/frames.py` → `output/frames/` に画像と議席アニメ(mp4)ができる(GitHub には上げない)。日本語フォントは Noto CJK(Linux なら `fonts-noto-cjk-extra`)
 
 ## 動画の型
