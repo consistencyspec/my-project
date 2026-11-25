@@ -191,5 +191,31 @@ def main():
     print("done:", out, f"{n / FPS:.1f}秒")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--thumb" not in sys.argv:
     sys.exit(main())
+
+
+def thumbnail():
+    """ショート用の縦長サムネイル(1080x1920)。決戦の場面+題名。"""
+    import math  # noqa: F401
+    base = vstage()
+    d = ImageDraw.Draw(base)
+    text(d, (W / 2, 170), "新常識クロニクル", 56, TRIM, anchor="mm")
+    text(d, (W / 2, 360), "コーヒー", 190, WHITE, anchor="mm")
+    text(d, (W / 2, 560), "10年戦争", 190, WHITE, anchor="mm")
+    text(d, (W / 2, 760), "勝つのはどっち？", 96, GOOD, anchor="mm")
+    cx, cy, R = W / 2, 1400, 450
+    seats_motion(d, cx, cy, R, 51, 51, 1.0, 6)
+    for x, lab, n, c in ((cx - R * 0.72, "いい派", 51, GOOD), (cx + R * 0.72, "悪い派", 49, BAD)):
+        text(d, (x, cy + 25), lab, 56, c, anchor="ma")
+        text(d, (x, cy + 85), str(n), 120, WHITE, anchor="ma")
+    d.rounded_rectangle([cx - 210, cy - R * 0.62 - 70, cx + 210, cy - R * 0.62 + 70], radius=30, fill=(220, 60, 60), outline=WHITE, width=8)
+    text(d, (cx, cy - R * 0.62), "決戦！", 90, WHITE, anchor="mm")
+    path = os.path.join(OUT, "coffee_short_thumbnail.png")
+    os.makedirs(OUT, exist_ok=True)
+    base.save(path)
+    return path
+
+
+if __name__ == "__main__" and "--thumb" in sys.argv:
+    print(thumbnail())
