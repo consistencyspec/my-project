@@ -1,4 +1,4 @@
-"""お布施はいくら？ 物語版：「お気持ち派」vs「定額派」の論争を、出来事カードと議席でつなぐ(新常識クロニクル お布施編)。
+"""【ボツネタ・2026-11-26 公開しないと決定】お布施はいくら？ 物語版：「お気持ち派」vs「定額派」の論争を、出来事カードと議席でつなぐ(新常識クロニクル お布施編)。
 
   .venv/bin/python scripts/ofuse_story.py           -> output/ofuse_story/ofuse_story_draft.mp4(ナレーションつき)
   .venv/bin/python scripts/ofuse_story.py --script  -> content/ofuse_war_story.md(台本)だけ作り直す
