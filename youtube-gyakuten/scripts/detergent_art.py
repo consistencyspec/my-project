@@ -9,6 +9,7 @@
 import os
 import sys
 
+import numpy as np
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -256,6 +257,37 @@ def nanox_scene_elements():
     ]
 
 
+LOGOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "logos")
+
+
+def logo(d, cx, cy, s, name):
+    """ブランドのロゴ画像(assets/logos/<name>.png)を、白い角丸の台の上に置く。s は台の幅。"""
+    im = Image.open(os.path.join(LOGOS, name + ".png")).convert("RGBA")
+    # 白っぽい背景(画像のふち)は透明にして、台の白になじませる
+    a = np.array(im)
+    rgb = a[..., :3].astype(int)
+    a[(rgb.min(-1) > 220) & (rgb.max(-1) - rgb.min(-1) < 25), 3] = 0
+    im = Image.fromarray(a)
+    pad = s * 0.08
+    k = min((s - pad * 2) / im.width, (s - pad * 2) / im.height)
+    im = im.resize((int(im.width * k), int(im.height * k)), Image.LANCZOS)
+    d.rounded_rectangle([cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2], radius=28, fill=WHITE, outline=INK, width=6)
+    d._image.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
+
+
+# 「第2話 服が変わる」の場面の要素(海外・国内のファストファッションの年表)
+def fashion_scene_elements():
+    from coffee_story import words, year_tag
+    cols = [(470, "1995年", "gap", "GAPが日本に上陸"), (960, "1998年ごろ", "uniqlo", "ユニクロのフリース"),
+            (1450, "2008年", "hm", "H&Mが銀座に上陸")]
+    out = []
+    for x, y, n, cap in cols:
+        out += [lambda d, x=x, y=y: year_tag(d, x, 300, y),
+                lambda d, x=x, n=n: logo(d, x, 520, 280, n),
+                lambda d, x=x, cap=cap: words(d, x, 730, cap, 46)]
+    return out
+
+
 def main():
     from coffee_story import story_frames
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "detergent_story")
@@ -273,6 +305,11 @@ def main():
     frame, length = story_frames(3, "トップNANOX", "2010年1月 ライオン「トップNANOX」発売。においの元の皮脂汚れを落とす高濃度の液体",
                                  nanox_scene_elements(), False)
     path = os.path.join(out, "scene_2010_top_nanox.png")
+    frame(length + 1).save(path)
+    print(path)
+    frame, length = story_frames(2, "服が変わる", "1995年 GAP上陸/1998年ごろ ユニクロのフリースが大ブーム/2003年 発熱する肌着/2008年 H&M 銀座に上陸",
+                                 fashion_scene_elements(), False)
+    path = os.path.join(out, "scene_fast_fashion.png")
     frame(length + 1).save(path)
     print(path)
 
