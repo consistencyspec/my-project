@@ -351,6 +351,70 @@ def gel_scene_elements():
     ]
 
 
+# ---------- 動画用の小物 ----------
+def soap_bar(d, cx, cy, s, label="石けん"):
+    """固形石けん(角の丸い白っぽい四角)。"""
+    w, h = s, s * 0.6
+    d.rounded_rectangle([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], radius=h * 0.4, fill=(250, 236, 214), outline=INK, width=LW)
+    d.rounded_rectangle([cx - w * 0.36, cy - h * 0.3, cx + w * 0.36, cy + h * 0.3], radius=h * 0.25, outline=(214, 190, 150), width=6)
+    text(d, (cx, cy), label, int(s * 0.16), (150, 110, 60), anchor="mm")
+    for dx, dy, r in ((0.45, -0.55, 0.08), (0.58, -0.75, 0.05), (0.3, -0.8, 0.06)):
+        d.ellipse([cx + dx * w - r * s, cy + dy * h - r * s, cx + dx * w + r * s, cy + dy * h + r * s], outline=(120, 180, 230), width=5)
+
+
+def washer(d, cx, cy, s, drum=True):
+    """洗濯機。drum=True でドラム式(正面に丸い窓)、False で縦型(上にふた)。"""
+    w, h = s, s * 1.15
+    x0, y0 = cx - w / 2, cy - h / 2
+    d.rounded_rectangle([x0, y0, x0 + w, y0 + h], radius=28, fill=WHITE, outline=INK, width=LW)
+    d.line([(x0 + 8, y0 + h * 0.18), (x0 + w - 8, y0 + h * 0.18)], fill=INK, width=5)
+    for k in range(3):
+        d.ellipse([x0 + w * (0.1 + k * 0.1), y0 + h * 0.07, x0 + w * (0.16 + k * 0.1), y0 + h * 0.12], fill=SUB_INK)
+    if drum:
+        r = w * 0.32
+        c = (cx, y0 + h * 0.58)
+        d.ellipse([c[0] - r, c[1] - r, c[0] + r, c[1] + r], fill=(210, 226, 240), outline=INK, width=LW)
+        d.chord([c[0] - r * 0.8, c[1] - r * 0.8, c[0] + r * 0.8, c[1] + r * 0.8], 20, 160, fill=(140, 190, 235))
+    else:
+        d.rounded_rectangle([x0 + w * 0.15, y0 - h * 0.06, x0 + w * 0.85, y0 + h * 0.02], radius=12, fill=(220, 230, 240), outline=INK, width=6)
+        d.rounded_rectangle([x0 + w * 0.2, y0 + h * 0.3, x0 + w * 0.8, y0 + h * 0.85], radius=20, fill=(210, 226, 240), outline=INK, width=6)
+
+
+def pct_bars(d, x0, base_y, items, h=300, bw=170, gap=90):
+    """割合の棒グラフ(0〜100%)。items=[(ラベル, 値, 色)]。"""
+    for i, (lab, v, c) in enumerate(items):
+        x = x0 + i * (bw + gap)
+        top = base_y - h * v / 100
+        d.rounded_rectangle([x, top, x + bw, base_y], radius=14, fill=c, outline=INK, width=6)
+        text(d, (x + bw / 2, top - 12), f"{v:g}%", 50, INK, anchor="mb")
+        text(d, (x + bw / 2, base_y + 16), lab, 36, SUB_INK, heavy=False, anchor="ma")
+    d.line([(x0 - 30, base_y), (x0 + len(items) * (bw + gap) - gap + 30, base_y)], fill=INK, width=5)
+
+
+def ton_bars(d, x0, base_y, items, maxv, h=200, bw=110, gap=40):
+    """生産量の棒グラフ(トン)。items=[(ラベル, 値(万トン), 色)]。"""
+    for i, (lab, v, c) in enumerate(items):
+        x = x0 + i * (bw + gap)
+        top = base_y - h * v / maxv
+        d.rounded_rectangle([x, top, x + bw, base_y], radius=12, fill=c, outline=INK, width=5)
+        text(d, (x + bw / 2, top - 8), f"{v:g}万t", 32, INK, anchor="mb")
+        text(d, (x + bw / 2, base_y + 10), lab, 30, SUB_INK, heavy=False, anchor="ma")
+    d.line([(x0 - 20, base_y), (x0 + len(items) * (bw + gap) - gap + 20, base_y)], fill=INK, width=4)
+
+
+def fleece(d, cx, cy, s, color=(90, 150, 220)):
+    """フリース(ジッパーつきの上着)。"""
+    w, h = s, s * 0.9
+    x0, y0 = cx - w / 2, cy - h / 2
+    pts = [(x0 + w * 0.3, y0), (x0, y0 + h * 0.2), (x0 + w * 0.05, y0 + h), (x0 + w * 0.22, y0 + h), (x0 + w * 0.24, y0 + h * 0.45),
+           (x0 + w * 0.24, y0 + h), (x0 + w * 0.76, y0 + h), (x0 + w * 0.76, y0 + h * 0.45), (x0 + w * 0.78, y0 + h),
+           (x0 + w * 0.95, y0 + h), (x0 + w, y0 + h * 0.2), (x0 + w * 0.7, y0)]
+    d.polygon(pts, fill=color)
+    line(d, pts + [pts[0]])
+    d.rectangle([x0 + w * 0.3, y0 - h * 0.06, x0 + w * 0.7, y0 + h * 0.06], fill=color, outline=INK, width=6)
+    line(d, [(cx, y0), (cx, y0 + h)], w=6)
+
+
 def main():
     from coffee_story import story_frames
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "detergent_story")
