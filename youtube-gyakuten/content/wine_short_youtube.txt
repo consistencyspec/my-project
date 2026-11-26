@@ -21,7 +21,7 @@
 #Shorts #赤ワイン #お酒 #健康 #新常識クロニクル
 
 ■ 投稿の設定(説明欄には貼らない)
-・動画:まだ作っていない(卵・コーヒーの回のように scripts/wine_short.py を作る場合は、冒頭0.5秒に下のサムネイルを入れる)
-・表紙:output/thumbnails/wine_short.png(1080x1920)。スマホの YouTube アプリで、このコマを選ぶ
+・動画:output/wine_short/wine_short.mp4(縦・48秒)。作り方は .venv/bin/python scripts/wine_short.py
+・表紙:動画の冒頭0.5秒に縦サムネイル(output/thumbnails/wine_short.png)を入れてある。スマホの YouTube アプリで、いちばん最初のコマを選ぶ
 ・「改変または合成されたコンテンツ」:はい(合成音声)
 ・関連動画:本編を公開したら、ショートの「関連動画」に本編を設定する(画面に本編へのリンクが出る)

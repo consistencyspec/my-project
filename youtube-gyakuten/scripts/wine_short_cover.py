@@ -6,14 +6,34 @@
 import os
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from frames import BAD, GOOD, TRIM, WHITE, text  # noqa: E402
-from egg_short import W, vstage  # noqa: E402
+from frames import BAD, CURTAIN, CURTAIN_DARK, GOOD, STAGE, STAGE_LIGHT, TRIM, WHITE, text  # noqa: E402
 from egg_war import wine  # noqa: E402
 
+W, H = 1080, 1920
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "thumbnails")
+
+
+# egg_short を読み込むと卵の回の読み方の設定に変わるので、背景はここに写しておく(egg_short.vstage と同じ)
+def vstage():
+    """縦長の舞台(本編と同じ紺の舞台+赤い幕)。"""
+    im = Image.new("RGB", (W, H), STAGE)
+    light = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(light).ellipse([W * -0.1, H * 0.15, W * 1.1, H * 0.95], fill=255)
+    light = light.filter(ImageFilter.GaussianBlur(160))
+    im = Image.composite(Image.new("RGB", (W, H), STAGE_LIGHT), im, light)
+    d = ImageDraw.Draw(im)
+    d.rectangle([0, 0, W, 46], fill=CURTAIN)
+    for x in range(0, W, 80):
+        d.rectangle([x + 50, 0, x + 62, 46], fill=CURTAIN_DARK)
+    for x in range(0, W + 80, 80):
+        d.pieslice([x - 40, 6, x + 40, 86], 0, 180, fill=CURTAIN)
+        d.arc([x - 40, 6, x + 40, 86], 0, 180, fill=TRIM, width=4)
+    for x0 in (0, W - 30):
+        d.rectangle([x0, 0, x0 + 30, H], fill=CURTAIN_DARK)
+    return im
 
 
 def cover(path):
