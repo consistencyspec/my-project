@@ -288,6 +288,69 @@ def fashion_scene_elements():
     return out
 
 
+GEL_BLUE = (30, 70, 170)
+GEL_BLUE_DARK = (20, 48, 128)
+GEL_GREEN = (60, 180, 110)
+GEL_SKY = (90, 170, 235)
+
+
+def gel_pod(d, cx, cy, s):
+    """ジェルボール1粒(上から見た丸い粒。青・緑・白の3つの部屋)。s は粒の幅。"""
+    r = s / 2
+    d.ellipse([cx - r, cy - r * 0.85, cx + r, cy + r * 0.85], fill=GEL_BLUE, outline=INK, width=max(4, int(s * 0.05)))
+    d.pieslice([cx - r * 0.82, cy - r * 0.7, cx + r * 0.82, cy + r * 0.7], 200, 330, fill=GEL_GREEN)
+    d.pieslice([cx - r * 0.82, cy - r * 0.7, cx + r * 0.82, cy + r * 0.7], 330, 90, fill=WHITE)
+    d.ellipse([cx - r * 0.3, cy - r * 0.26, cx + r * 0.3, cy + r * 0.26], fill=GEL_SKY)
+    d.ellipse([cx - r * 0.55, cy - r * 0.62, cx - r * 0.25, cy - r * 0.42], fill=(255, 255, 255, 200))
+
+
+def gel_box(d, cx, cy, s, brand="アリエール", name="ジェルボール"):
+    """ジェルボールの箱(白い上部・青い胴・粒が見える窓)。s は箱の正面の幅。"""
+    w, h = s, s * 0.95
+    dep = s * 0.16
+    x0, x1 = cx - w / 2 - dep / 2, cx + w / 2 - dep / 2
+    y0, y1 = cy - h / 2 + dep / 2, cy + h / 2 + dep / 2
+    # 上の面(ふた)・側面・正面
+    d.polygon([(x0, y0), (x0 + dep, y0 - dep), (x1 + dep, y0 - dep), (x1, y0)], fill=(238, 242, 248))
+    d.polygon([(x1, y0), (x1 + dep, y0 - dep), (x1 + dep, y1 - dep), (x1, y1)], fill=GEL_BLUE_DARK)
+    d.rectangle([x0, y0, x1, y1], fill=GEL_BLUE)
+    d.rectangle([x0, y0, x1, y0 + h * 0.36], fill=WHITE)
+    d.polygon([(x1, y0), (x1 + dep, y0 - dep), (x1 + dep, y0 - dep + h * 0.36), (x1, y0 + h * 0.36)], fill=(214, 222, 236))
+    # ブランド名(青い字。ロゴの字体はまねない)と青い丸
+    bs = int(w * 0.13)
+    d.ellipse([x0 + w * 0.06, y0 + h * 0.07, x0 + w * 0.2, y0 + h * 0.21], fill=GEL_SKY, outline=GEL_BLUE, width=5)
+    text(d, (x0 + w * 0.24, y0 + h * 0.14), brand, bs, GEL_BLUE, anchor="lm")
+    ns = int(w * 0.105)
+    text(d, (x0 + w * 0.06, y0 + h * 0.28), name, ns, GEL_BLUE_DARK, anchor="lm")
+    # 窓と、中に見える粒
+    wy = y0 + h * 0.62
+    d.rounded_rectangle([x0 + w * 0.06, wy - h * 0.2, x0 + w * 0.7, wy + h * 0.2], radius=h * 0.2, fill=(200, 225, 250), outline=INK, width=5)
+    for k, (dx, dy) in enumerate(((0.2, 0.03), (0.38, -0.06), (0.55, 0.05))):
+        gel_pod(d, x0 + w * dx, wy + h * dy, w * 0.2)
+    # 右下の「洗浄力」の白い帯
+    d.rounded_rectangle([x0 + w * 0.73, wy - h * 0.08, x1 - w * 0.03, wy + h * 0.08], radius=12, fill=WHITE)
+    text(d, (x0 + w * 0.855, wy), "洗浄力", int(w * 0.06), GEL_BLUE, anchor="mm")
+    line(d, [(x0, y0), (x0 + dep, y0 - dep), (x1 + dep, y0 - dep), (x1 + dep, y1 - dep), (x1, y1), (x0, y1), (x0, y0)])
+    line(d, [(x0, y0), (x1, y0), (x1 + dep, y0 - dep)])
+    line(d, [(x1, y0), (x1, y1)])
+
+
+# 「第3話 第3の洗剤」の場面の要素(粉・液体・ジェルボール)
+def gel_scene_elements():
+    from coffee_story import chip, words, year_tag
+    return [
+        lambda d: year_tag(d, 1450, 280, "2014年"),
+        lambda d: powder_box(d, 330, 470, 170),
+        lambda d: words(d, 330, 690, "粉", 52, SUB_INK),
+        lambda d: neo_bottle(d, 640, 450, 115),
+        lambda d: words(d, 640, 690, "液体", 52, SUB_INK),
+        lambda d: gel_box(d, 1050, 470, 330),
+        lambda d: words(d, 1050, 720, "ジェルボール", 52, INK),
+        lambda d: chip(d, 1530, 470, "第3の洗剤", GOOD, 60),
+        lambda d: gel_pod(d, 1530, 620, 120),
+    ]
+
+
 def main():
     from coffee_story import story_frames
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "detergent_story")
@@ -310,6 +373,11 @@ def main():
     frame, length = story_frames(2, "服が変わる", "1995年 GAP上陸/1998年ごろ ユニクロのフリースが大ブーム/2003年 発熱する肌着/2008年 H&M 銀座に上陸",
                                  fashion_scene_elements(), False)
     path = os.path.join(out, "scene_fast_fashion.png")
+    frame(length + 1).save(path)
+    print(path)
+    frame, length = story_frames(3, "第3の洗剤", "2014年 ジェルボールが登場。粉・液体に続く「第3の洗剤」(P&G「アリエール ジェルボール」など)",
+                                 gel_scene_elements(), False)
+    path = os.path.join(out, "scene_2014_gelball.png")
     frame(length + 1).save(path)
     print(path)
 
