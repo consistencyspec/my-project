@@ -56,3 +56,30 @@ def problems(narr, audio, rate, sent=None):
     if len(got) > len(base) * 1.25 + 4:
         out.append(f"台本より長い(余計な音?) {len(got)}字/{len(base)}字")
     return [f"{p}:{heard}" for p in out]
+
+
+# ---- 笑い声・余計な音の自動チェック(2026-11-25 追加。笑い声は今後一切入れない)----
+# 1万歩の回で、最後の言葉のあとに笑い声(「フッ」など)が入ったのに気づけなかった。
+# 文字起こしには出ないことが多いので、「最後の言葉が終わったあとに大きな音があるか」で見つける。
+TAIL_RMS = 0.08   # 最後の言葉のあとの音の強さがこれを超えたら余計な音(ふつうの話し声は 0.15 前後、消え際は 0.05 未満)
+
+
+def extra_sound(audio, rate):
+    """最後の言葉のあとに笑い声などの音があれば、その秒数と強さを返す。なければ None。"""
+    m = _load()
+    if not m:
+        return None
+    import numpy as np
+    import scipy.signal as ss
+    a16 = ss.resample_poly(audio, 16000, rate) if rate != 16000 else audio
+    segs, _ = m.transcribe(a16, language="ja", beam_size=5, word_timestamps=True)
+    words = [w for s in segs for w in s.words]
+    if not words:
+        return None
+    fr = int(0.05 * rate)
+    rms = np.sqrt(np.convolve(audio ** 2, np.ones(fr) / fr, "same"))
+    t = np.arange(len(audio)) / rate
+    tail = rms[t > words[-1].end + 0.15]
+    if len(tail) and tail.max() > TAIL_RMS:
+        return float(t[t > words[-1].end + 0.15][tail.argmax()]), float(tail.max())
+    return None

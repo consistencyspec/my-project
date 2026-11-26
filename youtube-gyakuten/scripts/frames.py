@@ -27,6 +27,8 @@ SUB = (120, 126, 140)
 GOOD = (240, 128, 40)   # いい派=オレンジ
 BAD = (62, 120, 220)    # 悪い派=青
 WHITE = (255, 255, 255)
+# 2つの派の名前(左=オレンジ、右=青)。回のスクリプトで LBL[:] = ["お気持ち派", "定額派"] のように中身だけ差しかえる
+LBL = ["いい派", "悪い派"]
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "output", "frames")
@@ -199,7 +201,7 @@ def hemicycle(d, cx, cy, R, good, flip_to=None, progress=1.0):
 
 
 def seat_numbers(d, cx, cy, R, good):
-    for x, label, n, c in ((cx - R * 0.72, "いい派", good, GOOD), (cx + R * 0.72, "悪い派", 100 - good, BAD)):
+    for x, label, n, c in ((cx - R * 0.72, LBL[0], good, GOOD), (cx + R * 0.72, LBL[1], 100 - good, BAD)):
         text(d, (x, cy + R * 0.06), label, int(R * 0.12), c, anchor="ma")
         text(d, (x, cy + R * 0.2), str(n), int(R * 0.3), WHITE, anchor="ma")
 
@@ -254,7 +256,7 @@ def parliament(path, year, headline, good, flip_to=None, progress=1.0):
     cx, cy, R = W / 2, 790, 550
     hemicycle(d, cx, cy, R, good, flip_to, progress)
     shown = good if flip_to is None else round(good + (flip_to - good) * progress)
-    for x, label, n, c in ((cx - R * 0.72, "いい派", shown, GOOD), (cx + R * 0.72, "悪い派", 100 - shown, BAD)):
+    for x, label, n, c in ((cx - R * 0.72, LBL[0], shown, GOOD), (cx + R * 0.72, LBL[1], 100 - shown, BAD)):
         text(d, (x, cy + 30), label, 52, c, anchor="ma")
         text(d, (x, cy + 86), str(n), 112, WHITE, anchor="ma")
     im.save(path)
