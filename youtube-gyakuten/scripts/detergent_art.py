@@ -1,7 +1,7 @@
 """液体洗剤の回のイラスト(丸みのある線画。線の太さをそろえ、色は少しだけ塗る)。
 
 どれも (d, cx, cy, s) で、(cx, cy) が絵のまん中、s がだいたいの幅。
-  .venv/bin/python scripts/detergent_art.py  -> output/detergent_story/ の 1:41(アタック)・2:53(アタックNeo)の場面の見本
+  .venv/bin/python scripts/detergent_art.py  -> output/detergent_story/ の 1:41(アタック)・2:53(アタックNeo)・トップNANOX の場面の見本
 
 商品の写真やロゴはそのまま使わず、番組の線画の絵柄で「それとわかる」程度に描く
 (緑の箱・取っ手・白い帯・紺の文字・赤と黄色の線)。
@@ -199,6 +199,63 @@ def neo_scene_elements():
     ]
 
 
+NANO_BLUE = (30, 110, 200)
+NANO_LIGHT = (200, 228, 248)
+
+
+def nanox_bottle(d, cx, cy, s, name="NANOX", kana="ナノックス", brand="トップ"):
+    """2010年の高濃度の液体洗剤(白くて丸みのあるボトル・白いキャップ・青い NANOX)。s はボトルの幅。"""
+    w, h = s, s * 1.55
+    x0, x1 = cx - w / 2, cx + w / 2
+    y0, y1 = cy - h / 2, cy + h / 2
+    # キャップ(白に水色の帯)
+    cw_, ch = w * 0.66, h * 0.14
+    d.rounded_rectangle([cx - cw_ / 2, y0, cx + cw_ / 2, y0 + ch], radius=22, fill=WHITE, outline=INK, width=LW - 2)
+    d.rectangle([cx - cw_ / 2 + 6, y0 + ch * 0.62, cx + cw_ / 2 - 6, y0 + ch * 0.8], fill=NANO_LIGHT)
+    # 胴(丸い肩)
+    by0 = y0 + ch - 4
+    d.rounded_rectangle([x0, by0, x1, y1], radius=w * 0.22, fill=WHITE, outline=INK, width=LW)
+    # 下の水色
+    d.rounded_rectangle([x0 + 8, y1 - h * 0.17, x1 - 8, y1 - 8], radius=w * 0.15, fill=NANO_LIGHT)
+    d.line([(x0 + 10, y1 - h * 0.17), (x1 - 10, y1 - h * 0.17)], fill=INK, width=4)
+    # 赤い小さなブランド名(左上。ロゴの形はまねない)
+    bs = int(w * 0.11)
+    bw = d.textlength(brand, font=font(bs)) + bs * 0.8
+    bx, byy = x0 + w * 0.1, by0 + h * 0.1
+    d.rounded_rectangle([bx, byy - bs * 0.7, bx + bw, byy + bs * 0.7], radius=bs * 0.7, fill=RED)
+    text(d, (bx + bw / 2, byy), brand, bs, WHITE, anchor="mm")
+    # 青い細い文字の帯(キャッチコピーの代わり)
+    for k in range(2):
+        yy = byy + h * (0.08 + k * 0.045)
+        d.line([(x0 + w * 0.18, yy), (x1 - w * 0.12, yy)], fill=NANO_LIGHT, width=8)
+    # かな と NANOX
+    ky = by0 + h * 0.36
+    text(d, (cx, ky), kana, int(w * 0.09), NANO_BLUE, anchor="mm")
+    ns = int(w * 0.3)
+    while d.textlength(name, font=font(ns)) > w * 0.84:
+        ns -= 1
+    text(d, (cx, ky + ns * 0.85), name, ns, NANO_BLUE, anchor="mm")
+    # 「高濃度」の小さな帯
+    py = ky + ns * 1.75
+    d.rounded_rectangle([cx - w * 0.28, py - w * 0.065, cx + w * 0.28, py + w * 0.065], radius=w * 0.065, fill=NANO_BLUE)
+    text(d, (cx, py), "高濃度", int(w * 0.085), WHITE, anchor="mm")
+
+
+# 「第3話 トップNANOX」の場面の要素(アタックNeo と並べてライバルに見せる)
+def nanox_scene_elements():
+    from coffee_story import chip, words, year_tag
+    return [
+        lambda d: year_tag(d, 1420, 280, "2010年1月"),
+        lambda d: neo_bottle(d, 420, 440, 150),
+        lambda d: words(d, 420, 690, "2009年 花王", 40, SUB_INK),
+        lambda d: words(d, 640, 470, "VS", 96, RED),
+        lambda d: nanox_bottle(d, 900, 450, 280),
+        lambda d: words(d, 900, 720, "2010年 ライオン", 44, INK),
+        lambda d: chip(d, 1420, 440, "皮脂汚れを落とす", GOOD, 52),
+        lambda d: chip(d, 1420, 600, "高濃度の液体", GOOD, 52),
+    ]
+
+
 def main():
     from coffee_story import story_frames
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output", "detergent_story")
@@ -211,6 +268,11 @@ def main():
     frame, length = story_frames(3, "アタックNeo", "2009年8月 花王「アタックNeo」発売。約2.5倍に濃縮・すすぎ1回でOK・400gで従来の液体1kg分",
                                  neo_scene_elements(), False)
     path = os.path.join(out, "scene_2009_attack_neo.png")
+    frame(length + 1).save(path)
+    print(path)
+    frame, length = story_frames(3, "トップNANOX", "2010年1月 ライオン「トップNANOX」発売。においの元の皮脂汚れを落とす高濃度の液体",
+                                 nanox_scene_elements(), False)
+    path = os.path.join(out, "scene_2010_top_nanox.png")
     frame(length + 1).save(path)
     print(path)
 
