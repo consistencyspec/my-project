@@ -399,12 +399,13 @@ def rules_card(path):
     im.save(path)
 
 
-def final_frame(good, t):
+def final_frame(good, t, note="ほとんどが観察研究：因果関係はまだ証明されていない"):
     im, d = stage()
     text(d, (W / 2, 160), "最終結果", 80, TRIM, anchor="mm")
     cx, cy, R = W / 2, 720, 470
     hemicycle(d, cx, cy, R, good)
-    for x, lab, n, c in ((cx - R * 0.72, "いい派", good, GOOD), (cx + R * 0.72, "悪い派", 100 - good, BAD)):
+    from motion import LABELS
+    for x, lab, n, c in ((cx - R * 0.72, LABELS[0], good, GOOD), (cx + R * 0.72, LABELS[1], 100 - good, BAD)):
         text(d, (x, cy + 30), lab, 52, c, anchor="ma")
         text(d, (x, cy + 86), str(n), 112, WHITE, anchor="ma")
     # 「当選確実」のハンコ → 押されそうになって止まる
@@ -419,7 +420,7 @@ def final_frame(good, t):
             text(d, (sx, sy + 45 * sc), "まだ出せない", int(40 * sc), WHITE, anchor="mm")
     a = seg(t, 2.0, 2.5)
     if a > 0:
-        text(d, (cx, 985), "ほとんどが観察研究：因果関係はまだ証明されていない", 40,
+        text(d, (cx, 985), note, 40,
              tuple(int(255 * a + 40 * (1 - a)) for _ in range(3)), heavy=False, anchor="mm")
     return im
 
