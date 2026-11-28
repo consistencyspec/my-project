@@ -101,6 +101,8 @@ def voice_text(narr):
           .replace("41%", "ヨンジュウイチパーセント").replace("青柳幸利", "アオヤギユキトシ"))
     # 2回目の指摘(2026-11-24):3月=サンガツ、7万8千人=ナナマンハッセンニン、「は約」=ワヤク(「早く」と聞こえた)
     t = t.replace("3月", "サンガツ").replace("約7万8千人", "約ななまんはっせんにん").replace("については約", "についてわ約")
+    # 4回目の指摘(2026-11-28):群馬県中之条町=ぐんまけん、なかのじょうまち(群馬県のあとに少しの間)
+    t = t.replace("群馬県の中之条町", "ぐんまけん、なかのじょうまち")
     # 歩数:「6,000歩から8,000歩」「1万2千歩」「1万歩」→ カタカナ(1万歩=イチマンポ)
     t = re.sub(r"([\d,]+万?(?:\d+千)?)歩", lambda m: steps_voice(narrate.jp_number(m.group(1))), t)
     # 数字+人 → 漢数字+「にん」(赤ワインの回で「ヒト」と読まれたのを直した書き方)
@@ -119,6 +121,19 @@ def _steps_voice_for(i, narr, cache, emotion=None, fresh=False):
 
 
 cs.voice_for = _steps_voice_for
+
+# 場面だけの読み方辞書(その場面の声だけ変わる。ほかの場面の声は作り直さない)
+# 4回目の指摘(2026-11-28):3:44・4:01 の「必要派」の派を「は」と読ませる。かなの「は」は助詞の「わ」、カタカナ1文字は笑い声になるので、辞書で指定する
+SCENE_TONE = {"必要派も黙って": ["必要派/ひつようは"]}
+_mm_tone = narrate.mm_tone
+
+
+def _scene_tone(text):
+    extra = [e for k, v in SCENE_TONE.items() if k in text for e in v]
+    return _mm_tone(text) + extra if extra else _mm_tone(text)
+
+
+narrate.mm_tone = _scene_tone
 cs.STEP_COLORS.update({"どうやって？": BAD, "なぜ調べた？": INK, "結果": GOOD, "なぜ1万？": BAD})
 
 
