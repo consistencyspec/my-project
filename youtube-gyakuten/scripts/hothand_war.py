@@ -329,18 +329,66 @@ def theory_slide(path):
     im.save(path)
 
 
+def coin_rule_slide(path):
+    """数え方の例:表 表 裏 表 → 表の次は2回(表・裏)→ 表の次も表は1回 → 50%。"""
+    im, d = stage()
+    panel(d, (140, 130, W - 140, 990))
+    text(d, (W / 2, 210), "問題:表が出たら、その次も表が出る割合は？", 58, INK, anchor="mm")
+    text(d, (W / 2, 290), "コインを4回投げて、並びごとに数えてみる", 40, SUB, heavy=False, anchor="mm")
+    seq = "表表裏表"
+    xs = [560 + i * 270 for i in range(4)]
+    for i, f in enumerate(seq):
+        text(d, (xs[i], 380), f"{i + 1}回目", 34, SUB, heavy=False, anchor="mm")
+        coin(d, xs[i], 480, 70, f, counted=(i > 0 and seq[i - 1] == "表"))
+    # 表 → 次 の矢印と判定
+    for i in range(3):
+        if seq[i] != "表":
+            continue
+        x0, x1 = xs[i] + 30, xs[i + 1] - 30
+        d.arc([x0, 560, x1, 680], 0, 180, fill=GOOD, width=7)
+        ok = seq[i + 1] == "表"
+        text(d, ((x0 + x1) / 2, 720), "表 → 表 ○" if ok else "表 → 裏 ×", 40, GOOD if ok else BAD, anchor="mm")
+    text(d, (xs[3], 720), "(最後は次がない)", 30, SUB, heavy=False, anchor="mm")
+    d.rounded_rectangle([W / 2 - 560, 800, W / 2 + 560, 900], radius=50, fill=GOOD)
+    text(d, (W / 2, 850), "この並びは  表の次が2回、そのうち表が1回 → 50%", 46, WHITE, anchor="mm")
+    text(d, (W / 2, 950), "これを16通りの並び全部でやって、割合を平均する", 36, INK, anchor="mm")
+    im.save(path)
+
+
+def coin_why_slide(path):
+    """まとめて数えると50%、並びごとの割合を平均すると約40%。"""
+    im, d = stage()
+    panel(d, (140, 130, W - 140, 990))
+    text(d, (W / 2, 210), "なぜ50%にならないの？", 64, INK, anchor="mm")
+    for i, (head, a, b, c) in enumerate([
+            ("全部まとめて数えると", "表の次は 全部で24回", "そのうち表は12回", "50%"),
+            ("並びごとに割合を出して平均すると", "表表表表 → 3回とも○", "でも「100%」1つ分", "約40%")]):
+        x0 = 210 + i * 760
+        d.rounded_rectangle([x0, 290, x0 + 740, 720], radius=30, outline=GOOD if i == 0 else BAD, width=6)
+        text(d, (x0 + 370, 350), head, 40, INK, anchor="mm")
+        text(d, (x0 + 370, 450), a, 40, INK, heavy=False, anchor="mm")
+        text(d, (x0 + 370, 520), b, 40, INK, heavy=False, anchor="mm")
+        text(d, (x0 + 370, 640), c, 100, SUB if i == 0 else BAD, anchor="mm")
+    lines = ["表が続いた並びは、何回成功しても「100%」1つにまとめられる。",
+             "表のすぐ後に裏が来る並びは「0%」として、たくさん数えられる。",
+             "→ 平均すると、表の次の成功率が低く見えてしまう"]
+    for k, t in enumerate(lines):
+        text(d, (W / 2, 790 + k * 62), t, 38, GOOD if k == 2 else INK, anchor="mm")
+    im.save(path)
+
+
 def coin_slide(path):
     """コイン4回:表の直後の表の割合を、並びごとに出して平均すると約40%。表=金・裏=灰青、数える回にオレンジの輪。"""
     im, d = stage()
     panel(d, (140, 120, W - 140, 1000))
-    text(d, (W / 2, 190), "コインを4回投げて「表の直後」だけを見ると…", 54, INK, anchor="mm")
+    text(d, (W / 2, 190), "全16通りのうち、表の次がある14通りで割合を出すと…", 54, INK, anchor="mm")
     # 凡例
     coin(d, 520, 262, 22, "表")
     text(d, (556, 262), "表", 34, INK, anchor="lm")
     coin(d, 680, 262, 22, "裏")
     text(d, (716, 262), "裏", 34, INK, anchor="lm")
     coin(d, 860, 262, 22, "表", counted=True)
-    text(d, (900, 262), "＝数える回(表の直後)", 34, GOOD, anchor="lm")
+    text(d, (900, 262), "＝表の次の回(ここが表なら成功)", 34, GOOD, anchor="lm")
     seqs = []
     for k in range(16):
         q = "".join("表" if (k >> (3 - i)) & 1 else "裏" for i in range(4))
@@ -358,9 +406,11 @@ def coin_slide(path):
         text(d, (x + 300, y), f"{hit}/{n}", 34, SUB, heavy=False, anchor="lm")
         text(d, (x + 560, y), f"{round(pct * 100)}%", 44, c, anchor="rm")
     avg = sum(h / n for _, h, n in seqs) / len(seqs)
+    for col in (0, 1):
+        text(d, (250 + col * 800 + 300, 300), "表の次も表", 24, SUB, heavy=False, anchor="lm")
     d.line([(W / 2, 315), (W / 2, 860)], fill=(222, 218, 210), width=3)
-    d.rounded_rectangle([W / 2 - 450, 900, W / 2 + 450, 975], radius=38, fill=GOOD)
-    text(d, (W / 2, 938), f"14通りの平均 = 約{round(avg * 100)}%(50%にならない)", 46, WHITE, anchor="mm")
+    d.rounded_rectangle([W / 2 - 600, 900, W / 2 + 600, 975], radius=38, fill=GOOD)
+    text(d, (W / 2, 938), f"14通りの割合を平均すると 約{round(avg * 100)}%(50%にならない)", 46, WHITE, anchor="mm")
     im.save(path)
 
 
@@ -427,7 +477,9 @@ def main():
         if year == "1985":
             theory_slide(p(f"{i + 2:02d}_0_theory.png"))
         if year == "2015":
-            coin_slide(p(f"{i + 2:02d}_0_coin.png"))
+            coin_rule_slide(p(f"{i + 2:02d}_0a_coin_rule.png"))
+            coin_slide(p(f"{i + 2:02d}_0b_coin_table.png"))
+            coin_why_slide(p(f"{i + 2:02d}_0c_coin_why.png"))
         study_card(p(f"{i + 2:02d}_1_{year}.png"), year, country, kind, title, facts, picto, before, after,
                    delta_label(before, after), source)
         if year in flash:
