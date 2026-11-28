@@ -97,9 +97,22 @@ def baseball(d, cx, cy, r):
     d.arc([cx + r * 0.4, cy - r, cx + r * 1.6, cy + r], 125, 235, fill=RED, width=6)
 
 
-def coin(d, cx, cy, r, face="表"):
-    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=GOLD, outline=INK, width=LW)
-    text(d, (cx, cy), face, int(r * 1.0), INK, anchor="mm")
+URA = (92, 104, 128)        # 裏=濃い灰青(表=金と見分けやすく)
+DIM_OMOTE = (246, 228, 180)  # 数えない回は薄く
+DIM_URA = (196, 202, 214)
+
+
+def coin(d, cx, cy, r, face="表", counted=None):
+    """表=金に黒文字/裏=灰青に白文字。counted=True で「数える回」のオレンジの輪、False で薄く表示。"""
+    omote = face == "表"
+    if counted is False:
+        fill, ink, edge = (DIM_OMOTE if omote else DIM_URA), (170, 170, 180) if omote else WHITE, (200, 200, 210)
+    else:
+        fill, ink, edge = (GOLD if omote else URA), (INK if omote else WHITE), INK
+    if counted:
+        d.ellipse([cx - r - 9, cy - r - 9, cx + r + 9, cy + r + 9], outline=GOOD, width=7)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=fill, outline=edge, width=max(3, int(r * 0.12)))
+    text(d, (cx, cy), face, int(r * 1.0), ink, anchor="mm")
 
 
 def fire(d, cx, cy, s):
@@ -177,13 +190,14 @@ def p_1985(d):
 
 
 def p_coin(d):
-    for i, f in enumerate("表表裏表"):
-        coin(d, 200 + i * 115, 640, 48, f)
-    text(d, (370, 750), "表の直後だけを見る", 34, INK, anchor="mm")
+    seq = "表表裏表"
+    for i, f in enumerate(seq):
+        coin(d, 200 + i * 115, 640, 46, f, counted=(i > 0 and seq[i - 1] == "表"))
+    text(d, (370, 752), "表の直後(○)だけ数える", 32, INK, anchor="mm")
     arrow(d, 640, 720, 650)
-    text(d, (860, 610), "50%", 50, SUB, anchor="mm")
-    big_x(d, 860, 610, 40, RED)
-    text(d, (860, 710), "約40%", 70, GOOD, anchor="mm")
+    text(d, (860, 600), "50%", 50, SUB, anchor="mm")
+    line(d, [(800, 606), (920, 606)], RED, 8)
+    text(d, (860, 700), "約40%", 70, GOOD, anchor="mm")
 
 
 def p_volley(d):
@@ -316,24 +330,37 @@ def theory_slide(path):
 
 
 def coin_slide(path):
-    """コイン4回:表の直後の表の割合を、並びごとに出して平均すると約40%。"""
+    """コイン4回:表の直後の表の割合を、並びごとに出して平均すると約40%。表=金・裏=灰青、数える回にオレンジの輪。"""
     im, d = stage()
-    panel(d, (140, 130, W - 140, 990))
-    text(d, (W / 2, 205), "コインを4回投げて「表の直後」だけを見ると…", 54, INK, anchor="mm")
+    panel(d, (140, 120, W - 140, 1000))
+    text(d, (W / 2, 190), "コインを4回投げて「表の直後」だけを見ると…", 54, INK, anchor="mm")
+    # 凡例
+    coin(d, 520, 262, 22, "表")
+    text(d, (556, 262), "表", 34, INK, anchor="lm")
+    coin(d, 680, 262, 22, "裏")
+    text(d, (716, 262), "裏", 34, INK, anchor="lm")
+    coin(d, 860, 262, 22, "表", counted=True)
+    text(d, (900, 262), "＝数える回(表の直後)", 34, GOOD, anchor="lm")
     seqs = []
     for k in range(16):
-        s = "".join("表" if (k >> (3 - i)) & 1 else "裏" for i in range(4))
-        after = [s[i + 1] for i in range(3) if s[i] == "表"]
+        q = "".join("表" if (k >> (3 - i)) & 1 else "裏" for i in range(4))
+        after = [q[i + 1] for i in range(3) if q[i] == "表"]
         if after:
-            seqs.append((s, sum(a == "表" for a in after) / len(after)))
-    for j, (s, p) in enumerate(seqs):
-        col, row = j % 2, j // 2
-        x, y = 260 + col * 720, 290 + row * 72
-        text(d, (x, y), " ".join(s), 40, INK, anchor="lm")
-        text(d, (x + 360, y), f"{round(p * 100)}%", 40, GOOD if p > 0.5 else (BAD if p < 0.5 else SUB), anchor="lm")
-    avg = sum(p for _, p in seqs) / len(seqs)
-    d.rounded_rectangle([W / 2 - 430, 880, W / 2 + 430, 960], radius=40, fill=GOOD)
-    text(d, (W / 2, 920), f"14通りの平均 = 約{round(avg * 100)}%(50%にならない)", 46, WHITE, anchor="mm")
+            seqs.append((q, sum(a == "表" for a in after), len(after)))
+    seqs.sort(key=lambda t: t[1] / t[2])
+    for j, (q, hit, n) in enumerate(seqs):
+        col, row = j // 7, j % 7
+        x, y = 250 + col * 800, 345 + row * 78
+        for i, f in enumerate(q):
+            coin(d, x + i * 70, y, 26, f, counted=(i > 0 and q[i - 1] == "表"))
+        pct = hit / n
+        c = GOOD if pct > 0.5 else (BAD if pct < 0.5 else SUB)
+        text(d, (x + 300, y), f"{hit}/{n}", 34, SUB, heavy=False, anchor="lm")
+        text(d, (x + 560, y), f"{round(pct * 100)}%", 44, c, anchor="rm")
+    avg = sum(h / n for _, h, n in seqs) / len(seqs)
+    d.line([(W / 2, 315), (W / 2, 860)], fill=(222, 218, 210), width=3)
+    d.rounded_rectangle([W / 2 - 450, 900, W / 2 + 450, 975], radius=38, fill=GOOD)
+    text(d, (W / 2, 938), f"14通りの平均 = 約{round(avg * 100)}%(50%にならない)", 46, WHITE, anchor="mm")
     im.save(path)
 
 
