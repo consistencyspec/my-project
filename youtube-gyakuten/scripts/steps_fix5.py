@@ -4,7 +4,8 @@ A = 数字のまま送り、読み方辞書で「2007年/にせんななねん�
 B = 数字+辞書で、「には」を「に」にして年と助詞を離す(声だけ。字幕は変えない)
 C = 漢字「二千七年」+辞書「二千七年/にせんななねん」
 どれも voice_check.extra_sound() で笑い声などを調べ、あるものは捨てる。
-  .venv/bin/python scripts/steps_fix5.py   -> output/steps_story/fix5/09_A〜C.mp3 と voice_fix5.zip
+  .venv/bin/python scripts/steps_fix5.py        -> output/steps_story/fix5/09_A〜C.mp3
+  .venv/bin/python scripts/steps_fix5.py fix6   -> output/steps_story/fix6/09_A〜C.mp3(ナナとネンの間に短い間)
 """
 import os
 import shutil
@@ -17,16 +18,21 @@ import voice_check  # noqa: E402
 import soundfile as sf  # noqa: E402
 from narrate import RATE  # noqa: E402
 
-OUT = os.path.join(ss.OUT, "fix5")
+OUT = os.path.join(ss.OUT, sys.argv[1] if len(sys.argv) > 1 else "fix5")
 os.makedirs(OUT, exist_ok=True)
 plan = ss.build_plan()
 narr = plan[9][3][2]
 base = ss.voice_text(narr)   # 「にせんななねんには、…」
 ss.SCENE_TONE["2007年に"] = ["2007年/にせんななねん"]
 ss.SCENE_TONE["二千七年には"] = ["二千七年/にせんななねん"]
-VARIANTS = {"A": base.replace("にせんななねんには", "2007年には"),
-            "B": base.replace("にせんななねんには", "2007年に"),
-            "C": base.replace("にせんななねんには", "二千七年には")}
+if "fix6" in OUT:   # 6回目(2026-11-28):上の3本も「とし」。ナナとネンの間にごく短い間(8を「ハチ」にしたのと同じやり方)
+    VARIANTS = {"A": base.replace("にせんななねんには", "ニセンナナ<#0.03#>ネンには"),
+                "B": base.replace("にせんななねんには", "にせんなな<#0.03#>ねんには"),
+                "C": base.replace("にせんななねんには、", "ニセンナナ<#0.03#>ネン。")}
+else:
+    VARIANTS = {"A": base.replace("にせんななねんには", "2007年には"),
+                "B": base.replace("にせんななねんには", "2007年に"),
+                "C": base.replace("にせんななねんには", "二千七年には")}
 tmp = os.path.join(OUT, "_cache")
 for c, text in VARIANTS.items():
     for k in range(6):
